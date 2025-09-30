@@ -544,8 +544,26 @@ const AdaptiveAssessment = () => {
               <div className="text-gray-300">
                 Welcome, <span className="text-white font-medium">{currentUser?.username}</span>
               </div>
+              {/*<button*/}
+              {/*  onClick={() => {*/}
+              {/*    setShowLogin(true);*/}
+              {/*    setCurrentUser(null);*/}
+              {/*    setCurrentSession(null);*/}
+              {/*    setCurrentQuestion(null);*/}
+              {/*    setAssessmentComplete(false);*/}
+              {/*    setResults(null);*/}
+              {/*    setLiveResponses([]);*/}
+              {/*    setQuestionDifficulties([]);*/}
+              {/*    setCurrentQuestionDifficulty(null);*/}
+              {/*    setUsername(''); // Clear username*/}
+              {/*  }}*/}
+              {/*  className="text-gray-400 hover:text-white transition-colors"*/}
+              {/*>*/}
+              {/*  Logout*/}
+              {/*</button>*/}
               <button
                 onClick={() => {
+                  // Reset all states properly
                   setShowLogin(true);
                   setCurrentUser(null);
                   setCurrentSession(null);
@@ -555,7 +573,11 @@ const AdaptiveAssessment = () => {
                   setLiveResponses([]);
                   setQuestionDifficulties([]);
                   setCurrentQuestionDifficulty(null);
-                  setUsername(''); // Clear username
+                  setUsername('');
+                  setSelectedOption('');
+                  setLoading(false);  // Add this - reset loading state
+                  setError(null);      // Add this - clear any errors
+                  setUserStats(null);  // Add this - clear user stats
                 }}
                 className="text-gray-400 hover:text-white transition-colors"
               >
