@@ -674,7 +674,7 @@ const AdaptiveAssessment = () => {
                 </div>
                 <div className="mt-2 text-sm text-gray-400">
                   θ = {displayTheta.toFixed(2)}
-                  {currentSession && `, SEM = ${currentSession.sem?.toFixed(3)}`}
+                  {currentSession && `, SEM = ${currentSession.sem?.toFixed(2)}`}
                 </div>
               </div>
             </div>

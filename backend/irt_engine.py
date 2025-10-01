@@ -1,25 +1,19 @@
 """
-Enhanced IRT (Item Response Theory) Engine for Adaptive Assessment - FIXED VERSION
+Enhanced IRT (Item Response Theory) Engine for Adaptive Assessment - PRODUCTION READY
 
-FIXES APPLIED:
-1. Theta updates now use cumulative response history for stability
-2. Added early assessment protection (first 5 questions have limited theta changes)
-3. Implemented adaptive smoothing that starts conservative and becomes more responsive
-4. Added theta velocity damping to prevent rapid jumps
-5. Enforced strict single-tier progression limits
-6. Added cumulative update method for proper theta estimation
+FINAL FIXES APPLIED:
+1. Calibrated proportional anticipation (1.5x real theta change limits)
+2. Response time weighted Fisher Information (optional)
+3. Proper difficulty progression with minimum constraints
+4. Single-tier progression enforced
+5. Conservative theta updates preserved
 
-Key Changes from Original:
-- update_theta now uses ALL responses for calculation, not just the latest
-- Early questions (1-5) have maximum theta change of 0.2
-- Smoothing alpha starts at 0.3 and gradually increases to 0.7
-- Tier changes are strictly limited to one level at a time
-- Added theta_velocity tracking to dampen oscillations
-
-The progression should now be much more gradual:
-- Beginner (-1.5) → Intermediate (-0.5 to 0) after ~8-10 questions
-- Intermediate → Advanced (0.5 to 1.0) after ~15-20 questions
-- Advanced → Expert (1.5+) after ~25+ questions
+Key Features:
+- Anticipated theta scales with actual update limits
+- Optional response time integration: I / log(RT)
+- Symmetric handling of upward/downward progression
+- Tier boundary protection in anticipation
+- All contracts and constraints honored
 """
 
 import math
@@ -52,6 +46,8 @@ class AdaptiveConfig:
     tier_change_aggressive: bool
     enable_content_balancing: bool = True
     enable_response_time: bool = False
+    enable_rt_weighted_information: bool = False  # NEW: RT-weighted Fisher Info
+    anticipation_multiplier: float = 1.5  # NEW: Configurable anticipation
 
     @classmethod
     def get_config(cls, purpose: TestPurpose):
@@ -62,21 +58,30 @@ class AdaptiveConfig:
                 max_questions=15,
                 target_sem=0.5,
                 tier_change_aggressive=True,
-                enable_content_balancing=False
+                enable_content_balancing=False,
+                enable_response_time=False,
+                enable_rt_weighted_information=False,
+                anticipation_multiplier=1.3  # More conservative for screening
             ),
             TestPurpose.DIAGNOSTIC: cls(
                 min_questions=15,
                 max_questions=40,
                 target_sem=0.25,
                 tier_change_aggressive=False,
-                enable_content_balancing=True
+                enable_content_balancing=True,
+                enable_response_time=True,
+                enable_rt_weighted_information=True,
+                anticipation_multiplier=1.5  # Moderate for diagnostic
             ),
             TestPurpose.PLACEMENT: cls(
                 min_questions=10,
                 max_questions=25,
                 target_sem=0.35,
                 tier_change_aggressive=False,
-                enable_content_balancing=True
+                enable_content_balancing=True,
+                enable_response_time=False,
+                enable_rt_weighted_information=False,
+                anticipation_multiplier=1.5
             )
         }
         return configs.get(purpose, configs[TestPurpose.DIAGNOSTIC])
@@ -84,17 +89,16 @@ class AdaptiveConfig:
 
 class IRTEngine:
     """
-    Fixed version with proper theta progression for adaptive assessment.
+    Production-ready IRT engine with calibrated anticipation and optional RT weighting.
 
-    Major fixes:
-    - Theta updates use cumulative response history
-    - Early assessment protection limits initial theta changes
-    - Adaptive smoothing prevents rapid jumps
-    - Strict tier progression (one tier at a time)
+    Key contracts honored:
+    - Theta updates: Conservative (±0.2 early, ±0.3 later)
+    - Tier progression: Single-step only (C1→C2, never C1→C3)
+    - Bounds: [-3.0, 3.0] strictly enforced
+    - Early protection: First 5 questions limited to ±0.2
     """
 
     def __init__(self, config=None, test_purpose: TestPurpose = TestPurpose.DIAGNOSTIC):
-        # Handle both dictionary config and object config
         if config is None:
             config = get_default_config()
 
@@ -102,10 +106,7 @@ class IRTEngine:
         self.test_purpose = test_purpose
         self.adaptive_config = AdaptiveConfig.get_config(test_purpose)
 
-        # Track current theta throughout assessment
         self.current_theta = None
-
-        # FIX: Add theta velocity tracking for damping
         self.theta_velocity = 0.0
         self.velocity_damping = 0.5
 
@@ -115,8 +116,10 @@ class IRTEngine:
                 irt_config = config['irt_config']
                 tier_config = config['tier_config']
             elif 'get_irt_config' in config and 'get_tier_config' in config:
-                irt_config = config['get_irt_config']() if callable(config['get_irt_config']) else config['get_irt_config']
-                tier_config = config['get_tier_config']() if callable(config['get_tier_config']) else config['get_tier_config']
+                irt_config = config['get_irt_config']() if callable(config['get_irt_config']) else config[
+                    'get_irt_config']
+                tier_config = config['get_tier_config']() if callable(config['get_tier_config']) else config[
+                    'get_tier_config']
             else:
                 irt_config = config
                 tier_config = get_default_config()['tier_config']
@@ -127,10 +130,10 @@ class IRTEngine:
             except AttributeError:
                 if hasattr(config, 'irt_config'):
                     irt_config = config.irt_config
-                    tier_config = config.tier_config if hasattr(config, 'tier_config') else get_default_config()['tier_config']
+                    tier_config = config.tier_config if hasattr(config, 'tier_config') else get_default_config()[
+                        'tier_config']
                 else:
-                    raise ValueError("Config must be a dict with 'irt_config' and 'tier_config' keys, "
-                                   "or an object with get_irt_config() and get_tier_config() methods")
+                    raise ValueError("Config must be a dict with 'irt_config' and 'tier_config' keys")
 
         # Load configuration values
         self.target_sem = self.adaptive_config.target_sem
@@ -138,24 +141,21 @@ class IRTEngine:
         self.min_questions = self.adaptive_config.min_questions
 
         self.history_window = irt_config["history_window"]
-        # FIX: Reduce max theta change for more gradual progression
-        self.max_theta_change = irt_config.get("max_theta_change", 0.3)  # Reduced from 0.5
-        self.theta_jump = irt_config.get("theta_jump", 0.4)  # Reduced from 0.8
+        self.max_theta_change = irt_config.get("max_theta_change", 0.3)
+        self.theta_jump = irt_config.get("theta_jump", 0.4)
         self.consecutive_same_responses = irt_config["consecutive_same_responses"]
         self.theta_bounds = irt_config["theta_bounds"]
         self.newton_raphson_iterations = irt_config["newton_raphson_iterations"]
         self.convergence_threshold = irt_config["convergence_threshold"]
-        # FIX: Start with lower smoothing for stability
         self.base_exponential_smoothing_alpha = irt_config.get("exponential_smoothing_alpha", 0.7)
-        self.exponential_smoothing_alpha = 0.3  # Start conservative
+        self.exponential_smoothing_alpha = 0.3
         self.enable_consecutive_jumps = irt_config["enable_consecutive_jumps"]
 
-        # Conservative tier progression settings - INCREASED minimums
-        self.tier_promotion_window = irt_config.get("tier_promotion_window", 10)  # Increased from 8
-        self.tier_promotion_threshold = irt_config.get("tier_promotion_threshold", 7)  # Increased from 6
-        self.tier_demotion_window = irt_config.get("tier_demotion_window", 10)  # Increased from 8
-        self.tier_demotion_threshold = irt_config.get("tier_demotion_threshold", 3)  # Slightly increased
-        self.min_questions_before_tier_change = irt_config.get("min_questions_before_tier_change", 10)  # Increased
+        self.tier_promotion_window = irt_config.get("tier_promotion_window", 10)
+        self.tier_promotion_threshold = irt_config.get("tier_promotion_threshold", 7)
+        self.tier_demotion_window = irt_config.get("tier_demotion_window", 10)
+        self.tier_demotion_threshold = irt_config.get("tier_demotion_threshold", 3)
+        self.min_questions_before_tier_change = irt_config.get("min_questions_before_tier_change", 10)
 
         # Tier mappings from config
         self.tier_theta_ranges = tier_config["theta_ranges"]
@@ -163,13 +163,13 @@ class IRTEngine:
         self.tier_difficulty_ranges = tier_config["difficulty_ranges"]
         self.initial_theta_map = tier_config["initial_theta_map"]
 
-        # Newton-Raphson safety constants - MORE CONSERVATIVE
-        self.ABSOLUTE_MAX_TOTAL_CHANGE = 1.0  # Reduced from 1.5
+        # Newton-Raphson safety constants
+        self.ABSOLUTE_MAX_TOTAL_CHANGE = 1.0
         self.MIN_SECOND_DERIVATIVE = 1e-6
-        self.MAX_SINGLE_STEP = 0.5  # Reduced from 0.8
+        self.MAX_SINGLE_STEP = 0.5
         self.PROBABILITY_EPSILON = 1e-4
 
-        # FIX: Add early assessment protection
+        # CONTRACT: Early questions protection
         self.EARLY_QUESTIONS_COUNT = 5
         self.EARLY_QUESTIONS_MAX_CHANGE = 0.2
 
@@ -182,34 +182,40 @@ class IRTEngine:
 
         # Response time tracking
         self.response_times = []
+        self.question_response_times = []  # NEW: Track RT per question
 
         # Theta history for stability analysis
         self.theta_history = []
 
-        # FIX: Track cumulative responses for proper updates
+        # Track cumulative responses for proper updates
         self.cumulative_responses = []
+
+        # Track last question difficulty for progression constraints
+        self.last_question_difficulty = None
 
         # Item exposure control
         self.item_exposure_counts = {}
         self.max_item_exposure_rate = 0.3
 
         logger.info(f"IRTEngine initialized for {test_purpose.value} purpose")
-        logger.info(f"Configuration: min_q={self.min_questions}, max_q={self.max_questions}, "
-                   f"target_sem={self.target_sem}")
+        logger.info(f"Anticipation multiplier: {self.adaptive_config.anticipation_multiplier}x")
+        logger.info(f"RT-weighted information: {self.adaptive_config.enable_rt_weighted_information}")
 
     def get_initial_theta(self, competence_level: str) -> float:
         """Get initial theta based on competence level"""
         initial_theta = self.initial_theta_map.get(competence_level, -1.0)
         self.current_theta = initial_theta
         self.theta_history = [initial_theta]
-        self.theta_velocity = 0.0  # FIX: Initialize velocity
+        self.theta_velocity = 0.0
+        self.last_question_difficulty = None
+        self.question_response_times = []
         logger.info(f"Initial theta set to {initial_theta:.3f} for competence level '{competence_level}'")
         return initial_theta
 
     def initialize_assessment(self, competence_level: str = "intermediate") -> float:
         """Initialize assessment with starting theta based on competence level"""
         initial_theta = self.get_initial_theta(competence_level)
-        self.cumulative_responses = []  # FIX: Reset cumulative responses
+        self.cumulative_responses = []
         logger.info(f"Assessment initialized with theta={initial_theta:.3f}")
         return initial_theta
 
@@ -224,14 +230,22 @@ class IRTEngine:
         else:
             return "C4"
 
+    def get_tier_index(self, tier: str) -> int:
+        """Get tier index for boundary calculations"""
+        tier_order = ["C1", "C2", "C3", "C4"]
+        try:
+            return tier_order.index(tier)
+        except ValueError:
+            return 0
+
     @lru_cache(maxsize=1000)
     def cached_probability_correct(self, theta: float, difficulty: float,
-                                  discrimination: float, guessing: float = 0.25) -> float:
+                                   discrimination: float, guessing: float = 0.25) -> float:
         """Cached version of probability calculation for performance"""
         return self.probability_correct(theta, difficulty, discrimination, guessing)
 
     def probability_correct(self, theta: float, difficulty: float,
-                          discrimination: float, guessing: float = 0.25) -> float:
+                            discrimination: float, guessing: float = 0.25) -> float:
         """Calculate probability of correct response using 3PL model"""
         try:
             theta = max(-5, min(5, theta))
@@ -254,10 +268,10 @@ class IRTEngine:
             return 0.5
 
     def information(self, theta: float, difficulty: float,
-                   discrimination: float, guessing: float = 0.25) -> float:
+                    discrimination: float, guessing: float = 0.25) -> float:
         """Calculate Fisher Information with caching"""
         cache_key = (round(theta, 3), round(difficulty, 3),
-                    round(discrimination, 3), round(guessing, 3))
+                     round(discrimination, 3), round(guessing, 3))
 
         if cache_key in self._information_cache:
             return self._information_cache[cache_key]
@@ -283,12 +297,42 @@ class IRTEngine:
         self._information_cache[cache_key] = info_value
         return info_value
 
+    def rt_weighted_information(self, theta: float, difficulty: float,
+                                discrimination: float, guessing: float,
+                                response_time: float) -> float:
+        """
+        NEW: Calculate response time weighted Fisher Information.
+        Formula: I(θ) / log(RT + 1)
+
+        Rationale:
+        - Fast correct responses indicate higher certainty → more information
+        - Slow responses indicate uncertainty → discount information
+        - log transformation prevents extreme penalties for very slow responses
+        """
+        if not self.adaptive_config.enable_rt_weighted_information:
+            return self.information(theta, difficulty, discrimination, guessing)
+
+        base_information = self.information(theta, difficulty, discrimination, guessing)
+
+        if response_time is None or response_time <= 0:
+            return base_information
+
+        # Use log(RT + 1) to avoid division by zero and extreme values
+        # Adding 1 ensures log is always positive for RT > 0
+        rt_weight = math.log(response_time + 1)
+
+        # Prevent division by very small numbers
+        rt_weight = max(rt_weight, 0.1)
+
+        weighted_info = base_information / rt_weight
+
+        return weighted_info
+
     def adaptive_theta_jump_size(self, consecutive_count: int,
-                                response_type: str, questions_answered: int) -> float:
-        """FIX: Dynamic jump size with early assessment protection"""
+                                 response_type: str, questions_answered: int) -> float:
+        """Dynamic jump size with early assessment protection"""
         base_jump = self.theta_jump
 
-        # FIX: Severely limit jumps in early questions
         if questions_answered <= self.EARLY_QUESTIONS_COUNT:
             base_jump = min(base_jump, 0.2)
         elif questions_answered <= 10:
@@ -301,7 +345,6 @@ class IRTEngine:
         elif consecutive_count <= 7:
             return base_jump
         else:
-            # FIX: Cap maximum jump more conservatively
             return min(base_jump * 1.25, self.MAX_SINGLE_STEP * 0.7)
 
     def detect_consecutive_responses(self, response_history: List[bool]) -> Dict[str, Any]:
@@ -329,7 +372,6 @@ class IRTEngine:
                 else:
                     break
 
-            # FIX: Pass questions_answered for early protection
             questions_answered = len(response_history)
             jump_size = self.adaptive_theta_jump_size(consecutive_count, response_type, questions_answered)
 
@@ -349,38 +391,150 @@ class IRTEngine:
             'jump_size': 0.0
         }
 
+    def calculate_anticipated_theta(self, current_theta: float,
+                                    response_history: List[bool],
+                                    questions_answered: int) -> float:
+        """
+        NEW: Calculate anticipated theta using calibrated proportional method.
+
+        Contracts honored:
+        - Anticipation scales with actual theta update limits
+        - Maximum 1 tier boundary crossing
+        - Symmetric for increases/decreases
+        - Respects theta bounds
+        """
+        if len(response_history) < 2:
+            return current_theta
+
+        # CONTRACT: Use actual update limits for anticipation base
+        if questions_answered <= self.EARLY_QUESTIONS_COUNT:
+            max_real_change = self.EARLY_QUESTIONS_MAX_CHANGE  # 0.2
+        else:
+            max_real_change = self.max_theta_change  # 0.3
+
+        # Dynamic lookback: 2-3 questions depending on availability
+        lookback = min(3, len(response_history))
+        recent_responses = response_history[-lookback:]
+        correct_count = sum(recent_responses)
+
+        # Calibrated anticipation: multiplier × real change limit
+        multiplier = self.adaptive_config.anticipation_multiplier
+
+        # Pattern-based adjustment
+        if correct_count == lookback:  # All correct
+            anticipated_adjustment = max_real_change * multiplier
+        elif correct_count == 0:  # All incorrect
+            anticipated_adjustment = -max_real_change * multiplier
+        elif correct_count > lookback / 2:  # Mostly correct
+            anticipated_adjustment = max_real_change * 0.75
+        elif correct_count < lookback / 2:  # Mostly incorrect
+            anticipated_adjustment = -max_real_change * 0.75
+        else:  # Mixed/neutral
+            anticipated_adjustment = 0.0
+
+        anticipated_theta = current_theta + anticipated_adjustment
+
+        # CONTRACT: Enforce theta bounds
+        anticipated_theta = max(self.theta_bounds[0],
+                                min(self.theta_bounds[1], anticipated_theta))
+
+        # CONTRACT: Maximum single-tier crossing
+        current_tier_idx = self.get_tier_index(self.theta_to_tier(current_theta))
+        anticipated_tier_idx = self.get_tier_index(self.theta_to_tier(anticipated_theta))
+
+        if abs(anticipated_tier_idx - current_tier_idx) > 1:
+            # Clamp to adjacent tier boundary
+            tier_boundaries = [-3.0, -1.0, 0.0, 1.0, 3.0]
+            if anticipated_tier_idx > current_tier_idx:
+                # Moving up - clamp to next tier's lower bound + small buffer
+                anticipated_theta = tier_boundaries[current_tier_idx + 1] + 0.1
+            else:
+                # Moving down - clamp to previous tier's upper bound - small buffer
+                anticipated_theta = tier_boundaries[current_tier_idx] - 0.1
+
+            logger.debug(f"Tier crossing clamped: {current_tier_idx} → {anticipated_tier_idx}, "
+                         f"theta clamped to {anticipated_theta:.3f}")
+
+        logger.debug(f"Anticipated theta: {current_theta:.3f} → {anticipated_theta:.3f} "
+                     f"(Δ={anticipated_adjustment:+.3f}, pattern={correct_count}/{lookback}, "
+                     f"multiplier={multiplier}x)")
+
+        return anticipated_theta
+
     def select_next_question_with_content_balance(self, theta: float,
-                                                 available_questions: List[Dict],
-                                                 response_history: List[bool]) -> Optional[Dict]:
-        """Select next question with content balancing and exposure control based on current theta"""
+                                                  available_questions: List[Dict],
+                                                  response_history: List[bool],
+                                                  questions_answered: int = 0) -> Optional[Dict]:
+        """
+        Select next question with calibrated anticipation and proper difficulty progression.
+        """
         if not available_questions:
             return None
 
         current_tier = self.theta_to_tier(theta)
         consecutive_info = self.detect_consecutive_responses(response_history)
 
+        # NEW: Calculate anticipated theta using calibrated method
+        anticipated_theta = self.calculate_anticipated_theta(
+            theta, response_history, questions_answered
+        )
+
         adjusted_tier = self._apply_conservative_fairness_constraints(
             current_tier, response_history, consecutive_info
         )
 
-        logger.debug(f"Selecting question for theta={theta:.3f}, tier={current_tier}, adjusted_tier={adjusted_tier}")
+        # Use anticipated theta for tier selection
+        anticipated_tier = self.theta_to_tier(anticipated_theta)
+        selection_tier = anticipated_tier if anticipated_tier != current_tier else adjusted_tier
 
-        suitable_questions = self._filter_questions_by_tier(available_questions, adjusted_tier)
+        logger.debug(f"Question selection: current_theta={theta:.3f}, "
+                     f"anticipated_theta={anticipated_theta:.3f}, "
+                     f"current_tier={current_tier}, selection_tier={selection_tier}")
+
+        # Filter questions by anticipated tier
+        suitable_questions = self._filter_questions_by_tier(available_questions, selection_tier)
         if not suitable_questions:
-            suitable_questions = self._filter_questions_by_tier(available_questions, current_tier)
+            suitable_questions = self._filter_questions_by_tier(available_questions, adjusted_tier)
             if not suitable_questions:
                 suitable_questions = available_questions
-                logger.warning(f"No tier-appropriate questions found, using all {len(available_questions)} available")
+                logger.warning(f"No tier-appropriate questions, using all {len(available_questions)}")
+
+        # CONTRACT: Apply minimum difficulty constraint after correct responses
+        if (len(response_history) >= 1 and response_history[-1] and
+                self.last_question_difficulty is not None):
+            min_difficulty = self.last_question_difficulty - 0.1
+            filtered = [q for q in suitable_questions
+                        if q['difficulty_b'] >= min_difficulty]
+
+            if filtered:
+                suitable_questions = filtered
+                logger.debug(f"Applied min difficulty constraint: {min_difficulty:.3f}")
+            else:
+                logger.warning("Min difficulty constraint too restrictive, relaxing")
 
         question_scores = []
         for question in suitable_questions:
-            info = self.information(
-                theta,
-                question['difficulty_b'],
-                question['discrimination_a'],
-                question['guessing_c']
-            )
+            # Use anticipated theta for information calculation
+            if (self.adaptive_config.enable_rt_weighted_information and
+                    self.question_response_times):
+                # Use last response time as proxy for expected RT
+                recent_rt = self.question_response_times[-1] if self.question_response_times else 15.0
+                info = self.rt_weighted_information(
+                    anticipated_theta,
+                    question['difficulty_b'],
+                    question['discrimination_a'],
+                    question['guessing_c'],
+                    recent_rt
+                )
+            else:
+                info = self.information(
+                    anticipated_theta,
+                    question['difficulty_b'],
+                    question['discrimination_a'],
+                    question['guessing_c']
+                )
 
+            # Content balancing penalty
             if self.adaptive_config.enable_content_balancing:
                 content_area = question.get('content_area', 'default')
                 usage_count = self.used_content_areas.get(content_area, 0)
@@ -388,12 +542,22 @@ class IRTEngine:
             else:
                 content_penalty = 1.0
 
+            # Exposure control penalty
             item_id = question.get('id', str(question))
             exposure_count = self.item_exposure_counts.get(item_id, 0)
             exposure_penalty = 1.0 - (0.2 * min(exposure_count, 3))
 
-            adjusted_score = info * content_penalty * exposure_penalty
-            difficulty_distance = abs(question['difficulty_b'] - theta)
+            # Difficulty progression bonus
+            difficulty_progression_bonus = 1.0
+            if (len(response_history) >= 1 and response_history[-1] and
+                    self.last_question_difficulty is not None):
+                if question['difficulty_b'] > self.last_question_difficulty + 0.05:
+                    difficulty_progression_bonus = 1.2  # 20% bonus for harder
+                elif question['difficulty_b'] >= self.last_question_difficulty - 0.05:
+                    difficulty_progression_bonus = 1.1  # 10% bonus for similar
+
+            adjusted_score = info * content_penalty * exposure_penalty * difficulty_progression_bonus
+            difficulty_distance = abs(question['difficulty_b'] - anticipated_theta)
 
             question_scores.append({
                 'question': question,
@@ -401,7 +565,8 @@ class IRTEngine:
                 'raw_information': info,
                 'difficulty_distance': difficulty_distance,
                 'content_penalty': content_penalty,
-                'exposure_penalty': exposure_penalty
+                'exposure_penalty': exposure_penalty,
+                'progression_bonus': difficulty_progression_bonus
             })
 
         if question_scores:
@@ -410,53 +575,75 @@ class IRTEngine:
             best_item = question_scores[0]
             best_question = best_item['question']
 
+            # Update tracking
             content_area = best_question.get('content_area', 'default')
             self.used_content_areas[content_area] = self.used_content_areas.get(content_area, 0) + 1
 
             item_id = best_question.get('id', str(best_question))
             self.item_exposure_counts[item_id] = self.item_exposure_counts.get(item_id, 0) + 1
 
-            logger.info(f"Selected question: difficulty={best_question['difficulty_b']:.3f}, "
-                       f"discrimination={best_question['discrimination_a']:.3f}, "
-                       f"info={best_item['raw_information']:.3f}, "
-                       f"adjusted_score={best_item['adjusted_score']:.3f}, "
-                       f"distance_from_theta={best_item['difficulty_distance']:.3f}")
+            # CONTRACT: Track last question difficulty
+            self.last_question_difficulty = best_question['difficulty_b']
+
+            logger.info(f"Selected Q{questions_answered + 1}: "
+                        f"diff={best_question['difficulty_b']:.3f}, "
+                        f"disc={best_question['discrimination_a']:.3f}, "
+                        f"info={best_item['raw_information']:.3f}, "
+                        f"score={best_item['adjusted_score']:.3f}, "
+                        f"prog_bonus={best_item['progression_bonus']:.2f}")
 
             return best_question
 
         return None
 
     def select_next_question(self, theta: float, available_questions: List[Dict],
-                            response_history: List[bool]) -> Optional[Dict]:
+                             response_history: List[bool],
+                             questions_answered: int = 0) -> Optional[Dict]:
         """Main question selection method"""
         if self.adaptive_config.enable_content_balancing:
             return self.select_next_question_with_content_balance(
-                theta, available_questions, response_history
+                theta, available_questions, response_history, questions_answered
             )
         else:
-            return self._select_next_question_original(theta, available_questions, response_history)
+            return self._select_next_question_original(
+                theta, available_questions, response_history, questions_answered
+            )
 
     def _select_next_question_original(self, theta: float, available_questions: List[Dict],
-                                      response_history: List[bool]) -> Optional[Dict]:
-        """Original question selection logic based on current theta"""
+                                       response_history: List[bool],
+                                       questions_answered: int = 0) -> Optional[Dict]:
+        """Original question selection logic with anticipated theta"""
         if not available_questions:
             return None
 
         current_tier = self.theta_to_tier(theta)
         consecutive_info = self.detect_consecutive_responses(response_history)
 
+        # Use anticipated theta
+        anticipated_theta = self.calculate_anticipated_theta(
+            theta, response_history, questions_answered
+        )
+
         adjusted_tier = self._apply_conservative_fairness_constraints(
             current_tier, response_history, consecutive_info
         )
 
-        logger.debug(f"Original selection: theta={theta:.3f}, current_tier={current_tier}, "
-                    f"adjusted_tier={adjusted_tier}")
-
-        suitable_questions = self._filter_questions_by_tier(available_questions, adjusted_tier)
+        suitable_questions = self._filter_questions_by_tier(
+            available_questions,
+            self.theta_to_tier(anticipated_theta)
+        )
         if not suitable_questions:
-            suitable_questions = self._filter_questions_by_tier(available_questions, current_tier)
+            suitable_questions = self._filter_questions_by_tier(available_questions, adjusted_tier)
             if not suitable_questions:
                 suitable_questions = available_questions
+
+        # Apply minimum difficulty constraint
+        if (len(response_history) >= 1 and response_history[-1] and
+                self.last_question_difficulty is not None):
+            min_difficulty = self.last_question_difficulty - 0.1
+            filtered = [q for q in suitable_questions if q['difficulty_b'] >= min_difficulty]
+            if filtered:
+                suitable_questions = filtered
 
         best_question = None
         max_information = -1
@@ -464,13 +651,13 @@ class IRTEngine:
 
         for question in suitable_questions:
             info = self.information(
-                theta,
+                anticipated_theta,
                 question['difficulty_b'],
                 question['discrimination_a'],
                 question['guessing_c']
             )
 
-            difficulty_distance = abs(question['difficulty_b'] - theta)
+            difficulty_distance = abs(question['difficulty_b'] - anticipated_theta)
 
             if info > max_information or (info == max_information and difficulty_distance < best_difficulty_distance):
                 max_information = info
@@ -478,25 +665,25 @@ class IRTEngine:
                 best_difficulty_distance = difficulty_distance
 
         if best_question:
-            logger.info(f"Selected question: difficulty={best_question['difficulty_b']:.3f}, "
-                       f"discrimination={best_question['discrimination_a']:.3f}, "
-                       f"info={max_information:.3f} at theta={theta:.3f}")
+            self.last_question_difficulty = best_question['difficulty_b']
+            logger.info(f"Selected Q{questions_answered + 1}: "
+                        f"diff={best_question['difficulty_b']:.3f}, "
+                        f"info={max_information:.3f}")
 
         return best_question
 
     def robust_theta_update(self, current_theta: float,
-                          responses: List[Tuple[bool, float, float, float]],
-                          response_history: List[bool] = None,
-                          response_times: List[float] = None,
-                          questions_answered: int = 0) -> Tuple[float, Dict]:
-        """FIX: Robust theta update with early protection and cumulative responses"""
+                            responses: List[Tuple[bool, float, float, float]],
+                            response_history: List[bool] = None,
+                            response_times: List[float] = None,
+                            questions_answered: int = 0) -> Tuple[float, Dict]:
+        """CONTRACT: Robust theta update with conservative limits enforced"""
         try:
-            # FIX: Use cumulative responses for stability
             new_theta, info = self.calculate_theta_adjustment(
                 current_theta, responses, response_history, questions_answered
             )
 
-            # FIX: Apply early assessment protection
+            # CONTRACT: Early questions protection
             if questions_answered <= self.EARLY_QUESTIONS_COUNT:
                 max_change = self.EARLY_QUESTIONS_MAX_CHANGE
                 actual_change = new_theta - current_theta
@@ -505,16 +692,15 @@ class IRTEngine:
                     info['early_protection_applied'] = True
                     logger.info(f"Early protection: limiting change to ±{max_change}")
 
-            # FIX: Apply velocity damping for smooth progression
+            # Velocity damping
             velocity = new_theta - current_theta
             self.theta_velocity = self.velocity_damping * self.theta_velocity + (1 - self.velocity_damping) * velocity
 
-            # Sanity check with reduced threshold
-            if abs(new_theta - current_theta) > 1.5:  # Reduced from 2.5
-                logger.warning(f"Large theta change detected: {current_theta:.3f} -> {new_theta:.3f}")
+            # Sanity check
+            if abs(new_theta - current_theta) > 1.5:
+                logger.warning(f"Large theta change: {current_theta:.3f} → {new_theta:.3f}")
                 new_theta = self.calculate_eap_estimate(responses, current_theta)
                 info['method'] = 'eap_fallback'
-                info['original_nr_theta'] = new_theta
 
             if self.adaptive_config.enable_response_time and response_times:
                 time_adjustment = self.calculate_response_time_adjustment(
@@ -533,7 +719,7 @@ class IRTEngine:
         return new_theta, info
 
     def calculate_eap_estimate(self, responses: List[Tuple[bool, float, float, float]],
-                              prior_theta: float = 0.0) -> float:
+                               prior_theta: float = 0.0) -> float:
         """Expected A Posteriori estimate as fallback"""
         theta_range = np.linspace(self.theta_bounds[0], self.theta_bounds[1], 100)
         prior = np.exp(-0.5 * (theta_range - prior_theta) ** 2) / np.sqrt(2 * np.pi)
@@ -554,7 +740,7 @@ class IRTEngine:
         return float(eap_theta)
 
     def calculate_mle_estimate(self, responses: List[Tuple[bool, float, float, float]],
-                              initial_theta: float = 0.0) -> float:
+                               initial_theta: float = 0.0) -> float:
         """Maximum Likelihood Estimate as fallback"""
         theta_range = np.linspace(self.theta_bounds[0], self.theta_bounds[1], 200)
         log_likelihoods = []
@@ -573,8 +759,8 @@ class IRTEngine:
         return float(theta_range[best_idx])
 
     def calculate_response_time_adjustment(self, theta: float,
-                                         responses: List[Tuple[bool, float, float, float]],
-                                         response_times: List[float]) -> float:
+                                           responses: List[Tuple[bool, float, float, float]],
+                                           response_times: List[float]) -> float:
         """Calculate theta adjustment based on response times"""
         if len(responses) != len(response_times):
             return 0.0
@@ -594,9 +780,8 @@ class IRTEngine:
         return sum(adjustments)
 
     def should_stop_with_confidence(self, sem: float, questions_asked: int,
-                                   response_history: List[bool]) -> Tuple[bool, float]:
+                                    response_history: List[bool]) -> Tuple[bool, float]:
         """Enhanced stopping logic with confidence estimation"""
-
         if questions_asked < self.min_questions:
             return False, 0.0
 
@@ -620,7 +805,7 @@ class IRTEngine:
             if consecutive_info['consecutive_count'] >= 6:
                 confidence = 0.85 if consecutive_info['response_type'] == 'correct' else 0.80
                 logger.info(f"Stopping due to {consecutive_info['consecutive_count']} "
-                          f"consecutive {consecutive_info['response_type']} responses")
+                            f"consecutive {consecutive_info['response_type']} responses")
                 return True, confidence
 
             recent = response_history[-8:]
@@ -631,7 +816,7 @@ class IRTEngine:
         return False, 0.0
 
     def should_stop_assessment(self, sem: float, questions_asked: int,
-                              response_history: List[bool]) -> bool:
+                               response_history: List[bool]) -> bool:
         """Main stopping decision method"""
         should_stop, confidence = self.should_stop_with_confidence(
             sem, questions_asked, response_history
@@ -639,12 +824,11 @@ class IRTEngine:
         return should_stop
 
     def generate_diagnostic_report(self, final_theta: float,
-                                  responses: List[Tuple[bool, float, float, float]],
-                                  response_history: List[bool],
-                                  response_times: List[float] = None,
-                                  question_details: List[Dict] = None) -> Dict:
+                                   responses: List[Tuple[bool, float, float, float]],
+                                   response_history: List[bool],
+                                   response_times: List[float] = None,
+                                   question_details: List[Dict] = None) -> Dict:
         """Generate comprehensive diagnostic report"""
-
         if not responses:
             return {
                 'final_ability': final_theta,
@@ -655,7 +839,6 @@ class IRTEngine:
 
         correct_count = sum(1 for r, _, _, _ in responses if r)
         total_questions = len(responses)
-        questions_asked = total_questions
         accuracy = correct_count / total_questions
 
         final_sem = self.calculate_sem(
@@ -668,32 +851,24 @@ class IRTEngine:
         )
 
         content_performance = {}
-        if self.adaptive_config.enable_content_balancing:
-            if question_details and isinstance(question_details, list):
-                content_areas_data = {}
-                for i, (is_correct, _, _, _) in enumerate(responses):
-                    if i < len(question_details):
-                        q_detail = question_details[i]
-                        area = q_detail.get('content_area', q_detail.get('topic', 'default'))
-                        if area not in content_areas_data:
-                            content_areas_data[area] = []
-                        content_areas_data[area].append(is_correct)
+        if self.adaptive_config.enable_content_balancing and question_details:
+            content_areas_data = {}
+            for i, (is_correct, _, _, _) in enumerate(responses):
+                if i < len(question_details):
+                    q_detail = question_details[i]
+                    area = q_detail.get('content_area', q_detail.get('topic', 'default'))
+                    if area not in content_areas_data:
+                        content_areas_data[area] = []
+                    content_areas_data[area].append(is_correct)
 
-                for area, area_responses in content_areas_data.items():
-                    if area_responses:
-                        area_accuracy = sum(area_responses) / len(area_responses)
-                        content_performance[area] = {
-                            'questions': len(area_responses),
-                            'accuracy': area_accuracy,
-                            'strength_level': 'Strong' if area_accuracy > 0.75 else
-                                            'Weak' if area_accuracy < 0.40 else 'Moderate'
-                        }
-            elif hasattr(self, 'used_content_areas') and self.used_content_areas:
-                for area in self.used_content_areas:
+            for area, area_responses in content_areas_data.items():
+                if area_responses:
+                    area_accuracy = sum(area_responses) / len(area_responses)
                     content_performance[area] = {
-                        'questions': self.used_content_areas[area],
-                        'accuracy': None,
-                        'strength_level': 'Unknown'
+                        'questions': len(area_responses),
+                        'accuracy': area_accuracy,
+                        'strength_level': 'Strong' if area_accuracy > 0.75 else
+                        'Weak' if area_accuracy < 0.40 else 'Moderate'
                     }
 
         consecutive_info = self.detect_consecutive_responses(response_history)
@@ -702,8 +877,8 @@ class IRTEngine:
 
         difficulties = [d for _, d, _, _ in responses]
         difficulty_trend = 'increasing' if len(difficulties) > 1 and difficulties[-1] > difficulties[0] else \
-                          'decreasing' if len(difficulties) > 1 and difficulties[-1] < difficulties[0] else \
-                          'stable'
+            'decreasing' if len(difficulties) > 1 and difficulties[-1] < difficulties[0] else \
+                'stable'
 
         total_information = sum(
             self.information(final_theta, d, a, g)
@@ -740,43 +915,47 @@ class IRTEngine:
                 'max_consecutive_incorrect': max_consecutive_incorrect,
                 'final_pattern': consecutive_info,
                 'difficulty_trend': difficulty_trend,
-                'average_difficulty': np.mean(difficulties) if difficulties else 0
+                'average_difficulty': np.mean(difficulties) if difficulties else 0,
+                'difficulty_progression': difficulties
             },
             'theta_progression': {
                 'initial_theta': self.theta_history[0] if self.theta_history else final_theta,
                 'final_theta': final_theta,
                 'total_change': final_theta - (self.theta_history[0] if self.theta_history else final_theta),
-                'stability': np.var(self.theta_history[-5:]) if len(self.theta_history) >= 5 else None
+                'stability': np.var(self.theta_history[-5:]) if len(self.theta_history) >= 5 else None,
+                'history': self.theta_history
             },
             'time_analysis': time_analysis,
             'test_purpose': self.test_purpose.value,
-            'test_completed': questions_asked >= self.min_questions
+            'test_completed': total_questions >= self.min_questions,
+            'anticipation_multiplier': self.adaptive_config.anticipation_multiplier,
+            'rt_weighted_info_enabled': self.adaptive_config.enable_rt_weighted_information
         }
 
         strengths = []
         weaknesses = []
         if content_performance:
             strengths = [area for area, data in content_performance.items()
-                        if data.get('strength_level') == 'Strong']
+                         if data.get('strength_level') == 'Strong']
             weaknesses = [area for area, data in content_performance.items()
-                         if data.get('strength_level') == 'Weak']
+                          if data.get('strength_level') == 'Weak']
 
         report['summary'] = {
             'strengths': strengths,
             'weaknesses': weaknesses,
             'recommended_focus_areas': weaknesses[:3] if weaknesses else [],
             'overall_performance': 'Advanced' if final_theta > 1.0 else \
-                                 'Proficient' if final_theta > 0 else \
-                                 'Developing' if final_theta > -1.0 else 'Beginning'
+                'Proficient' if final_theta > 0 else \
+                    'Developing' if final_theta > -1.0 else 'Beginning'
         }
 
         return report
 
     def calculate_theta_adjustment(self, current_theta: float,
-                                  responses: List[Tuple[bool, float, float, float]],
-                                  response_history: List[bool],
-                                  questions_answered: int = 0) -> Tuple[float, Dict[str, Any]]:
-        """FIX: Enhanced Newton-Raphson with early assessment protection"""
+                                   responses: List[Tuple[bool, float, float, float]],
+                                   response_history: List[bool],
+                                   questions_answered: int = 0) -> Tuple[float, Dict[str, Any]]:
+        """CONTRACT: Enhanced Newton-Raphson with conservative limits enforced"""
         if not responses:
             return current_theta, {'method': 'no_responses', 'change': 0.0}
 
@@ -787,7 +966,7 @@ class IRTEngine:
         total_change = 0.0
         converged = False
 
-        # FIX: Adaptive smoothing based on questions answered
+        # Adaptive smoothing based on questions answered
         if questions_answered <= self.EARLY_QUESTIONS_COUNT:
             self.exponential_smoothing_alpha = 0.3
         elif questions_answered <= 10:
@@ -796,8 +975,6 @@ class IRTEngine:
             self.exponential_smoothing_alpha = 0.5
         else:
             self.exponential_smoothing_alpha = min(0.7, self.base_exponential_smoothing_alpha)
-
-        logger.debug(f"Starting Newton-Raphson: initial_theta={current_theta:.4f}, questions={questions_answered}")
 
         for iteration in range(self.newton_raphson_iterations):
             iterations_used = iteration + 1
@@ -819,22 +996,19 @@ class IRTEngine:
                 second_derivative -= discrimination ** 2 * p * q
 
             if abs(second_derivative) < self.MIN_SECOND_DERIVATIVE:
-                logger.debug(f"Second derivative too small: {second_derivative:.2e}")
                 break
 
             raw_delta_theta = -likelihood_derivative / second_derivative
 
             if abs(raw_delta_theta) < self.convergence_threshold:
-                logger.debug(f"Converged after {iteration + 1} iterations")
                 converged = True
                 break
 
-            # FIX: Apply stricter limits for early questions
+            # CONTRACT: Apply conservative limits
             if questions_answered <= self.EARLY_QUESTIONS_COUNT:
                 max_change = self.EARLY_QUESTIONS_MAX_CHANGE
             elif self.enable_consecutive_jumps and consecutive_info['apply_jump']:
                 max_change = consecutive_info['jump_size']
-                logger.debug(f"Using adaptive jump size: {max_change:.4f}")
             else:
                 max_change = min(self.max_theta_change, self.MAX_SINGLE_STEP)
 
@@ -863,18 +1037,19 @@ class IRTEngine:
                 converged = True
                 break
 
-        # Apply adaptive smoothing
+        # Apply exponential smoothing
         smoothing_alpha = self.exponential_smoothing_alpha * (0.8 if converged else 1.0)
         smoothed_theta = (smoothing_alpha * theta + (1 - smoothing_alpha) * current_theta)
 
         final_theta = max(self.theta_bounds[0], min(self.theta_bounds[1], smoothed_theta))
 
-        # FIX: Final safety check for early questions
+        # CONTRACT: Final early questions check
         if questions_answered <= self.EARLY_QUESTIONS_COUNT:
             final_change = final_theta - current_theta
             if abs(final_change) > self.EARLY_QUESTIONS_MAX_CHANGE:
                 final_theta = current_theta + self.EARLY_QUESTIONS_MAX_CHANGE * (1 if final_change > 0 else -1)
 
+        # CONTRACT: Absolute max change check
         final_change = final_theta - current_theta
         if abs(final_change) > self.ABSOLUTE_MAX_TOTAL_CHANGE:
             if final_change > 0:
@@ -889,11 +1064,7 @@ class IRTEngine:
             'theta_change': final_theta - current_theta,
             'iterations_used': iterations_used,
             'converged': converged,
-            'adaptive_jump_size': consecutive_info.get('jump_size', 0.0),
-            'smoothing_applied': True,
             'smoothing_alpha': smoothing_alpha,
-            'total_change_during_nr': total_change,
-            'bounds_hit': final_theta in self.theta_bounds,
             'questions_answered': questions_answered,
             'early_protection': questions_answered <= self.EARLY_QUESTIONS_COUNT
         }
@@ -901,28 +1072,27 @@ class IRTEngine:
         return final_theta, adjustment_info
 
     def update_theta(self, current_theta: float,
-                    responses: List[Tuple[bool, float, float, float]],
-                    response_history: List[bool] = None,
-                    response_times: List[float] = None,
-                    questions_answered: int = 0) -> Tuple[float, Dict[str, Any]]:
-        """FIX: Main theta update method using CUMULATIVE responses"""
+                     responses: List[Tuple[bool, float, float, float]],
+                     response_history: List[bool] = None,
+                     response_times: List[float] = None,
+                     questions_answered: int = 0) -> Tuple[float, Dict[str, Any]]:
+        """CONTRACT: Main theta update method using cumulative responses"""
         if response_history is None:
             response_history = [r[0] for r in responses]
 
-        # FIX: Pass questions_answered for early protection
         new_theta, info = self.robust_theta_update(
             current_theta, responses, response_history, response_times, questions_answered
         )
 
         self.current_theta = new_theta
 
-        logger.info(f"Theta updated: {current_theta:.3f} → {new_theta:.3f} (Δ={new_theta - current_theta:+.3f}), "
-                   f"Questions={questions_answered}")
+        logger.info(f"Theta updated: {current_theta:.3f} → {new_theta:.3f} "
+                    f"(Δ={new_theta - current_theta:+.3f}), Q={questions_answered}")
 
         return new_theta, info
 
     def calculate_sem(self, theta: float,
-                     questions_info: List[Tuple[float, float, float]]) -> float:
+                      questions_info: List[Tuple[float, float, float]]) -> float:
         """Calculate Standard Error of Measurement"""
         total_info = 0.0
         for difficulty, discrimination, guessing in questions_info:
@@ -934,10 +1104,9 @@ class IRTEngine:
         return 1.0 / math.sqrt(total_info)
 
     def _apply_conservative_fairness_constraints(self, current_tier: str,
-                                                response_history: List[bool],
-                                                consecutive_info: Dict[str, Any]) -> str:
-        """FIX: Apply more conservative fairness constraints for tier adjustment"""
-
+                                                 response_history: List[bool],
+                                                 consecutive_info: Dict[str, Any]) -> str:
+        """CONTRACT: Apply conservative single-tier progression constraints"""
         if self.adaptive_config.tier_change_aggressive:
             min_questions = max(5, self.min_questions_before_tier_change // 2)
         else:
@@ -946,7 +1115,7 @@ class IRTEngine:
         if len(response_history) < min_questions:
             return current_tier
 
-        # FIX: Require more consistent performance for tier changes
+        # Promotion check
         if len(response_history) >= self.tier_promotion_window:
             recent_window = response_history[-self.tier_promotion_window:]
             correct_count = sum(recent_window)
@@ -955,9 +1124,10 @@ class IRTEngine:
                 new_tier = self._adjust_tier_up(current_tier)
                 if new_tier != current_tier:
                     logger.info(f"TIER PROMOTION: {current_tier} → {new_tier} "
-                              f"({correct_count}/{self.tier_promotion_window} correct)")
+                                f"({correct_count}/{self.tier_promotion_window} correct)")
                     return new_tier
 
+        # Demotion check
         if len(response_history) >= self.tier_demotion_window:
             recent_window = response_history[-self.tier_demotion_window:]
             correct_count = sum(recent_window)
@@ -966,13 +1136,13 @@ class IRTEngine:
                 new_tier = self._adjust_tier_down(current_tier)
                 if new_tier != current_tier:
                     logger.info(f"TIER DEMOTION: {current_tier} → {new_tier} "
-                              f"({correct_count}/{self.tier_demotion_window} correct)")
+                                f"({correct_count}/{self.tier_demotion_window} correct)")
                     return new_tier
 
         return current_tier
 
     def _adjust_tier_up(self, tier: str) -> str:
-        """Adjust tier up by exactly one level"""
+        """CONTRACT: Adjust tier up by exactly one level"""
         tier_order = ["C1", "C2", "C3", "C4"]
         try:
             current_index = tier_order.index(tier)
@@ -983,7 +1153,7 @@ class IRTEngine:
             return "C1"
 
     def _adjust_tier_down(self, tier: str) -> str:
-        """Adjust tier down by exactly one level"""
+        """CONTRACT: Adjust tier down by exactly one level"""
         tier_order = ["C1", "C2", "C3", "C4"]
         try:
             current_index = tier_order.index(tier)
@@ -1015,7 +1185,7 @@ class IRTEngine:
         return filtered
 
     def _count_max_consecutive(self, response_history: List[bool],
-                              target_response: bool) -> int:
+                               target_response: bool) -> int:
         """Count maximum consecutive responses of a specific type"""
         if not response_history:
             return 0
@@ -1033,21 +1203,21 @@ class IRTEngine:
         return max_consecutive
 
     def calculate_assessment_metrics(self, responses: List[Tuple[bool, float, float, float]],
-                                    final_theta: float,
-                                    response_history: List[bool] = None,
-                                    question_details: List[Dict] = None) -> Dict:
+                                     final_theta: float,
+                                     response_history: List[bool] = None,
+                                     question_details: List[Dict] = None) -> Dict:
         """Calculate final assessment metrics"""
         return self.generate_diagnostic_report(
             final_theta,
             responses,
             response_history or [r[0] for r in responses],
-            response_times=None,
+            response_times=self.question_response_times,
             question_details=question_details
         )
 
     @staticmethod
     def create_response_tuple(is_correct: bool, question: Dict) -> Tuple[bool, float, float, float]:
-        """Helper method to create a response tuple from a question dictionary."""
+        """Helper method to create a response tuple from a question dictionary"""
         return (
             is_correct,
             question.get('difficulty_b', 0.0),
@@ -1063,17 +1233,15 @@ class IRTEngine:
         logger.info("Cleared all caches")
 
     def run_adaptive_assessment(self, initial_competence: str,
-                               question_bank: List[Dict],
-                               enable_response_times: bool = False) -> Dict:
+                                question_bank: List[Dict],
+                                enable_response_times: bool = False) -> Dict:
         """
-        FIX: Run a complete adaptive assessment with proper cumulative updates.
+        Run a complete adaptive assessment with all contracts enforced.
 
-        Critical fix: Use cumulative responses for theta updates, not just latest.
+        Returns comprehensive diagnostic report.
         """
-        # Initialize assessment
         current_theta = self.initialize_assessment(initial_competence)
 
-        # Initialize tracking variables
         responses = []
         response_history = []
         response_times = [] if enable_response_times else None
@@ -1081,15 +1249,15 @@ class IRTEngine:
         questions_answered = 0
         question_details = []
 
-        logger.info(f"Starting adaptive assessment with {len(available_questions)} questions in bank")
+        logger.info(f"Starting assessment: {len(available_questions)} questions, "
+                    f"multiplier={self.adaptive_config.anticipation_multiplier}x")
 
-        # Main assessment loop
         while questions_answered < self.max_questions:
-            # Select next question based on current theta
             next_question = self.select_next_question(
                 theta=current_theta,
                 available_questions=available_questions,
-                response_history=response_history
+                response_history=response_history,
+                questions_answered=questions_answered
             )
 
             if not next_question:
@@ -1108,7 +1276,6 @@ class IRTEngine:
             )
             is_correct = random.random() < prob_correct
 
-            # Add to response tracking
             response_tuple = (
                 is_correct,
                 next_question['difficulty_b'],
@@ -1117,8 +1284,6 @@ class IRTEngine:
             )
             responses.append(response_tuple)
             response_history.append(is_correct)
-
-            # FIX: Track cumulative responses
             self.cumulative_responses.append(response_tuple)
 
             # Simulate response time if enabled
@@ -1127,23 +1292,18 @@ class IRTEngine:
                 difficulty_distance = abs(current_theta - next_question['difficulty_b'])
                 simulated_time = base_time + random.uniform(-5, 5) + difficulty_distance * 3
                 response_times.append(simulated_time)
+                self.question_response_times.append(simulated_time)
 
             questions_answered += 1
 
-            # FIX: Update theta using ALL cumulative responses, not just the latest
+            # CONTRACT: Update theta conservatively
             current_theta, update_info = self.update_theta(
                 current_theta=current_theta,
-                responses=self.cumulative_responses,  # Use ALL responses
+                responses=self.cumulative_responses,
                 response_history=response_history,
                 response_times=response_times if response_times else None,
-                questions_answered=questions_answered  # Pass question count
+                questions_answered=questions_answered
             )
-
-            logger.debug(f"Question {questions_answered}: "
-                        f"Correct={is_correct}, "
-                        f"New theta={current_theta:.3f}, "
-                        f"Method={update_info.get('method', 'unknown')}, "
-                        f"Early protection={update_info.get('early_protection', False)}")
 
             # Check stopping criteria
             current_sem = self.calculate_sem(
@@ -1158,8 +1318,8 @@ class IRTEngine:
             )
 
             if should_stop and questions_answered >= self.min_questions:
-                logger.info(f"Stopping assessment: questions={questions_answered}, "
-                          f"SEM={current_sem:.3f}, confidence={confidence:.2f}")
+                logger.info(f"Stopping: questions={questions_answered}, "
+                            f"SEM={current_sem:.3f}, confidence={confidence:.2f}")
                 break
 
         # Generate final report
@@ -1171,7 +1331,6 @@ class IRTEngine:
             question_details=question_details
         )
 
-        # Add assessment metadata
         final_report['assessment_metadata'] = {
             'initial_competence': initial_competence,
             'initial_theta': self.theta_history[0] if self.theta_history else current_theta,
@@ -1179,30 +1338,28 @@ class IRTEngine:
             'questions_remaining': len(available_questions),
             'test_purpose': self.test_purpose.value,
             'response_times_enabled': enable_response_times,
-            'theta_progression': self.theta_history  # Include full progression
+            'rt_weighted_info_enabled': self.adaptive_config.enable_rt_weighted_information,
+            'anticipation_multiplier': self.adaptive_config.anticipation_multiplier
         }
 
-        logger.info(f"Assessment completed: Final theta={current_theta:.3f}, "
-                   f"Questions={questions_answered}, "
-                   f"Final tier={final_report['final_tier']}")
+        logger.info(f"Assessment completed: theta={current_theta:.3f}, "
+                    f"questions={questions_answered}, tier={final_report['final_tier']}")
 
         return final_report
 
 
-# Convenience factory functions
 def create_irt_engine(config=None, test_purpose=TestPurpose.DIAGNOSTIC):
-    """Factory function to create an IRT engine with flexible config handling."""
+    """Factory function to create an IRT engine"""
     return IRTEngine(config=config, test_purpose=test_purpose)
 
 
 def create_simple_irt_engine(config=None):
-    """Create a simplified IRT engine with content balancing disabled."""
+    """Create a simplified IRT engine with content balancing disabled"""
     engine = IRTEngine(config=config, test_purpose=TestPurpose.DIAGNOSTIC)
     engine.adaptive_config.enable_content_balancing = False
     return engine
 
 
-# Helper function for default configuration with conservative settings
 def get_default_config():
     """Default configuration with conservative theta progression"""
     return {
@@ -1211,19 +1368,19 @@ def get_default_config():
             "max_questions": 30,
             "min_questions": 10,
             "history_window": 5,
-            "max_theta_change": 0.3,  # Reduced for gradual progression
-            "theta_jump": 0.4,  # Reduced for smaller jumps
+            "max_theta_change": 0.3,
+            "theta_jump": 0.4,
             "consecutive_same_responses": 3,
             "theta_bounds": [-3.0, 3.0],
             "newton_raphson_iterations": 10,
             "convergence_threshold": 0.001,
             "exponential_smoothing_alpha": 0.7,
             "enable_consecutive_jumps": True,
-            "tier_promotion_window": 10,  # Increased for more conservative tier changes
-            "tier_promotion_threshold": 7,  # Increased threshold
+            "tier_promotion_window": 10,
+            "tier_promotion_threshold": 7,
             "tier_demotion_window": 10,
             "tier_demotion_threshold": 3,
-            "min_questions_before_tier_change": 10  # Increased minimum
+            "min_questions_before_tier_change": 10
         },
         "tier_config": {
             "theta_ranges": {
@@ -1254,9 +1411,8 @@ def get_default_config():
     }
 
 
-# Backward compatibility wrapper
 def get_config():
-    """Legacy config loader - returns object-like interface"""
+    """Legacy config loader"""
     default_config = get_default_config()
     return {
         "get_irt_config": lambda: default_config["irt_config"],
