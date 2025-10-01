@@ -9,15 +9,19 @@ import models
 import schemas
 from irt_engine import IRTEngine
 
-
 logger = logging.getLogger(__name__)
 
+
 class UserService:
-    def get_or_create_user(self, db: Session, username: str, competence_level: str = "C1") -> models.User:
+    def get_or_create_user(self, db: Session, username: str,
+                           initial_competence_level: str = "beginner") -> models.User:
         """Get existing user or create new one"""
         user = db.query(models.User).filter(models.User.username == username).first()
         if not user:
-            user = models.User(username=username, competence_level=competence_level)
+            user = models.User(
+                username=username,
+                initial_competence_level=initial_competence_level
+            )
             db.add(user)
             db.commit()
             db.refresh(user)
@@ -50,8 +54,8 @@ class UserService:
             proficiencies=proficiency_list
         )
 
-    def update_user_proficiency(self, db: Session, user_id: int, subject: str, 
-                               theta: float, sem: float, tier: str):
+    def update_user_proficiency(self, db: Session, user_id: int, subject: str,
+                                theta: float, sem: float, tier: str):
         """Update or create user proficiency for a subject"""
         proficiency = db.query(models.UserProficiency).filter(
             and_(
@@ -84,6 +88,7 @@ class UserService:
             db.rollback()
             raise
 
+
 class QuestionService:
     def import_questions_from_df(self, db: Session, df: pd.DataFrame) -> int:
         """Import questions from pandas DataFrame"""
@@ -106,11 +111,11 @@ class QuestionService:
                     option_d=row['option_d'],
                     answer=row['answer'],
                     topic=row['topic'],
+                    content_area=row.get('content_area', row['topic']),
                     tier=row['tier'],
                     discrimination_a=float(row['discrimination_a']),
                     difficulty_b=float(row['difficulty_b']),
-                    guessing_c=float(row['guessing_c']),
-                    selected_option_text=row.get('selected_option_text', '')
+                    guessing_c=float(row['guessing_c'])
                 )
                 db.add(question)
                 imported_count += 1
@@ -122,7 +127,7 @@ class QuestionService:
         """Get available questions for a session (not yet asked)"""
         asked_question_ids = db.query(models.Response.question_id).filter(
             models.Response.session_id == session_id
-        ).subquery()
+        ).scalar_subquery()
 
         questions = db.query(models.Question).filter(
             and_(
@@ -142,6 +147,7 @@ class QuestionService:
                 'option_d': q.option_d,
                 'answer': q.answer,
                 'topic': q.topic,
+                'content_area': q.content_area or q.topic,
                 'tier': q.tier,
                 'discrimination_a': q.discrimination_a,
                 'difficulty_b': q.difficulty_b,
@@ -154,6 +160,7 @@ class QuestionService:
         """Get question by ID"""
         return db.query(models.Question).filter(models.Question.id == question_id).first()
 
+
 class AssessmentService:
     def __init__(self):
         self.user_service = UserService()
@@ -161,6 +168,8 @@ class AssessmentService:
 
     def start_assessment(self, db: Session, user_id: int, subject: str) -> models.AssessmentSession:
         """Start a new assessment session"""
+        logger.info(f"Start assessment for user {user_id}")
+
         # Get user's previous proficiency for this subject
         user_proficiency = db.query(models.UserProficiency).filter(
             and_(
@@ -169,39 +178,45 @@ class AssessmentService:
             )
         ).first()
 
-        # Set initial theta based on proficiency or competence level
+        # Set starting theta based on proficiency or competence level
         if user_proficiency:
-            initial_theta = user_proficiency.theta
+            starting_theta = user_proficiency.theta
+            logger.info(f"Using existing proficiency theta: {starting_theta:.3f}")
         else:
             user = db.query(models.User).filter(models.User.id == user_id).first()
             irt_engine = IRTEngine()
-            initial_theta = irt_engine.get_initial_theta(user.competence_level)
+            starting_theta = irt_engine.get_initial_theta(user.initial_competence_level)
+            logger.info(f"Using initial competence level: {user.initial_competence_level}, theta: {starting_theta:.3f}")
 
+        # Create session with corrected column names
         session = models.AssessmentSession(
             user_id=user_id,
             subject=subject,
-            initial_theta=initial_theta,
-            current_theta=initial_theta,
-            current_sem=1.0
+            theta=starting_theta,
+            sem=1.0,
+            tier=IRTEngine().theta_to_tier(starting_theta),
+            questions_asked=0,
+            completed=False
         )
 
         db.add(session)
         db.commit()
         db.refresh(session)
 
+        logger.info(f"services.start_assessment()>>Database committed successfully")
         return session
 
     def get_session(self, db: Session, session_id: int) -> Optional[models.AssessmentSession]:
         """Get assessment session by ID"""
         return db.query(models.AssessmentSession).filter(
-            models.AssessmentSession.id == session_id
+            models.AssessmentSession.session_id == session_id
         ).first()
 
-    def get_next_question(self, db: Session, session_id: int, 
-                         irt_engine: IRTEngine) -> Optional[schemas.QuestionResponse]:
+    def get_next_question(self, db: Session, session_id: int,
+                          irt_engine: IRTEngine) -> Optional[schemas.QuestionResponse]:
         """Get next question for assessment"""
         session = self.get_session(db, session_id)
-        if not session or session.is_completed:
+        if not session or session.completed:
             return None
 
         # Get response history
@@ -218,20 +233,25 @@ class AssessmentService:
 
         if not available_questions:
             # No more questions available, complete assessment
-            session.is_completed = True
+            session.completed = True
             session.completed_at = datetime.utcnow()
             db.commit()
             return None
 
         # Select next question using IRT engine
         next_question_data = irt_engine.select_next_question(
-            session.current_theta, available_questions, response_history
+            session.theta,
+            available_questions,
+            response_history,
+            session.questions_asked
         )
 
         if not next_question_data:
             return None
-        print(f"DEBUG: Rendered Question: {next_question_data['question']}")
-        print(f"DEBUG: Rendered Question difficulty_b: {next_question_data['difficulty_b']}")
+
+        logger.info(f"DEBUG: Rendered Question: {next_question_data['question']}")
+        logger.info(f"DEBUG: Rendered Question difficulty_b: {next_question_data['difficulty_b']}")
+
         return schemas.QuestionResponse(
             id=next_question_data['id'],
             question=next_question_data['question'],
@@ -241,15 +261,15 @@ class AssessmentService:
             option_d=next_question_data['option_d'],
             topic=next_question_data['topic'],
             tier=next_question_data['tier'],
-            difficulty_b=next_question_data['difficulty_b'],  # ADD THIS
-            discrimination_a=next_question_data['discrimination_a'],  # ADD THIS
-            guessing_c=next_question_data['guessing_c']  # ADD THIS
+            difficulty_b=next_question_data['difficulty_b'],
+            discrimination_a=next_question_data['discrimination_a'],
+            guessing_c=next_question_data['guessing_c']
         )
 
     def record_response(self, db: Session, session_id: int, question_id: int,
                         selected_option: str, irt_engine: IRTEngine):
-        """Record a response and update theta with enhanced consecutive response handling"""
-        print("-" * 50)
+        """Record a response and update theta"""
+        logger.info("-" * 50)
         session = self.get_session(db, session_id)
         question = self.question_service.get_question_by_id(db, question_id)
 
@@ -257,21 +277,18 @@ class AssessmentService:
             return
 
         # DEBUG: Print comparison details
-        print("\n\n")
-        print("-"*50)
-        print(f"DEBUG: services.record_response():Question Id: {question.question_id}")
-        print(f"DEBUG: Question: {question.question}")
-        print(f"DEBUG: Selected option: '{selected_option}' (type: {type(selected_option)})")
-        print(f"DEBUG: Correct answer: '{question.answer}' (type: {type(question.answer)})")
-        print(f"DEBUG: Selected upper: '{selected_option.upper()}'")
-        print(f"DEBUG: Answer upper: '{question.answer.upper()}'")
+        logger.debug("\n\n")
+        logger.debug("-" * 50)
+        logger.debug(f"DEBUG: services.record_response():Question Id: {question.question_id}")
+        logger.debug(f"DEBUG: Question: {question.question}")
+        logger.debug(f"DEBUG: Selected option: '{selected_option}' (type: {type(selected_option)})")
+        logger.debug(f"DEBUG: Correct answer: '{question.answer}' (type: {type(question.answer)})")
+        logger.debug(f"DEBUG: Selected upper: '{selected_option.upper()}'")
+        logger.debug(f"DEBUG: Answer upper: '{question.answer.upper()}'")
 
         # Check if answer is correct
-        # is_correct = selected_option.upper() == question.answer.upper()
         is_correct = self.is_answer_correct(selected_option, question.answer)
-
-        print(f"DEBUG: Is correct: {is_correct}")
-
+        logger.debug(f"DEBUG: Is correct: {is_correct}")
 
         # Get all previous responses for theta calculation
         previous_responses = db.query(models.Response).filter(
@@ -295,14 +312,21 @@ class AssessmentService:
             question.guessing_c
         ))
 
-        # Create response history for consecutive detection
+        # Create response history
         response_history = [r.is_correct for r in previous_responses] + [is_correct]
 
-        # Update theta with enhanced logic
-        theta_before = session.current_theta
-        print(f"DEBUG: AssessmentService.record_response(): theta_before: {theta_before}")
-        new_theta, adjustment_info = irt_engine.update_theta(theta_before, response_data, response_history)
-        print(f"DEBUG: AssessmentService.record_response(): new_theta: {new_theta}")
+        # Update theta
+        theta_before = session.theta
+        logger.debug(f"DEBUG: AssessmentService.record_response(): theta_before: {theta_before}")
+
+        new_theta, adjustment_info = irt_engine.update_theta(
+            theta_before,
+            response_data,
+            response_history,
+            questions_answered=session.questions_asked
+        )
+
+        logger.debug(f"DEBUG: AssessmentService.record_response(): new_theta: {new_theta}")
 
         # Log theta adjustment information
         if adjustment_info.get('consecutive_info', {}).get('apply_jump'):
@@ -339,13 +363,14 @@ class AssessmentService:
         db.add(response)
 
         # Update session
-        session.current_theta = new_theta
-        session.current_sem = new_sem
+        session.theta = new_theta
+        session.sem = new_sem
+        session.tier = irt_engine.theta_to_tier(new_theta)
         session.questions_asked += 1
 
-        # Check if assessment should stop (with enhanced consecutive logic)
+        # Check if assessment should stop
         if irt_engine.should_stop_assessment(new_sem, session.questions_asked, response_history):
-            session.is_completed = True
+            session.completed = True
             session.completed_at = datetime.utcnow()
 
             # Update user proficiency
@@ -358,10 +383,9 @@ class AssessmentService:
             metrics = irt_engine.calculate_assessment_metrics(response_data, new_theta, response_history)
             logger.info(f"Assessment {session_id} completed. Final metrics: {metrics}")
 
-        print("-" * 50)
+        logger.info("-" * 50)
         db.commit()
         return response
-
 
     def get_assessment_results(self, db: Session, session_id: int) -> schemas.AssessmentResults:
         """Get assessment results"""
@@ -389,14 +413,14 @@ class AssessmentService:
             ))
 
         irt_engine = IRTEngine()
-        final_tier = irt_engine.theta_to_tier(session.current_theta)
+        final_tier = irt_engine.theta_to_tier(session.theta)
 
         return schemas.AssessmentResults(
-            session_id=session.id,
+            session_id=session.session_id,
             user_id=session.user_id,
             subject=session.subject,
-            final_theta=session.current_theta,
-            final_sem=session.current_sem,
+            final_theta=session.theta,
+            final_sem=session.sem,
             tier=final_tier,
             questions_asked=session.questions_asked,
             correct_answers=correct_count,
@@ -405,8 +429,7 @@ class AssessmentService:
             completed_at=session.completed_at
         )
 
-
-    def is_answer_correct(self,selected: str, correct: str) -> bool:
+    def is_answer_correct(self, selected: str, correct: str) -> bool:
         """Robust answer comparison"""
         if not selected or not correct:
             return False
@@ -415,8 +438,6 @@ class AssessmentService:
         selected_clean = str(selected).strip().upper()
         correct_clean = str(correct).strip().upper()
 
-        print(f"Comparing: '{selected_clean}' == '{correct_clean}'")
+        logger.debug(f"Comparing: '{selected_clean}' == '{correct_clean}'")
 
         return selected_clean == correct_clean
-
-

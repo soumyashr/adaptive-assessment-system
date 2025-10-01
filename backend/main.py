@@ -53,7 +53,7 @@ irt_engine = IRTEngine()
 @app.post("/api/users/", response_model=schemas.User)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     """Create a new user or get existing user"""
-    return user_service.get_or_create_user(db, user.username, user.competence_level)
+    return user_service.get_or_create_user(db, user.username, user.initial_competence_level)
 
 @app.get("/api/users/{username}", response_model=schemas.User)
 def get_user(username: str, db: Session = Depends(get_db)):
@@ -101,14 +101,14 @@ def start_assessment(
 
     # Get first question
     first_question = assessment_service.get_next_question(
-        db, session.id, irt_engine
+        db, session.session_id, irt_engine  # ← Changed from session.id
     )
 
     return {
-        "session_id": session.id,
+        "session_id": session.session_id,  # ← Changed from session.id
         "current_question": first_question,
-        "theta": session.current_theta,
-        "sem": session.current_sem,
+        "theta": session.theta,            # ← Changed from session.current_theta
+        "sem": session.sem,                # ← Changed from session.current_sem
         "questions_asked": session.questions_asked
     }
 
@@ -129,12 +129,12 @@ def submit_answer(
     session = assessment_service.get_session(db, session_id)
 
     # Check if assessment should continue
-    if session.is_completed:
+    if session.completed:  # ← Changed from session.is_completed
         response_data = {
-            "session_id": session.id,
+            "session_id": session.session_id,  # ← Changed from session.id
             "current_question": None,
-            "theta": session.current_theta,
-            "sem": session.current_sem,
+            "theta": session.theta,            # ← Changed from session.current_theta
+            "sem": session.sem,                # ← Changed from session.current_sem
             "questions_asked": session.questions_asked,
             "completed": True,
             "last_response_correct": recorded_response.is_correct
@@ -148,14 +148,13 @@ def submit_answer(
     )
 
     return {
-        "session_id": session.id,
+        "session_id": session.session_id,  # ← Changed from session.id
         "current_question": next_question,
-        "theta": session.current_theta,
-        "sem": session.current_sem,
+        "theta": session.theta,            # ← Changed from session.current_theta
+        "sem": session.sem,                # ← Changed from session.current_sem
         "questions_asked": session.questions_asked,
-        "completed": session.is_completed,
+        "completed": session.completed,    # ← Changed from session.is_completed
         "last_response_correct": recorded_response.is_correct
-
     }
 
 @app.get("/api/assessments/{session_id}/results", response_model=schemas.AssessmentResults)
@@ -175,7 +174,7 @@ def get_user_proficiency(username: str, db: Session = Depends(get_db)):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
-        app, 
-        host=config.API_CONFIG["host"], 
+        app,
+        host=config.API_CONFIG["host"],
         port=config.API_CONFIG["port"]
     )

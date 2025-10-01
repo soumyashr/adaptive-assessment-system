@@ -1,42 +1,21 @@
 from pydantic import BaseModel
-from typing import Optional, List, Dict
+from typing import Optional, List
 from datetime import datetime
 
 class UserCreate(BaseModel):
     username: str
-    competence_level: str = "C1"
+    initial_competence_level: str = "beginner"  # Changed
 
 class User(BaseModel):
     id: int
     username: str
-    competence_level: str
+    initial_competence_level: str  # Changed
     created_at: datetime
 
     class Config:
         from_attributes = True
 
-class QuestionBase(BaseModel):
-    subject: str
-    question_id: str
-    question: str
-    option_a: str
-    option_b: str
-    option_c: str
-    option_d: str
-    answer: str
-    topic: str
-    tier: str
-    discrimination_a: float
-    difficulty_b: float
-    guessing_c: float
 
-class Question(QuestionBase):
-    id: int
-
-    class Config:
-        from_attributes = True
-
-# In schemas.py - Update QuestionResponse
 class QuestionResponse(BaseModel):
     id: int
     question: str
@@ -46,27 +25,31 @@ class QuestionResponse(BaseModel):
     option_d: str
     topic: str
     tier: str
-    difficulty_b: float        # ADD THIS
-    discrimination_a: float    # ADD THIS
-    guessing_c: float          # ADD THIS
+    difficulty_b: float
+    discrimination_a: float
+    guessing_c: float
+
 
 class AssessmentStart(BaseModel):
     username: str
     subject: str
+
 
 class AnswerSubmission(BaseModel):
     question_id: int
     selected_option: str
     response_time_ms: Optional[int] = None
 
+
 class AssessmentSession(BaseModel):
-    session_id: int
+    session_id: int  # Changed from id
     current_question: Optional[QuestionResponse] = None
-    theta: float
-    sem: float
+    theta: float  # Changed from current_theta
+    sem: float    # Changed from current_sem
     questions_asked: int
-    completed: bool = False
+    completed: bool = False  # Changed from is_completed
     last_response_correct: Optional[bool] = None
+
 
 class ResponseDetails(BaseModel):
     question_id: int
@@ -76,6 +59,7 @@ class ResponseDetails(BaseModel):
     is_correct: bool
     theta_before: float
     theta_after: float
+
 
 class AssessmentResults(BaseModel):
     session_id: int
@@ -90,6 +74,7 @@ class AssessmentResults(BaseModel):
     responses: List[ResponseDetails]
     completed_at: Optional[datetime]
 
+
 class UserProficiencySubject(BaseModel):
     subject: str
     theta: float
@@ -97,6 +82,7 @@ class UserProficiencySubject(BaseModel):
     tier: str
     assessments_taken: int
     last_updated: datetime
+
 
 class UserProficiency(BaseModel):
     username: str
