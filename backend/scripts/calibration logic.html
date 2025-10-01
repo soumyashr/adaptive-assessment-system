@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+
+
+PHASE 1: BOOTSTRAP (Day 1)
+┌─────────────────────────────────────────────────────────────┐
+│ 1. Create questions with rough initial parameters          │
+│    python initialize_question_bank.py                      │
+│    └─> Questions: a=1.5, b=auto, c=0.25 (theoretical)      │
+└─────────────────────────────────────────────────────────────┘
+initialize_question_bank.py - Question Bank Creation
+python initialize_question_bank.py \   --input questions.txt \   --db backend/adaptive_assessment.db \   --subject Vocabulary \   --tier C2
+
+Min required format of csv
+Question: What does 'ephemeral' mean?
+A) Permanent
+B) Temporary
+C) Solid
+D) Ancient
+Answer: B
+Tier: C3
+Topic: Vocabulary
+Content: Advanced Words
+
+---
+
+Use when: You're creating a new question bank from scratch with IRT parameters.
+
+↓
+┌─────────────────────────────────────────────────────────────┐
+│ 2. Simulate realistic test-takers                          │
+│    python simulate_test_takers.py --n 500 --mode adaptive  │
+│    └─> 500 synthetic examinees × 30 questions each         │
+│    └─> Generates 15,000 responses                          │
+└─────────────────────────────────────────────────────────────┘
+simulate_test_takers.py - Generate Synthetic Test Data
+
+python scripts/simulate_test_takers.py \ --db adaptive_assessment.db \ --subject Vocabulary \ -n 200 \ --questions-per-examinee 25
+
+Use when: You need to generate realistic test-taking data to calibrate/recalibrate your questions.
+
+
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│ 3. First calibration (from synthetic data)                 │
+│    python recalibrate_question_bank.py --min-responses 100 │
+│    └─> Questions: a=1.7, b=-0.8, c=0.26 (data-driven)     │
+│    └─> Better than pure guesswork!                         │
+└─────────────────────────────────────────────────────────────┘
+
+
+
+
+PHASE 2: PRODUCTION (Weeks 1-4)
+┌─────────────────────────────────────────────────────────────┐
+│ 4. Deploy with bootstrapped parameters                     │
+│    Real test-takers use the system                         │
+│    └─> Collect real response data                          │
+└─────────────────────────────────────────────────────────────┘
+
+PHASE 3: REFINEMENT (Monthly)
+┌─────────────────────────────────────────────────────────────┐
+│ 5. Recalibrate with real data                              │
+│    python recalibrate_question_bank.py                     │
+│    └─> Questions: a=1.9, b=-0.7, c=0.24 (real data)       │
+│    └─> Ground truth parameters!                            │
+└─────────────────────────────────────────────────────────────┘
+
+recalibrate_question_bank.py - Refine IRT Parameters
+
+python recalibrate_question_bank.py \   --db backend/adaptive_assessment.db \   --subject Vocabulary \   --min-responses 50 \   --report vocabulary_calibration_report.txt
+
+Use when: You have response data (real or simulated) and want to improve question parameters based on actual performance.
+
+</body>
+</html>

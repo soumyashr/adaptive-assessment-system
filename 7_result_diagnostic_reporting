@@ -1,0 +1,95 @@
+graph TD
+    Start([Assessment Complete]) --> CoreMetrics[Calculate Core Metrics]
+
+    CoreMetrics --> CalcFinal[Final Ability theta<br/>Final Tier C1/C2/C3/C4<br/>Total Questions<br/>Correct Count<br/>Accuracy %]
+
+    CalcFinal --> CalcConfidence[Calculate Confidence Interval:<br/>95% CI = theta ± 1.96 × SEM<br/>Example: 0.85 ± 0.49]
+
+    CalcConfidence --> ContentAnalysis{Content balancing<br/>enabled?}
+
+    ContentAnalysis -->|Yes| BreakdownByArea[Breakdown by Content Area]
+    ContentAnalysis -->|No| PatternAnalysis
+
+    BreakdownByArea --> LoopAreas[For Each Content Area]
+
+    LoopAreas --> AreaMetrics[Calculate:<br/>- Questions in area<br/>- Accuracy in area<br/>- Strength level]
+
+    AreaMetrics --> ClassifyStrength{Area accuracy?}
+
+    ClassifyStrength -->|> 75%| Strong[Label: STRONG<br/>Mastery demonstrated]
+    ClassifyStrength -->|40-75%| Moderate[Label: MODERATE<br/>Developing competence]
+    ClassifyStrength -->|< 40%| Weak[Label: WEAK<br/>Needs improvement]
+
+    Strong --> MoreAreas
+    Moderate --> MoreAreas
+    Weak --> MoreAreas{More areas?}
+
+    MoreAreas -->|Yes| LoopAreas
+    MoreAreas -->|No| PatternAnalysis
+
+    PatternAnalysis[Analyze Response Patterns]
+
+    PatternAnalysis --> MaxConsec[Find:<br/>- Max consecutive correct<br/>- Max consecutive incorrect<br/>- Final streak pattern]
+
+    MaxConsec --> DiffTrend[Analyze Difficulty Trend]
+
+    DiffTrend --> TrendCalc{First difficulty<br/>vs<br/>Last difficulty?}
+
+    TrendCalc -->|Last > First| Increasing[Trend: INCREASING<br/>Successfully challenged<br/>upward trajectory]
+    TrendCalc -->|Last < First| Decreasing[Trend: DECREASING<br/>Adjusted to appropriate level<br/>downward trajectory]
+    TrendCalc -->|Similar| Stable[Trend: STABLE<br/>Found ability level quickly<br/>minimal adjustment]
+
+    Increasing --> CalcInfo
+    Decreasing --> CalcInfo
+    Stable --> CalcInfo[Calculate Information Metrics]
+
+    CalcInfo --> TotalInfo[Total Information Gained<br/>Average Info per Question<br/>Relative Efficiency vs Fixed Test]
+
+    TotalInfo --> TimeAnalysis{Response times<br/>captured?}
+
+    TimeAnalysis -->|Yes| RTMetrics[Calculate:<br/>- Average RT<br/>- Fastest response<br/>- Slowest response<br/>- RT consistency std dev]
+    TimeAnalysis -->|No| ThetaProgression
+
+    RTMetrics --> ThetaProgression[Document Theta Journey]
+
+    ThetaProgression --> Journey[Track:<br/>- Initial theta<br/>- Final theta<br/>- Total change<br/>- Stability variance<br/>- Full history array]
+
+    Journey --> BuildSummary[Build Executive Summary]
+
+    BuildSummary --> ListStrengths[List Strength Areas<br/>Top performing content]
+
+    ListStrengths --> ListWeaknesses[List Weakness Areas<br/>Bottom performing content]
+
+    ListWeaknesses --> Recommend[Recommend Focus Areas:<br/>Top 3 weaknesses<br/>Prioritized improvement path]
+
+    Recommend --> OverallPerf{Final theta?}
+
+    OverallPerf -->|> 1.0| Advanced[Overall: ADVANCED<br/>Ready for complex material]
+    OverallPerf -->|0.0 to 1.0| Proficient[Overall: PROFICIENT<br/>Solid foundation established]
+    OverallPerf -->|-1.0 to 0.0| Developing[Overall: DEVELOPING<br/>Building competence]
+    OverallPerf -->|< -1.0| Beginning[Overall: BEGINNING<br/>Start with fundamentals]
+
+    Advanced --> CompileReport
+    Proficient --> CompileReport
+    Developing --> CompileReport
+    Beginning --> CompileReport[Compile Final Report]
+
+    CompileReport --> AddMetadata[Add Metadata:<br/>- Test purpose<br/>- Assessment date<br/>- Question bank used<br/>- RT enabled?<br/>- Anticipation multiplier<br/>- All config settings]
+
+    AddMetadata --> ValidateReport[Validate Report Completeness:<br/>All required fields present<br/>Calculations verified<br/>Audit trail complete]
+
+    ValidateReport --> FormatOutput{Output format?}
+
+    FormatOutput -->|JSON| JSONReport[Return structured JSON:<br/>Programmatic access<br/>Integration ready]
+    FormatOutput -->|PDF| PDFReport[Generate PDF:<br/>Charts and visualizations<br/>Human readable]
+    FormatOutput -->|Dashboard| WebDisplay[Render interactive dashboard:<br/>Progress charts<br/>Drill-down capability]
+
+    JSONReport --> Deliver
+    PDFReport --> Deliver
+    WebDisplay --> Deliver([Deliver Report<br/>to User/System])
+
+    style Strong fill:#e8f5e9
+    style Weak fill:#ffebee
+    style Advanced fill:#e8f5e9
+    style Beginning fill:#fff4e1
+    style CompileReport fill:#e1f5ff

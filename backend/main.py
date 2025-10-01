@@ -5,7 +5,7 @@ import pandas as pd
 import io
 import logging
 
-from database import get_db, engine
+from backend.scripts.database import get_db, engine
 import models
 import schemas
 from irt_engine import IRTEngine

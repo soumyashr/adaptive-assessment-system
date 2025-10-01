@@ -2,7 +2,7 @@
 """
 Debug script to check question data
 """
-from database import SessionLocal
+from backend.scripts.database import SessionLocal
 import models
 
 

@@ -1,0 +1,72 @@
+graph TD
+    Start([After Each Response]) --> IncrementQ[questions_asked++]
+
+    IncrementQ --> MinCheck{questions_asked<br/>< min_questions?}
+
+    MinCheck -->|Yes| Continue[MUST CONTINUE<br/>Minimum not met]
+    MinCheck -->|No| CalcSEM[Calculate Standard Error<br/>of Measurement SEM]
+
+    Continue --> NextQ
+
+    CalcSEM --> Formula[SEM = 1 / √ total_information<br/>Information from all questions]
+
+    Formula --> SEMTarget{SEM ≤ target?}
+
+    SEMTarget -->|Diagnostic: ≤0.25| StopSEM[STOP: High precision achieved<br/>Confidence = 1.0 - SEM]
+    SEMTarget -->|Placement: ≤0.35| StopSEM
+    SEMTarget -->|Screening: ≤0.50| StopSEM
+    SEMTarget -->|No| CheckStability
+
+    StopSEM --> GenerateReport
+
+    CheckStability{Last 5 thetas<br/>available?}
+
+    CheckStability -->|No| CheckConsecutive
+    CheckStability -->|Yes| CalcVariance[Calculate variance<br/>of last 5 theta values]
+
+    CalcVariance --> Stable{Variance<br/>< 0.01?}
+
+    Stable -->|Yes| StopStable[STOP: Theta stabilized<br/>Ability clearly identified<br/>Confidence = 0.95]
+    Stable -->|No| CheckConsecutive
+
+    StopStable --> GenerateReport
+
+    CheckConsecutive{Last 8+ responses<br/>available?}
+
+    CheckConsecutive -->|No| CheckMax
+    CheckConsecutive -->|Yes| CountPattern[Check consecutive<br/>same responses]
+
+    CountPattern --> ConsecPattern{6+ consecutive<br/>same responses?}
+
+    ConsecPattern -->|6+ Correct| StopCeiling[STOP: Hit ceiling<br/>Performing consistently high<br/>Confidence = 0.85]
+    ConsecPattern -->|6+ Incorrect| StopFloor[STOP: Hit floor<br/>Performing consistently low<br/>Confidence = 0.80]
+    ConsecPattern -->|No| CheckPerfect
+
+    StopCeiling --> GenerateReport
+    StopFloor --> GenerateReport
+
+    CheckPerfect[Check last 8 responses]
+
+    CheckPerfect --> Perfect{100% correct<br/>OR<br/>0% correct?}
+
+    Perfect -->|Yes| StopPerfect[STOP: Perfect pattern<br/>Clear ability level<br/>Confidence = 0.90]
+    Perfect -->|No| CheckMax
+
+    StopPerfect --> GenerateReport
+
+    CheckMax{questions_asked<br/>≥ max_questions?}
+
+    CheckMax -->|Yes| StopMax[STOP: Maximum reached<br/>Diagnostic: 40 questions<br/>Placement: 25 questions<br/>Screening: 15 questions<br/>Confidence = min 0.5]
+    CheckMax -->|No| Continue2[CONTINUE:<br/>Need more data]
+
+    StopMax --> GenerateReport
+    Continue2 --> NextQ([Select Next Question])
+
+    GenerateReport([Generate<br/>Diagnostic Report])
+
+    style StopSEM fill:#e8f5e9
+    style StopStable fill:#e8f5e9
+    style StopCeiling fill:#fff4e1
+    style StopFloor fill:#fff4e1
+    style StopPerfect fill:#e8f5e9
+    style StopMax fill:#ffebee

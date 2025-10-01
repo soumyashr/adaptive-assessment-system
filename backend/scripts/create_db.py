@@ -1,6 +1,5 @@
 # create_db.py
-from database import Base, engine
-import models
+from backend.scripts.database import Base, engine
 
 # Drop all tables
 Base.metadata.drop_all(bind=engine)

@@ -4,7 +4,7 @@ Initialize database tables
 creates all the SQLite database tables
 (users, questions, assessment_sessions, responses, user_proficiencies)
 """
-from database import engine
+from backend.scripts.database import engine
 import models
 
 def setup_database():

@@ -1,0 +1,78 @@
+CREATE TABLE users (
+        id INTEGER NOT NULL, 
+        username VARCHAR, 
+        initial_competence_level VARCHAR, 
+        created_at DATETIME DEFAULT (CURRENT_TIMESTAMP), 
+        PRIMARY KEY (id)
+);
+CREATE UNIQUE INDEX ix_users_username ON users (username);
+CREATE INDEX ix_users_id ON users (id);
+CREATE TABLE questions (
+        id INTEGER NOT NULL, 
+        subject VARCHAR, 
+        question_id VARCHAR, 
+        question TEXT, 
+        option_a TEXT, 
+        option_b TEXT, 
+        option_c TEXT, 
+        option_d TEXT, 
+        answer VARCHAR, 
+        topic VARCHAR, 
+        content_area VARCHAR, 
+        tier VARCHAR, 
+        discrimination_a FLOAT, 
+        difficulty_b FLOAT, 
+        guessing_c FLOAT, 
+        created_at DATETIME DEFAULT (CURRENT_TIMESTAMP), 
+        PRIMARY KEY (id)
+);
+CREATE INDEX ix_questions_topic ON questions (topic);
+CREATE INDEX ix_questions_subject ON questions (subject);
+CREATE INDEX ix_questions_tier ON questions (tier);
+CREATE INDEX ix_questions_id ON questions (id);
+CREATE UNIQUE INDEX ix_questions_question_id ON questions (question_id);
+CREATE TABLE assessment_sessions (
+        session_id INTEGER NOT NULL, 
+        user_id INTEGER, 
+        subject VARCHAR, 
+        theta FLOAT, 
+        sem FLOAT, 
+        tier VARCHAR, 
+        questions_asked INTEGER, 
+        started_at DATETIME DEFAULT (CURRENT_TIMESTAMP), 
+        completed_at DATETIME, 
+        completed BOOLEAN, 
+        PRIMARY KEY (session_id), 
+        FOREIGN KEY(user_id) REFERENCES users (id)
+);
+CREATE INDEX ix_assessment_sessions_session_id ON assessment_sessions (session_id);
+CREATE TABLE user_proficiencies (
+        id INTEGER NOT NULL, 
+        user_id INTEGER, 
+        subject VARCHAR, 
+        theta FLOAT, 
+        sem FLOAT, 
+        tier VARCHAR, 
+        assessments_taken INTEGER, 
+        topic_performance TEXT, 
+        last_updated DATETIME DEFAULT (CURRENT_TIMESTAMP), 
+        PRIMARY KEY (id), 
+        FOREIGN KEY(user_id) REFERENCES users (id)
+);
+CREATE INDEX ix_user_proficiencies_id ON user_proficiencies (id);
+CREATE TABLE responses (
+        id INTEGER NOT NULL, 
+        session_id INTEGER, 
+        question_id INTEGER, 
+        selected_option VARCHAR, 
+        is_correct BOOLEAN, 
+        response_time FLOAT, 
+        theta_before FLOAT, 
+        theta_after FLOAT, 
+        sem_after FLOAT, 
+        created_at DATETIME DEFAULT (CURRENT_TIMESTAMP), 
+        PRIMARY KEY (id), 
+        FOREIGN KEY(session_id) REFERENCES assessment_sessions (session_id), 
+        FOREIGN KEY(question_id) REFERENCES questions (id)
+);
+CREATE INDEX ix_responses_id ON responses (id);
