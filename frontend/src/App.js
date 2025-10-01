@@ -10,7 +10,8 @@ import {
   Cell,
   Tooltip,
   Legend,
-  ReferenceLine
+  ReferenceLine,
+  ComposedChart
 } from 'recharts';
 
 
@@ -621,12 +622,14 @@ const AdaptiveAssessment = () => {
                     tickFormatter={(value) => value.toFixed(0)}
                     stroke="#9CA3AF"
                     fontSize={12}
+                    label={{ value: 'Ability (θ)', position: 'insideBottom', offset: -1, fill: '#9CA3AF' , fontSize: 11 }}
                   />
                   <YAxis
                     domain={[0, 1]}
                     tickFormatter={(value) => value.toFixed(1)}
                     stroke="#9CA3AF"
                     fontSize={12}
+                    label={{ value: 'Probability', angle: -90, position: 'outside', offset:10, fill: '#9CA3AF',fontSize: 11 }}
                   />
                   <Tooltip
                     formatter={(value, name) => [value.toFixed(3), 'Probability']}
@@ -637,6 +640,7 @@ const AdaptiveAssessment = () => {
                       borderRadius: '6px',
                       color: '#fff'
                     }}
+
                   />
                   {/* Current theta reference line */}
                   {currentSession?.theta !== undefined && currentSession?.theta !== null && (
@@ -866,66 +870,166 @@ const AdaptiveAssessment = () => {
             </div>
 
             {/* Real-time Theta Progression Chart - Always Visible */}
+            {/*<div className="bg-gray-800 rounded-lg p-4 border border-gray-700">*/}
+            {/*  <h3 className="text-sm font-medium mb-3 text-gray-200">θ Progression</h3>*/}
+            {/*  <div className="h-48">*/}
+            {/*    {thetaProgression.length > 0 ? (*/}
+            {/*      <ResponsiveContainer width="100%" height="100%">*/}
+            {/*        <LineChart data={thetaProgression}>*/}
+            {/*          <XAxis*/}
+            {/*            dataKey="question"*/}
+            {/*            stroke="#9CA3AF"*/}
+            {/*            fontSize={12}*/}
+            {/*            label={{ value: 'Question #', position: 'insideBottom', offset: -5, fill: '#9CA3AF' , fontSize: 11 }}*/}
+            {/*          />*/}
+            {/*          <YAxis*/}
+            {/*            domain={[-2, 2]}*/}
+            {/*            stroke="#9CA3AF"*/}
+            {/*            fontSize={12}*/}
+
+            {/*            label={{ value: 'θ', angle: -90, position: 'insideLeft', fill: '#9CA3AF' }}*/}
+            {/*          />*/}
+            {/*          <Tooltip*/}
+            {/*            formatter={(value, name, props) => {*/}
+            {/*              const isCorrect = props.payload?.correct;*/}
+            {/*              return [*/}
+            {/*                value,*/}
+            {/*                `θ after ${isCorrect ? 'Correct ✅' : 'Incorrect ❌'} response`*/}
+
+            {/*              ];*/}
+            {/*            }}*/}
+            {/*            labelFormatter={(label) => `Question ${label}`}*/}
+            {/*            contentStyle={{*/}
+            {/*              backgroundColor: '#1f2937',*/}
+            {/*              border: '1px solid #374151',*/}
+            {/*              borderRadius: '6px',*/}
+            {/*              color: '#fff'*/}
+            {/*            }}*/}
+            {/*            itemStyle={{ color: '#60A5FA' }}*/}
+            {/*          />*/}
+            {/*          <Line*/}
+            {/*            type="monotone"*/}
+            {/*            dataKey="theta"*/}
+            {/*            stroke="#6B7280"*/}
+            {/*            strokeWidth={2}*/}
+            {/*            dot={(props) => {*/}
+            {/*              const { cx, cy, payload } = props;*/}
+            {/*              if (!payload) return null;*/}
+
+            {/*              // FIXED: Use proper boolean check*/}
+            {/*              const isCorrect = Boolean(payload.correct);*/}
+            {/*              const color = isCorrect ? '#22C55E' : '#EF4444';*/}
+
+            {/*              return (*/}
+            {/*                <circle*/}
+            {/*                  cx={cx}*/}
+            {/*                  cy={cy}*/}
+            {/*                  r={4}*/}
+            {/*                  fill={color}*/}
+            {/*                  stroke={color}*/}
+            {/*                  strokeWidth={1}*/}
+            {/*                />*/}
+            {/*              );*/}
+            {/*            }}*/}
+            {/*          />*/}
+            {/*        </LineChart>*/}
+            {/*      </ResponsiveContainer>*/}
+            {/*    ) : (*/}
+            {/*      <div className="h-full flex items-center justify-center text-gray-500 text-sm">*/}
+            {/*        Answer questions to see your θ progression*/}
+            {/*      </div>*/}
+            {/*    )}*/}
+            {/*  </div>*/}
+            {/*  /!* Legend *!/*/}
+            {/*  <div className="flex justify-center space-x-4 mt-2">*/}
+            {/*    <div className="flex items-center">*/}
+            {/*      <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>*/}
+            {/*      <span className="text-xs text-gray-400">Correct Response</span>*/}
+            {/*    </div>*/}
+            {/*    <div className="flex items-center">*/}
+            {/*      <div className="w-3 h-3 rounded-full bg-red-500 mr-2"></div>*/}
+            {/*      <span className="text-xs text-gray-400">Incorrect Response</span>*/}
+            {/*    </div>*/}
+            {/*  </div>*/}
+            {/*</div>*/}
+
+            {/* updated starts */}
             <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
               <h3 className="text-sm font-medium mb-3 text-gray-200">θ Progression</h3>
               <div className="h-48">
                 {thetaProgression.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={thetaProgression}>
+                    <ComposedChart data={thetaProgression}>
                       <XAxis
                         dataKey="question"
+                        type="number"
+                        domain={[1, 'dataMax']}
                         stroke="#9CA3AF"
-                        fontSize={12}
-                        label={{ value: 'Question #', position: 'insideBottom', offset: -5, fill: '#9CA3AF' , fontSize: 11 }}
+                        fontSize={10}
+                        label={{
+                          value: 'Question #',
+                          position: 'insideBottom',
+                          offset: -3,
+                          fill: '#9CA3AF',
+                          fontSize: 11
+                        }}
                       />
                       <YAxis
                         domain={[-2, 2]}
                         stroke="#9CA3AF"
                         fontSize={12}
-                        label={{ value: 'θ', angle: -90, position: 'insideLeft', fill: '#9CA3AF' }}
+                        label={{
+                          value: 'θ',
+                          angle: -90,
+                          position: 'insideLeft',
+                          fill: '#9CA3AF',
+                          fontSize: 16
+                        }}
                       />
                       <Tooltip
                         formatter={(value, name, props) => {
-                          const isCorrect = props.payload?.correct;
-                          return [
-                            value,
-                            `θ after ${isCorrect ? 'Correct ✅' : 'Incorrect ❌'} response`
-                          ];
+                          if (name === 'theta') return [value, 'θ'];
+                          return [value, name];
                         }}
-                        labelFormatter={(label) => `Question ${label}`}
+                        labelFormatter={(_, payload) => {
+                          if (payload && payload[0]) {
+                            const data = payload[0].payload;
+                            const isCorrect = Boolean(data.correct);
+                            return `Question ${data.question} - ${isCorrect ? 'Correct ✅' : 'Incorrect ❌'}`;
+                          }
+                          return '';
+                        }}
                         contentStyle={{
                           backgroundColor: '#1f2937',
                           border: '1px solid #374151',
                           borderRadius: '6px',
                           color: '#fff'
                         }}
+                        itemStyle={{ color: '#60A5FA' }}
                       />
+
+                      {/* Line connecting the dots */}
                       <Line
                         type="monotone"
                         dataKey="theta"
-                        stroke="#6B7280"
+                        stroke="#60A5FA"
                         strokeWidth={2}
-                        dot={(props) => {
-                          const { cx, cy, payload } = props;
-                          if (!payload) return null;
-
-                          // FIXED: Use proper boolean check
-                          const isCorrect = Boolean(payload.correct);
-                          const color = isCorrect ? '#22C55E' : '#EF4444';
-
-                          return (
-                            <circle
-                              cx={cx}
-                              cy={cy}
-                              r={4}
-                              fill={color}
-                              stroke={color}
-                              strokeWidth={1}
-                            />
-                          );
-                        }}
+                        dot={false}
                       />
-                    </LineChart>
+
+                      {/* Scatter dots with conditional coloring */}
+                      <Scatter
+                        dataKey="theta"
+                        fill="#000"
+                        name="Responses"
+                      >
+                        {thetaProgression.map((entry, index) => {
+                          const isCorrect = Boolean(entry.correct);
+                          const color = isCorrect ? '#22C55E' : '#EF4444';
+                          return <Cell key={`cell-${index}`} fill={color} />;
+                        })}
+                      </Scatter>
+                    </ComposedChart>
                   </ResponsiveContainer>
                 ) : (
                   <div className="h-full flex items-center justify-center text-gray-500 text-sm">
@@ -945,14 +1049,170 @@ const AdaptiveAssessment = () => {
                 </div>
               </div>
             </div>
+            {/* updated ends */}
 
-            {/* Response Pattern Scatter Chart - Always Visible */}
+            {/* Response Pattern Scatter Chart v/s Difficulty - Always Visible */}
+            {/*<div className="bg-gray-800 rounded-lg p-4 border border-gray-700">*/}
+            {/*  <h3 className="text-sm font-medium mb-3 text-gray-200">Response Pattern</h3>*/}
+            {/*  <div className="h-48">*/}
+            {/*    {difficultyData.length > 0 ? (*/}
+            {/*      <ResponsiveContainer width="100%" height="100%">*/}
+            {/*        <ScatterChart data={difficultyData}>*/}
+            {/*          <XAxis*/}
+            {/*            dataKey="x"*/}
+            {/*            type="number"*/}
+            {/*            domain={['dataMin - 0.1', 'dataMax + 0.1']}*/}
+            {/*            ticks={[...new Set(difficultyData.map(item => item.x))].sort((a, b) => a - b)}*/}
+            {/*            tickFormatter={(value) => value.toFixed(2)}*/}
+            {/*            stroke="#9CA3AF"*/}
+            {/*            fontSize={10}*/}
+            {/*            label={{*/}
+            {/*              value: 'Difficulty',*/}
+            {/*              position: 'insideBottom',*/}
+            {/*              offset: -5,*/}
+            {/*              fill: '#9CA3AF',*/}
+            {/*              fontSize: 11*/}
+            {/*            }}*/}
+            {/*          />*/}
+            {/*          <YAxis*/}
+            {/*            dataKey="y"*/}
+            {/*            domain={[-2, 2]}*/}
+            {/*            stroke="#9CA3AF"*/}
+            {/*            fontSize={12}*/}
+            {/*            label={{*/}
+            {/*              value: 'θ',*/}
+            {/*              angle: -90,*/}
+            {/*              position: 'insideLeft',*/}
+            {/*              fill: '#9CA3AF',*/}
+            {/*              fontSize: 16*/}
+            {/*            }}*/}
+            {/*          />*/}
+            {/*          <Tooltip*/}
+            {/*            formatter={(value, name, props) => {*/}
+            {/*              if (name === 'y') return [value, 'θ'];*/}
+            {/*              return [value, name];*/}
+            {/*            }}*/}
+            {/*            labelFormatter={(_, payload) => {*/}
+            {/*              if (payload && payload[0]) {*/}
+            {/*                const data = payload[0].payload;*/}
+            {/*                if (data.type === 'current') {*/}
+            {/*                  return `Question ${data.question} - Current Question (Unanswered)`;*/}
+            {/*                } else {*/}
+            {/*                  const isCorrect = Boolean(data.correct);*/}
+            {/*                  return `Question ${data.question} - ${isCorrect ? 'Correct ✅' : 'Incorrect ❌'}`;*/}
+            {/*                }*/}
+            {/*              }*/}
+            {/*              return '';*/}
+            {/*            }}*/}
+            {/*            contentStyle={{*/}
+            {/*              backgroundColor: '#1f2937',*/}
+            {/*              border: '1px solid #374151',*/}
+            {/*              borderRadius: '6px',*/}
+            {/*              color: '#fff'*/}
+            {/*            }}*/}
+            {/*            itemStyle={{ color: '#60A5FA' }}*/}
+            {/*          />*/}
+
+            {/*          /!* Render all dots with conditional coloring *!/*/}
+            {/*          <Scatter*/}
+            {/*            dataKey="y"*/}
+            {/*            data={difficultyData}*/}
+            {/*            fill="#000"*/}
+            {/*            name="Responses"*/}
+            {/*          >*/}
+            {/*            {difficultyData.map((entry, index) => {*/}
+            {/*              let color;*/}
+            {/*              if (entry.type === 'current') {*/}
+            {/*                // Gray for current unanswered question*/}
+            {/*                color = '#6B7280';*/}
+            {/*              } else {*/}
+            {/*                // Green for correct, red for incorrect*/}
+            {/*                color = entry.correct ? '#22C55E' : '#EF4444';*/}
+            {/*              }*/}
+            {/*              return <Cell key={`cell-${index}`} fill={color} />;*/}
+            {/*            })}*/}
+            {/*          </Scatter>*/}
+            {/*        </ScatterChart>*/}
+            {/*      </ResponsiveContainer>*/}
+            {/*    ) : currentQuestionDifficulty !== null && currentSession ? (*/}
+            {/*      <ResponsiveContainer width="100%" height="100%">*/}
+            {/*        <ScatterChart data={[{x: currentQuestionDifficulty, y: currentSession.theta, type: 'current'}]}>*/}
+            {/*          <XAxis*/}
+            {/*            dataKey="x"*/}
+            {/*            type="number"*/}
+            {/*            domain={[currentQuestionDifficulty - 0.5, currentQuestionDifficulty + 0.5]}*/}
+            {/*            stroke="#9CA3AF"*/}
+            {/*            fontSize={10}*/}
+            {/*            label={{*/}
+            {/*              value: 'Difficulty',*/}
+            {/*              position: 'insideBottom',*/}
+            {/*              offset: -5,*/}
+            {/*              fill: '#9CA3AF',*/}
+            {/*              fontSize: 11*/}
+            {/*            }}*/}
+            {/*          />*/}
+            {/*          <YAxis*/}
+            {/*            dataKey="y"*/}
+            {/*            domain={[-2, 2]}*/}
+            {/*            stroke="#9CA3AF"*/}
+            {/*            fontSize={12}*/}
+            {/*            label={{*/}
+            {/*              value: 'θ',*/}
+            {/*              angle: -90,*/}
+            {/*              position: 'insideLeft',*/}
+            {/*              fill: '#9CA3AF',*/}
+            {/*              fontSize: 11*/}
+            {/*            }}*/}
+            {/*          />*/}
+            {/*          <Tooltip*/}
+            {/*            formatter={(value, name) => {*/}
+            {/*              if (name === 'y') return [value, 'θ'];*/}
+            {/*              return [value, name];*/}
+            {/*            }}*/}
+            {/*            labelFormatter={() => 'Question 1 - Current Question (Unanswered)'}*/}
+            {/*            contentStyle={{*/}
+            {/*              backgroundColor: '#1f2937',*/}
+            {/*              border: '1px solid #374151',*/}
+            {/*              borderRadius: '6px',*/}
+            {/*              color: '#fff'*/}
+            {/*            }}*/}
+            {/*          />*/}
+            {/*          <Scatter dataKey="y" fill="#6B7280" name="Current Question" />*/}
+            {/*        </ScatterChart>*/}
+            {/*      </ResponsiveContainer>*/}
+            {/*    ) : (*/}
+            {/*      <div className="h-full flex items-center justify-center text-gray-500 text-sm">*/}
+            {/*        Answer questions to see difficulty vs θ pattern*/}
+            {/*      </div>*/}
+            {/*    )}*/}
+            {/*  </div>*/}
+
+            {/*  /!* Updated Legend *!/*/}
+            {/*  <div className="flex justify-center space-x-4 mt-2">*/}
+            {/*    <div className="flex items-center">*/}
+            {/*      <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>*/}
+            {/*      <span className="text-xs text-gray-400">Correct</span>*/}
+            {/*    </div>*/}
+            {/*    <div className="flex items-center">*/}
+            {/*      <div className="w-3 h-3 rounded-full bg-red-500 mr-2"></div>*/}
+            {/*      <span className="text-xs text-gray-400">Incorrect</span>*/}
+            {/*    </div>*/}
+            {/*    {!assessmentComplete && (*/}
+            {/*      <div className="flex items-center">*/}
+            {/*        <div className="w-3 h-3 rounded-full bg-gray-500 mr-2"></div>*/}
+            {/*        <span className="text-xs text-gray-400">Current</span>*/}
+            {/*      </div>*/}
+            {/*    )}*/}
+            {/*  </div>*/}
+            {/*</div>*/}
+            {/* update starts */}
+
             <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
               <h3 className="text-sm font-medium mb-3 text-gray-200">Response Pattern</h3>
               <div className="h-48">
                 {difficultyData.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
-                    <ScatterChart data={difficultyData}>
+                    <ComposedChart data={difficultyData}>
                       <XAxis
                         dataKey="x"
                         type="number"
@@ -970,7 +1230,6 @@ const AdaptiveAssessment = () => {
                         }}
                       />
                       <YAxis
-                        dataKey="y"
                         domain={[-2, 2]}
                         stroke="#9CA3AF"
                         fontSize={12}
@@ -979,7 +1238,7 @@ const AdaptiveAssessment = () => {
                           angle: -90,
                           position: 'insideLeft',
                           fill: '#9CA3AF',
-                          fontSize: 11
+                          fontSize: 16
                         }}
                       />
                       <Tooltip
@@ -1005,28 +1264,34 @@ const AdaptiveAssessment = () => {
                           borderRadius: '6px',
                           color: '#fff'
                         }}
+                        itemStyle={{ color: '#60A5FA' }}
                       />
 
-                      {/* Render all dots with conditional coloring */}
+                      {/* Line connecting the dots */}
+                      <Line
+                        type="monotone"
+                        dataKey="y"
+                        stroke="#60A5FA"
+                        strokeWidth={2}
+                        dot={false}
+                      />
+
+                      {/* Scatter dots with solid fill and conditional coloring */}
                       <Scatter
                         dataKey="y"
-                        data={difficultyData}
-                        fill="#000"
                         name="Responses"
                       >
                         {difficultyData.map((entry, index) => {
                           let color;
                           if (entry.type === 'current') {
-                            // Gray for current unanswered question
                             color = '#6B7280';
                           } else {
-                            // Green for correct, red for incorrect
                             color = entry.correct ? '#22C55E' : '#EF4444';
                           }
                           return <Cell key={`cell-${index}`} fill={color} />;
                         })}
                       </Scatter>
-                    </ScatterChart>
+                    </ComposedChart>
                   </ResponsiveContainer>
                 ) : currentQuestionDifficulty !== null && currentSession ? (
                   <ResponsiveContainer width="100%" height="100%">
@@ -1099,6 +1364,8 @@ const AdaptiveAssessment = () => {
                 )}
               </div>
             </div>
+
+            {/* update ends */}
 
 
           </div>
