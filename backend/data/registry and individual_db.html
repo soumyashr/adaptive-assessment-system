@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+1. registry.db (Master Index)
+
+item_banks_registry:
+├── id
+├── name                  (e.g., "maths", "MATH10-Algebra")
+├── display_name          (e.g., "Mathematics")
+├── subject               (e.g., "Mathematics")
+├── model_type            (e.g., "3PL")
+├── status                (e.g., "pending", "calibrated")
+├── total_items           (cached count)
+├── calibrated_items      (cached count)
+├── test_takers           (cached count)
+├── accuracy              (cached average)
+├── created_at
+└── last_calibrated
+
+Used for:
+
+Listing all available item banks
+Dashboard statistics
+Item bank management UI
+Quick lookups without opening individual databases
+
+
+
+2. maths.db (Individual Item Bank)
+questions:
+├── All math questions
+├── IRT parameters (a, b, c)
+├── Options and answers
+
+assessment_sessions:
+├── Test sessions for this item bank
+├── User theta estimates
+├── Session status
+
+responses:
+├── Every answer given
+├── Theta before/after
+├── Correctness
+
+users:
+├── Users who took this test
+├── Initial competence levels
+
+user_proficiencies:
+├── User skill levels in this subject
+├── Assessment history
+
+Used for:
+
+Running assessments
+Storing responses
+IRT calculations
+Calibration and recalibration
+Question selection
+</body>
+</html>

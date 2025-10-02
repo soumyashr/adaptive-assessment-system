@@ -76,6 +76,7 @@ class AssessmentResults(BaseModel):
 
 
 class UserProficiencySubject(BaseModel):
+    item_bank: str  # Item bank name
     subject: str
     theta: float
     sem: float
@@ -87,3 +88,25 @@ class UserProficiencySubject(BaseModel):
 class UserProficiency(BaseModel):
     username: str
     proficiencies: List[UserProficiencySubject]
+
+class ItemBankCreate(BaseModel):
+    name: str
+    display_name: str
+    subject: str
+
+class ItemBank(BaseModel):
+    id: int
+    name: str
+    display_name: str
+    subject: str
+    irt_model: str
+    status: str
+    total_items: int
+    calibrated_items: int
+    test_takers: int
+    accuracy: Optional[float]
+    created_at: datetime
+    last_calibrated: Optional[datetime]
+
+    class Config:
+        from_attributes = True

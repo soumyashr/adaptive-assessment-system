@@ -1,0 +1,21 @@
+question,option_a,option_b,option_c,option_d,answer,tier,topic
+"Solve: 2x + 5 = 13",x = 3,x = 4,x = 5,x = 6,B,C1,Basic Algebra
+"What is 15% of 200?",25,30,35,40,B,C1,Percentages
+"Simplify: 3(x + 2) - 2x",x + 6,x + 2,5x + 6,x - 6,A,C1,Algebra
+"What is the area of a circle with radius 5?","25π","50π","75π","100π",A,C2,Geometry
+"Solve: x² - 5x + 6 = 0","x = 2, 3","x = -2, -3","x = 1, 6","x = -1, -6",A,C2,Quadratic Equations
+"What is the slope of the line 2x + 3y = 6?",-2/3,-3/2,2/3,3/2,A,C2,Linear Equations
+"Factor: x² - 9","(x-3)(x-3)","(x+3)(x+3)","(x-3)(x+3)","x(x-9)",C,C2,Factoring
+"Find the derivative of x³",3x²,x²,3x,x³/3,A,C3,Calculus
+"What is sin(π/6)?",1/2,√3/2,1,0,A,C3,Trigonometry
+"Solve: log₂(x) = 3",x = 6,x = 8,x = 9,x = 16,B,C3,Logarithms
+"Evaluate: ∫(2x)dx",x²,2x²,x² + C,2x² + C,C,C3,Integration
+"What is the determinant of [[1,2],[3,4]]?",-2,-1,2,5,A,C3,Matrices
+"Find lim(x→0) sin(x)/x",0,1,∞,undefined,B,C4,Limits
+"Solve the system: x+y=5, 2x-y=1","x=2, y=3","x=3, y=2","x=1, y=4","x=4, y=1",A,C4,Systems of Equations
+"What is the integral of e^x?",e^x,e^x + C,x·e^x,e^(x+1),B,C4,Exponential Functions
+"Find the eigenvalues of [[2,1],[1,2]]",1 and 2,1 and 3,2 and 3,0 and 4,B,C4,Linear Algebra
+"Evaluate: Σ(n=1 to ∞) 1/2ⁿ",1,2,1/2,∞,A,C4,Series
+"What is the Taylor series of e^x at x=0?","1 + x + x²/2! + ...","x + x²/2! + ...","1 + x²/2! + ...","e + x + x²",A,C4,Series Expansion
+"Solve: dy/dx = 2y, y(0)=1",y = e^(2x),y = 2e^x,y = e^x,y = 2x + 1,A,C4,Differential Equations
+"Find the volume of revolution: y=x² from 0 to 1","π/5","2π/5","π/3","2π/3",A,C4,Calculus Applications

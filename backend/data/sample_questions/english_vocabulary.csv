@@ -1,0 +1,201 @@
+question,option_a,option_b,option_c,option_d,answer,tier,topic,discrimination_a,difficulty_b,guessing_c
+What does 'ubiquitous' mean?,Rare,Present everywhere,Hidden,Complex,B,C2,Common Words,1.2,-0.5,0.25
+What does 'ephemeral' mean?,Permanent,Beautiful,Short-lived,Mysterious,C,C2,Time & Duration,1.3,-0.3,0.25
+What does 'pragmatic' mean?,Idealistic,Practical,Theoretical,Emotional,B,C2,Philosophy,1.4,-0.4,0.25
+What does 'ambivalent' mean?,Decisive,Clear,Having mixed feelings,Angry,C,C2,Emotions,1.5,-0.2,0.25
+What does 'eloquent' mean?,Silent,Fluent and persuasive,Loud,Quiet,B,C3,Communication,1.6,0.2,0.25
+What does 'meticulous' mean?,Careless,Quick,Extremely careful and precise,Sloppy,C,C3,Attention to Detail,1.4,0.3,0.25
+What does 'resilient' mean?,Weak,Able to recover quickly,Rigid,Fragile,B,C3,Character Traits,1.3,0.1,0.25
+What does 'altruistic' mean?,Selfish,Unselfish,Generous,Mean,B,C3,Character Traits,1.5,0.4,0.25
+What does 'candid' mean?,Dishonest,Secretive,Frank and honest,Rude,C,C3,Communication,1.2,0.2,0.25
+What does 'frugal' mean?,Wasteful,Economical,Rich,Poor,B,C2,Economics,1.4,-0.1,0.25
+What does 'gregarious' mean?,Antisocial,Quiet,Sociable,Aggressive,C,C3,Social Behavior,1.6,0.5,0.25
+What does 'innovative' mean?,Traditional,Creative and new,Old-fashioned,Boring,B,C2,Innovation,1.5,-0.3,0.25
+What does 'lethargic' mean?,Energetic,Sluggish,Alert,Active,B,C2,Energy Levels,1.3,-0.4,0.25
+What does 'nostalgic' mean?,Forward-looking,Modern,Longing for the past,Happy,C,C2,Emotions,1.4,-0.2,0.25
+What does 'ostentatious' mean?,Modest,Showy,Humble,Simple,B,C4,Behavior,1.8,1.2,0.25
+What does 'perplexed' mean?,Confident,Puzzled,Happy,Clear,B,C2,Mental States,1.3,-0.1,0.25
+What does 'quixotic' mean?,Practical,Realistic,Idealistic and impractical,Sensible,C,C4,Literature,1.9,1.5,0.25
+What does 'reticent' mean?,Talkative,Reserved,Outgoing,Loud,B,C3,Communication,1.5,0.6,0.25
+What does 'sagacious' mean?,Foolish,Wise,Young,Old,B,C4,Wisdom,1.8,1.3,0.25
+What does 'tenacious' mean?,Weak,Giving up,Persistent,Flexible,C,C3,Persistence,1.7,0.8,0.25
+What does 'happy' mean?,Sad,Joyful,Angry,Tired,B,C1,Basic Emotions,0.8,-2,0.25
+What does 'big' mean?,Small,Large,Tiny,Narrow,B,C1,Size,0.7,-2.2,0.25
+What does 'fast' mean?,Slow,Quick,Still,Heavy,B,C1,Speed,0.8,-2.1,0.25
+What does 'cold' mean?,Hot,Low temperature,Warm,Dry,B,C1,Temperature,0.9,-1.9,0.25
+What does 'dark' mean?,Bright,Without light,Shiny,Clear,B,C1,Light,0.8,-2,0.25
+What does 'empty' mean?,Full,Containing nothing,Heavy,Solid,B,C1,Quantity,0.9,-1.8,0.25
+What does 'loud' mean?,Quiet,High volume,Soft,Silent,B,C1,Sound,0.8,-1.9,0.25
+What does 'clean' mean?,Dirty,Free from dirt,Messy,Wet,B,C1,Cleanliness,0.9,-1.7,0.25
+What does 'angry' mean?,Happy,Mad,Calm,Excited,B,C1,Basic Emotions,1,-1.6,0.25
+What does 'tired' mean?,Energetic,Needing rest,Active,Strong,B,C1,Physical State,1,-1.5,0.25
+What does 'brave' mean?,Scared,Courageous,Weak,Shy,B,C1,Character,1.1,-1.4,0.25
+What does 'simple' mean?,Complex,Easy,Difficult,Fancy,B,C1,Complexity,1,-1.5,0.25
+What does 'honest' mean?,Lying,Truthful,Cheating,Secretive,B,C1,Character,1.1,-1.3,0.25
+What does 'careful' mean?,Careless,Cautious,Reckless,Fast,B,C1,Behavior,1.1,-1.2,0.25
+What does 'polite' mean?,Rude,Well-mannered,Mean,Angry,B,C1,Social Behavior,1.2,-1.1,0.25
+What does 'anxious' mean?,Calm,Worried,Happy,Relaxed,B,C2,Emotions,1.2,-0.9,0.25
+What does 'abundant' mean?,Scarce,Plentiful,Limited,Few,B,C2,Quantity,1.3,-0.8,0.25
+What does 'bizarre' mean?,Normal,Strange,Ordinary,Common,B,C2,Description,1.2,-0.7,0.25
+What does 'crucial' mean?,Unimportant,Minor,Extremely important,Trivial,C,C2,Importance,1.3,-0.6,0.25
+What does 'diligent' mean?,Lazy,Hardworking,Slow,Careless,B,C2,Work Ethic,1.4,-0.5,0.25
+What does 'elaborate' mean?,Simple,Basic,Detailed,Plain,C,C2,Complexity,1.3,-0.4,0.25
+What does 'feasible' mean?,Impossible,Possible,Difficult,Unlikely,B,C2,Possibility,1.4,-0.3,0.25
+What does 'gracious' mean?,Rude,Harsh,Courteous,Mean,C,C2,Social Behavior,1.3,-0.2,0.25
+What does 'humble' mean?,Proud,Modest,Arrogant,Loud,B,C2,Character,1.4,-0.1,0.25
+What does 'imminent' mean?,Distant,Past,About to happen,Unlikely,C,C2,Time,1.5,0,0.25
+What does 'ambiguous' mean?,Clear,Obvious,Unclear,Simple,C,C3,Clarity,1.5,0.1,0.25
+What does 'benevolent' mean?,Cruel,Evil,Kind,Mean,C,C3,Character,1.6,0.2,0.25
+What does 'coherent' mean?,Confused,Logical,Scattered,Random,B,C3,Logic,1.5,0.3,0.25
+What does 'dubious' mean?,Certain,Doubtful,Clear,Obvious,B,C3,Certainty,1.6,0.4,0.25
+What does 'enigmatic' mean?,Clear,Simple,Mysterious,Obvious,C,C3,Mystery,1.7,0.5,0.25
+What does 'facetious' mean?,Serious,Treating serious issues with humor,Angry,Sad,B,C3,Communication,1.6,0.6,0.25
+What does 'garrulous' mean?,Quiet,Talkative,Silent,Reserved,B,C3,Communication,1.7,0.7,0.25
+What does 'hackneyed' mean?,Original,Fresh,Overused,New,C,C3,Originality,1.8,0.8,0.25
+What does 'impetuous' mean?,Careful,Cautious,Acting without thinking,Slow,C,C3,Behavior,1.7,0.9,0.25
+What does 'judicious' mean?,Foolish,Reckless,Having good judgment,Careless,C,C3,Judgment,1.8,1,0.25
+What does 'acrimonious' mean?,Friendly,Bitter and angry,Pleasant,Sweet,B,C4,Emotions,1.9,1.1,0.25
+What does 'bellicose' mean?,Peaceful,Aggressive,Calm,Friendly,B,C4,Behavior,2,1.2,0.25
+What does 'capricious' mean?,Predictable,Unpredictable,Stable,Consistent,B,C4,Behavior,1.9,1.3,0.25
+What does 'deleterious' mean?,Beneficial,Helpful,Harmful,Positive,C,C4,Effects,2,1.4,0.25
+What does 'ebullient' mean?,Depressed,Cheerful and enthusiastic,Sad,Quiet,B,C4,Emotions,2.1,1.5,0.25
+What does 'fastidious' mean?,Careless,Very attentive to detail,Sloppy,Quick,B,C4,Attention,2,1.6,0.25
+What does 'grandiloquent' mean?,Simple,Plain,Pompous in speech,Quiet,C,C4,Communication,2.1,1.7,0.25
+What does 'hegemony' mean?,Weakness,Dominance,Equality,Balance,B,C4,Power,2.2,1.8,0.25
+What does 'iconoclast' mean?,Conformist,Traditional,One who attacks cherished beliefs,Follower,C,C4,Philosophy,2.2,1.9,0.25
+What does 'jejune' mean?,Interesting,Sophisticated,Naive and simplistic,Complex,C,C4,Description,2.3,2,0.25
+What does 'kind' mean?,Mean,Nice,Cruel,Harsh,B,C1,Basic Character,0.9,-1.8,0.25
+What does 'strong' mean?,Weak,Powerful,Fragile,Soft,B,C1,Physical,0.9,-1.7,0.25
+What does 'beautiful' mean?,Ugly,Attractive,Plain,Horrible,B,C1,Appearance,1,-1.6,0.25
+What does 'dangerous' mean?,Safe,Harmful,Secure,Protected,B,C1,Safety,1.1,-1.4,0.25
+What does 'ancient' mean?,New,Modern,Very old,Recent,C,C1,Time,1.1,-1.3,0.25
+What does 'adequate' mean?,Insufficient,Enough,Excessive,Perfect,B,C2,Quantity,1.3,-0.7,0.25
+What does 'authentic' mean?,Fake,Genuine,FALSE,Copied,B,C2,Authenticity,1.4,-0.5,0.25
+What does 'benign' mean?,Harmful,Dangerous,Harmless,Evil,C,C2,Nature,1.4,-0.3,0.25
+What does 'candor' mean?,Deception,Honesty,Lies,Secretiveness,B,C2,Communication,1.5,-0.1,0.25
+What does 'deteriorate' mean?,Improve,Get worse,Stabilize,Maintain,B,C2,Change,1.5,0,0.25
+What does 'esoteric' mean?,Common,Popular,Understood by few,Simple,C,C3,Knowledge,1.7,0.4,0.25
+What does 'fallacious' mean?,TRUE,Based on false reasoning,Correct,Logical,B,C3,Logic,1.8,0.6,0.25
+What does 'gregarious' mean?,Solitary,Sociable,Quiet,Shy,B,C3,Social,1.7,0.7,0.25
+What does 'heuristic' mean?,Exact,Using experience to learn,Theoretical,Impractical,B,C3,Learning,1.8,0.9,0.25
+What does 'idiosyncratic' mean?,Common,Typical,Peculiar to individual,Normal,C,C3,Individuality,1.9,1,0.25
+What does 'antediluvian' mean?,Modern,Extremely old,Recent,Contemporary,B,C4,Time,2.3,2.1,0.25
+What does 'bowdlerize' mean?,Enhance,Remove offensive parts,Add content,Clarify,B,C4,Literature,2.4,2.2,0.25
+What does 'cachinnate' mean?,Whisper,Laugh loudly,Cry,Scream,B,C4,Sound,2.4,2.3,0.25
+What does 'defenestration' mean?,Building,Throwing out a window,Entering,Climbing,B,C4,Action,2.5,2.4,0.25
+What does 'eleemosynary' mean?,Selfish,Charitable,Greedy,Commercial,B,C4,Character,2.5,2.5,0.25
+What does 'accessible' mean?,Unreachable,Easy to reach,Difficult,Hidden,B,C2,Accessibility,1.2,-0.8,0.25
+What does 'collaborate' mean?,Compete,Work together,Fight,Oppose,B,C2,Cooperation,1.3,-0.6,0.25
+What does 'diverse' mean?,Same,Varied,Uniform,Identical,B,C2,Variety,1.3,-0.4,0.25
+What does 'ethical' mean?,Immoral,Moral,Wrong,Evil,B,C2,Morality,1.4,-0.2,0.25
+What does 'fundamental' mean?,Minor,Basic,Trivial,Optional,B,C2,Importance,1.4,0,0.25
+What does 'articulate' mean?,Unclear,Express clearly,Mumble,Confused,B,C3,Communication,1.5,0.15,0.25
+What does 'belligerent' mean?,Peaceful,Hostile,Calm,Friendly,B,C3,Behavior,1.6,0.25,0.25
+What does 'contemporary' mean?,Ancient,Modern,Old,Historical,B,C3,Time,1.5,0.35,0.25
+What does 'divergent' mean?,Similar,Different,Same,Parallel,B,C3,Direction,1.6,0.45,0.25
+What does 'empirical' mean?,Theoretical,Based on observation,Imaginary,Assumed,B,C3,Science,1.7,0.55,0.25
+What does 'aesthetic' mean?,Ugly,Related to beauty,Practical,Functional,B,C3,Art,1.6,0.65,0.25
+What does 'bureaucratic' mean?,Simple,Complex administrative,Direct,Personal,B,C3,Administration,1.7,0.75,0.25
+What does 'catalyst' mean?,Barrier,Something that causes change,Stopper,Block,B,C3,Change,1.8,0.85,0.25
+What does 'dichotomy' mean?,Unity,Division into two,Agreement,Harmony,B,C3,Division,1.8,0.95,0.25
+What does 'eclectic' mean?,Narrow,From various sources,Limited,Focused,B,C3,Variety,1.7,0.8,0.25
+What does 'small' mean?,Big,Tiny,Large,Huge,B,C1,Size,0.8,-2.1,0.25
+What does 'old' mean?,Young,Aged,New,Fresh,B,C1,Age,0.8,-2,0.25
+What does 'good' mean?,Bad,Positive,Evil,Wrong,B,C1,Quality,0.9,-1.9,0.25
+What does 'hard' mean?,Soft,Difficult,Easy,Simple,B,C1,Difficulty,0.9,-1.8,0.25
+What does 'near' mean?,Far,Close,Distant,Remote,B,C1,Distance,0.9,-1.7,0.25
+What does 'accept' mean?,Reject,Receive,Refuse,Deny,B,C2,Action,1.2,-0.9,0.25
+What does 'achieve' mean?,Fail,Accomplish,Lose,Miss,B,C2,Success,1.3,-0.7,0.25
+What does 'analyze' mean?,Ignore,Examine,Overlook,Guess,B,C2,Thinking,1.4,-0.5,0.25
+What does 'benefit' mean?,Harm,Advantage,Damage,Loss,B,C2,Advantage,1.3,-0.3,0.25
+What does 'conflict' mean?,Agreement,Disagreement,Peace,Harmony,B,C2,Disagreement,1.4,-0.1,0.25
+What does 'aberrant' mean?,Normal,Deviating from normal,Typical,Standard,B,C3,Deviation,1.6,0.12,0.25
+What does 'bolster' mean?,Weaken,Support,Destroy,Diminish,B,C3,Support,1.5,0.22,0.25
+What does 'circumspect' mean?,Careless,Careful,Reckless,Bold,B,C3,Caution,1.6,0.32,0.25
+What does 'delineate' mean?,Blur,Describe precisely,Confuse,Hide,B,C3,Description,1.7,0.42,0.25
+What does 'efficacious' mean?,Ineffective,Effective,Useless,Harmful,B,C3,Effectiveness,1.8,0.52,0.25
+What does 'fluctuate' mean?,Stabilize,Vary,Remain,Fix,B,C3,Change,1.6,0.62,0.25
+What does 'germane' mean?,Irrelevant,Relevant,Unrelated,Foreign,B,C3,Relevance,1.7,0.72,0.25
+What does 'harbinger' mean?,Ending,Forerunner,Result,Conclusion,B,C3,Prediction,1.8,0.82,0.25
+What does 'immutable' mean?,Changeable,Unchangeable,Variable,Flexible,B,C3,Change,1.8,0.92,0.25
+What does 'juxtapose' mean?,Separate,Place side by side,Mix,Blend,B,C3,Position,1.7,0.77,0.25
+What does 'apotheosis' mean?,Beginning,Perfect example,Failure,Weakness,B,C4,Perfection,2,1.15,0.25
+What does 'blandishment' mean?,Criticism,Flattery,Truth,Insult,B,C4,Persuasion,2.1,1.25,0.25
+What does 'calumny' mean?,Praise,Slander,Truth,Compliment,B,C4,Defamation,2.1,1.35,0.25
+What does 'denouement' mean?,Beginning,Final resolution,Introduction,Middle,B,C4,Literature,2.2,1.45,0.25
+What does 'effrontery' mean?,Shyness,Shameless boldness,Modesty,Fear,B,C4,Behavior,2.2,1.55,0.25
+What does 'feckless' mean?,Responsible,Ineffective,Capable,Strong,B,C4,Character,2.1,1.65,0.25
+What does 'gainsay' mean?,Agree,Deny,Support,Confirm,B,C4,Opposition,2.2,1.75,0.25
+What does 'hagiography' mean?,Criticism,Biography of saints,Fiction,Poetry,B,C4,Literature,2.3,1.85,0.25
+What does 'ignominious' mean?,Glorious,Shameful,Proud,Honorable,B,C4,Shame,2.3,1.95,0.25
+What does 'jingoism' mean?,Pacifism,Extreme patriotism,Neutrality,Diplomacy,B,C4,Politics,2.4,2.05,0.25
+What does 'warm' mean?,Cold,Hot,Freezing,Icy,B,C1,Temperature,0.8,-1.85,0.25
+What does 'rich' mean?,Poor,Wealthy,Broke,Needy,B,C1,Wealth,0.9,-1.75,0.25
+What does 'safe' mean?,Dangerous,Secure,Risky,Harmful,B,C1,Safety,0.9,-1.65,0.25
+What does 'quiet' mean?,Loud,Silent,Noisy,Booming,B,C1,Sound,0.9,-1.55,0.25
+What does 'friendly' mean?,Hostile,Kind,Mean,Angry,B,C1,Social,1,-1.45,0.25
+What does 'absorb' mean?,Release,Take in,Expel,Reject,B,C2,Process,1.3,-0.85,0.25
+What does 'acquire' mean?,Lose,Obtain,Give,Donate,B,C2,Possession,1.3,-0.75,0.25
+What does 'adapt' mean?,Resist,Adjust,Fight,Oppose,B,C2,Change,1.4,-0.65,0.25
+What does 'advocate' mean?,Oppose,Support,Attack,Criticize,B,C2,Support,1.4,-0.55,0.25
+What does 'aggregate' mean?,Separate,Combine,Divide,Split,B,C2,Combination,1.5,-0.45,0.25
+What does 'alleviate' mean?,Worsen,Ease,Intensify,Increase,B,C2,Relief,1.4,-0.35,0.25
+What does 'ambition' mean?,Laziness,Strong desire to achieve,Apathy,Indifference,B,C2,Motivation,1.4,-0.25,0.25
+What does 'amplify' mean?,Reduce,Increase,Minimize,Quiet,B,C2,Increase,1.5,-0.15,0.25
+What does 'anticipate' mean?,Ignore,Expect,Forget,Overlook,B,C2,Expectation,1.5,-0.05,0.25
+What does 'arbitrary' mean?,Logical,Random,Planned,Systematic,B,C2,Randomness,1.6,0.05,0.25
+What does 'ameliorate' mean?,Worsen,Improve,Maintain,Destroy,B,C3,Improvement,1.6,0.18,0.25
+What does 'bifurcate' mean?,Unite,Split into two,Merge,Combine,B,C3,Division,1.7,0.28,0.25
+What does 'cogent' mean?,Weak,Convincing,Illogical,Confused,B,C3,Logic,1.7,0.38,0.25
+What does 'deprecate' mean?,Approve,Disapprove,Praise,Support,B,C3,Disapproval,1.8,0.48,0.25
+What does 'equanimity' mean?,Anxiety,Calmness,Excitement,Fear,B,C3,Composure,1.8,0.58,0.25
+What does 'felicitous' mean?,Unfortunate,Well-suited,Inappropriate,Wrong,B,C3,Appropriateness,1.7,0.68,0.25
+What does 'germinate' mean?,Die,Begin to grow,End,Wither,B,C3,Growth,1.6,0.78,0.25
+What does 'heterogeneous' mean?,Same,Diverse,Uniform,Similar,B,C3,Diversity,1.8,0.88,0.25
+What does 'impervious' mean?,Permeable,Not allowing passage,Porous,Open,B,C3,Resistance,1.8,0.98,0.25
+What does 'jurisprudence' mean?,Lawlessness,Study of law,Crime,Disorder,B,C3,Law,1.9,1.05,0.25
+What does 'abstemious' mean?,Gluttonous,Moderate in eating,Excessive,Indulgent,B,C4,Moderation,2,1.12,0.25
+What does 'bucolic' mean?,Urban,Rural,Metropolitan,Industrial,B,C4,Setting,2.1,1.22,0.25
+What does 'chicanery' mean?,Honesty,Trickery,Truth,Sincerity,B,C4,Deception,2.1,1.32,0.25
+What does 'didactic' mean?,Entertaining,Instructive,Amusing,Playful,B,C4,Education,2.2,1.42,0.25
+What does 'enervate' mean?,Energize,Weaken,Strengthen,Invigorate,B,C4,Energy,2.2,1.52,0.25
+What does 'fulsome' mean?,Insufficient,Excessive,Moderate,Balanced,B,C4,Excess,2.2,1.62,0.25
+What does 'gaffe' mean?,Success,Social blunder,Achievement,Victory,B,C4,Mistakes,2.1,1.72,0.25
+What does 'halcyon' mean?,Stormy,Peaceful,Chaotic,Turbulent,B,C4,Peace,2.3,1.82,0.25
+What does 'impecunious' mean?,Wealthy,Poor,Rich,Affluent,B,C4,Poverty,2.3,1.92,0.25
+What does 'jocose' mean?,Serious,Playful,Sad,Angry,B,C4,Humor,2.4,2.02,0.25
+What does 'kakistocracy' mean?,Rule by best,Rule by worst,Democracy,Monarchy,B,C4,Government,2.5,2.12,0.25
+What does 'legerdemain' mean?,Honesty,Sleight of hand,Truth,Openness,B,C4,Deception,2.5,2.22,0.25
+What does 'magniloquent' mean?,Quiet,Lofty in speech,Simple,Plain,B,C4,Speech,2.5,2.32,0.25
+What does 'nugatory' mean?,Important,Worthless,Valuable,Significant,B,C4,Value,2.6,2.42,0.25
+What does 'obsequious' mean?,Defiant,Servile,Proud,Independent,B,C4,Behavior,2.6,2.52,0.25
+What does 'wet' mean?,Dry,Moist,Arid,Desert,B,C1,Moisture,0.8,-1.95,0.25
+What does 'young' mean?,Old,Not old,Ancient,Elderly,B,C1,Age,0.8,-1.88,0.25
+What does 'tall' mean?,Short,High,Low,Small,B,C1,Height,0.9,-1.78,0.25
+What does 'wide' mean?,Narrow,Broad,Thin,Slim,B,C1,Width,0.9,-1.68,0.25
+What does 'deep' mean?,Shallow,Extending far down,Surface,Top,B,C1,Depth,1,-1.58,0.25
+What does 'allocate' mean?,Keep,Distribute,Hoard,Save,B,C2,Distribution,1.3,-0.88,0.25
+What does 'assess' mean?,Ignore,Evaluate,Neglect,Overlook,B,C2,Evaluation,1.4,-0.78,0.25
+What does 'attain' mean?,Lose,Achieve,Fail,Miss,B,C2,Achievement,1.4,-0.68,0.25
+What does 'augment' mean?,Decrease,Increase,Reduce,Diminish,B,C2,Increase,1.5,-0.58,0.25
+What does 'avert' mean?,Cause,Prevent,Create,Start,B,C2,Prevention,1.5,-0.48,0.25
+What does 'abdicate' mean?,Accept,Give up power,Take power,Rule,B,C3,Power,1.6,0.14,0.25
+What does 'beatitude' mean?,Misery,Supreme happiness,Sadness,Depression,B,C3,Happiness,1.7,0.24,0.25
+What does 'circumvent' mean?,Face,Avoid,Confront,Meet,B,C3,Avoidance,1.7,0.34,0.25
+What does 'debilitate' mean?,Strengthen,Weaken,Energize,Empower,B,C3,Weakness,1.8,0.44,0.25
+What does 'effulgent' mean?,Dark,Radiant,Dim,Dull,B,C3,Light,1.8,0.54,0.25
+What does 'florid' mean?,Plain,Ornate,Simple,Bare,B,C3,Style,1.7,0.64,0.25
+What does 'grandstand' mean?,Hide,Perform for attention,Retreat,Whisper,B,C3,Performance,1.7,0.74,0.25
+What does 'hirsute' mean?,Bald,Hairy,Smooth,Shaven,B,C3,Appearance,1.8,0.84,0.25
+What does 'inimical' mean?,Friendly,Hostile,Supportive,Helpful,B,C3,Hostility,1.8,0.94,0.25
+What does 'jettison' mean?,Keep,Discard,Save,Preserve,B,C3,Disposal,1.6,0.7,0.25
+What does 'abrogate' mean?,Establish,Abolish,Create,Build,B,C4,Cancellation,2,1.08,0.25
+What does 'byzantine' mean?,Simple,Complex,Direct,Clear,B,C4,Complexity,2.1,1.18,0.25
+What does 'concatenate' mean?,Separate,Link together,Divide,Split,B,C4,Connection,2.1,1.28,0.25
+What does 'dilettante' mean?,Expert,Amateur,Professional,Master,B,C4,Expertise,2.2,1.38,0.25
+What does 'epistolary' mean?,Oral,Related to letters,Verbal,Spoken,B,C4,Writing,2.2,1.48,0.25
+What does 'fugacious' mean?,Permanent,Fleeting,Lasting,Eternal,B,C4,Duration,2.3,1.58,0.25
+What does 'gasconade' mean?,Whisper,Boastful talk,Silence,Modesty,B,C4,Boasting,2.3,1.68,0.25
+What does 'hiatus' mean?,Continuation,Break,Connection,Flow,B,C4,Interruption,2,1.78,0.25
+What does 'ineluctable' mean?,Avoidable,Inevitable,Optional,Changeable,B,C4,Inevitability,2.4,1.88,0.25
+What does 'jurisprudent' mean?,Lawless,Skilled in law,Criminal,Ignorant,B,C4,Legal Knowledge,2.4,1.98,0.25

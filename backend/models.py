@@ -11,9 +11,6 @@ class User(Base):
     initial_competence_level = Column(String, default="beginner")  # Changed: more descriptive
     created_at = Column(DateTime, server_default=func.now())
 
-    # Relationships
-    assessment_sessions = relationship("AssessmentSession", back_populates="user")
-    proficiencies = relationship("UserProficiency", back_populates="user")
 
 
 class Question(Base):
@@ -55,7 +52,6 @@ class AssessmentSession(Base):
     completed = Column(Boolean, default=False)  # Changed from is_completed
 
     # Relationships
-    user = relationship("User", back_populates="assessment_sessions")
     responses = relationship("Response", back_populates="session")
 
 
@@ -91,5 +87,21 @@ class UserProficiency(Base):
     topic_performance = Column(Text, nullable=True)  # Added: JSON storage
     last_updated = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
-    # Relationships
-    user = relationship("User", back_populates="proficiencies")
+
+
+class ItemBank(Base):
+    """Registry of all item banks"""
+    __tablename__ = "item_banks_registry"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, index=True)  # e.g., "MATH10-Algebra"
+    display_name = Column(String)  # e.g., "MATH10 Algebra"
+    subject = Column(String)  # e.g., "Mathematics"
+    model_type = Column(String, default="3PL")  # IRT model type
+    status = Column(String, default="pending")  # pending, calibrated, active
+    total_items = Column(Integer, default=0)
+    calibrated_items = Column(Integer, default=0)
+    test_takers = Column(Integer, default=0)
+    accuracy = Column(Float, nullable=True)
+    created_at = Column(DateTime, server_default=func.now())
+    last_calibrated = Column(DateTime, nullable=True)

@@ -1,24 +1,41 @@
+# backend/services.py
+
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, not_
 from typing import List, Optional, Dict
 import pandas as pd
 from datetime import datetime
 import logging
+import sys
+import os
+from sqlalchemy import and_
 
-import models
-import schemas
+
+# Add scripts to path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'scripts'))
+from db_manager import item_bank_db
+
+# Import both model files
+import models_registry  # For User, ItemBank operations
+import models_itembank  # For Question, Session, Response operations
 from irt_engine import IRTEngine
+import schemas
 
 logger = logging.getLogger(__name__)
 
 
 class UserService:
+    """Manages users in registry database"""
+
     def get_or_create_user(self, db: Session, username: str,
-                           initial_competence_level: str = "beginner") -> models.User:
-        """Get existing user or create new one"""
-        user = db.query(models.User).filter(models.User.username == username).first()
+                           initial_competence_level: str = "beginner") -> models_registry.User:
+        """Get existing user or create new one in registry"""
+        user = db.query(models_registry.User).filter(
+            models_registry.User.username == username
+        ).first()
+
         if not user:
-            user = models.User(
+            user = models_registry.User(
                 username=username,
                 initial_competence_level=initial_competence_level
             )
@@ -27,20 +44,27 @@ class UserService:
             db.refresh(user)
         return user
 
-    def get_user_by_username(self, db: Session, username: str) -> Optional[models.User]:
-        """Get user by username"""
-        return db.query(models.User).filter(models.User.username == username).first()
+    def get_user_by_username(self, db: Session, username: str) -> Optional[models_registry.User]:
+        """Get user by username from registry"""
+        return db.query(models_registry.User).filter(
+            models_registry.User.username == username
+        ).first()
 
     def get_user_proficiency(self, db: Session, user_id: int) -> schemas.UserProficiency:
-        """Get user's proficiency across all subjects"""
-        user = db.query(models.User).filter(models.User.id == user_id).first()
-        proficiencies = db.query(models.UserProficiency).filter(
-            models.UserProficiency.user_id == user_id
+        """Get user's proficiency across all item banks"""
+        user = db.query(models_registry.User).filter(
+            models_registry.User.id == user_id
+        ).first()
+
+        # Get cached proficiencies from registry
+        proficiencies = db.query(models_registry.UserProficiencySummary).filter(
+            models_registry.UserProficiencySummary.user_id == user_id
         ).all()
 
         proficiency_list = []
         for prof in proficiencies:
             proficiency_list.append(schemas.UserProficiencySubject(
+                item_bank=prof.item_bank_name,
                 subject=prof.subject,
                 theta=prof.theta,
                 sem=prof.sem,
@@ -54,13 +78,16 @@ class UserService:
             proficiencies=proficiency_list
         )
 
-    def update_user_proficiency(self, db: Session, user_id: int, subject: str,
+    def update_user_proficiency(self, registry_db: Session, item_db: Session,
+                                user_id: int, item_bank_name: str, subject: str,
                                 theta: float, sem: float, tier: str):
-        """Update or create user proficiency for a subject"""
-        proficiency = db.query(models.UserProficiency).filter(
+        """Update proficiency in both item bank DB and registry cache"""
+
+        # 1. Update in item bank database
+        proficiency = item_db.query(models_itembank.UserProficiency).filter(
             and_(
-                models.UserProficiency.user_id == user_id,
-                models.UserProficiency.subject == subject
+                models_itembank.UserProficiency.user_id == user_id,
+                models_itembank.UserProficiency.subject == subject
             )
         ).first()
 
@@ -70,7 +97,7 @@ class UserService:
             proficiency.tier = tier
             proficiency.assessments_taken += 1
         else:
-            proficiency = models.UserProficiency(
+            proficiency = models_itembank.UserProficiency(
                 user_id=user_id,
                 subject=subject,
                 theta=theta,
@@ -78,30 +105,54 @@ class UserService:
                 tier=tier,
                 assessments_taken=1
             )
-            db.add(proficiency)
+            item_db.add(proficiency)
 
-        try:
-            db.commit()
-            logger.info("Database committed successfully")
-        except Exception as e:
-            logger.error(f"Database commit failed: {e}")
-            db.rollback()
-            raise
+        item_db.commit()
+
+        # 2. Update cache in registry database
+        cache = registry_db.query(models_registry.UserProficiencySummary).filter(
+            and_(
+                models_registry.UserProficiencySummary.user_id == user_id,
+                models_registry.UserProficiencySummary.item_bank_name == item_bank_name
+            )
+        ).first()
+
+        if cache:
+            cache.theta = theta
+            cache.sem = sem
+            cache.tier = tier
+            cache.assessments_taken = proficiency.assessments_taken
+            cache.last_updated = datetime.utcnow()
+        else:
+            cache = models_registry.UserProficiencySummary(
+                user_id=user_id,
+                item_bank_name=item_bank_name,
+                subject=subject,
+                theta=theta,
+                sem=sem,
+                tier=tier,
+                assessments_taken=proficiency.assessments_taken
+            )
+            registry_db.add(cache)
+
+        registry_db.commit()
+        logger.info(f"Updated proficiency cache for user {user_id} in {item_bank_name}")
 
 
 class QuestionService:
+    """Manages questions in item bank databases"""
+
     def import_questions_from_df(self, db: Session, df: pd.DataFrame) -> int:
-        """Import questions from pandas DataFrame"""
+        """Import questions from pandas DataFrame into item bank DB"""
         imported_count = 0
 
         for _, row in df.iterrows():
-            # Check if question already exists
-            existing = db.query(models.Question).filter(
-                models.Question.question_id == row['question_id']
+            existing = db.query(models_itembank.Question).filter(
+                models_itembank.Question.question_id == row['question_id']
             ).first()
 
             if not existing:
-                question = models.Question(
+                question = models_itembank.Question(
                     subject=row['subject'],
                     question_id=row['question_id'],
                     question=row['question'],
@@ -125,14 +176,14 @@ class QuestionService:
 
     def get_available_questions(self, db: Session, session_id: int, subject: str) -> List[Dict]:
         """Get available questions for a session (not yet asked)"""
-        asked_question_ids = db.query(models.Response.question_id).filter(
-            models.Response.session_id == session_id
+        asked_question_ids = db.query(models_itembank.Response.question_id).filter(
+            models_itembank.Response.session_id == session_id
         ).scalar_subquery()
 
-        questions = db.query(models.Question).filter(
+        questions = db.query(models_itembank.Question).filter(
             and_(
-                models.Question.subject == subject,
-                not_(models.Question.id.in_(asked_question_ids))
+                models_itembank.Question.subject == subject,
+                not_(models_itembank.Question.id.in_(asked_question_ids))
             )
         ).all()
 
@@ -156,40 +207,47 @@ class QuestionService:
             for q in questions
         ]
 
-    def get_question_by_id(self, db: Session, question_id: int) -> Optional[models.Question]:
-        """Get question by ID"""
-        return db.query(models.Question).filter(models.Question.id == question_id).first()
+    def get_question_by_id(self, db: Session, question_id: int) -> Optional[models_itembank.Question]:
+        """Get question by ID from item bank DB"""
+        return db.query(models_itembank.Question).filter(
+            models_itembank.Question.id == question_id
+        ).first()
 
 
 class AssessmentService:
+    """Manages assessments in item bank databases"""
+
     def __init__(self):
         self.user_service = UserService()
         self.question_service = QuestionService()
 
-    def start_assessment(self, db: Session, user_id: int, subject: str) -> models.AssessmentSession:
-        """Start a new assessment session"""
-        logger.info(f"Start assessment for user {user_id}")
+    def start_assessment(self, item_db: Session, registry_db: Session,
+                         user_id: int, subject: str, item_bank_name: str) -> models_itembank.AssessmentSession:
+        """Start a new assessment session in item bank DB"""
+        logger.info(f"Start assessment for user {user_id} in item bank {item_bank_name}")
 
-        # Get user's previous proficiency for this subject
-        user_proficiency = db.query(models.UserProficiency).filter(
+        # Check for existing proficiency in item bank
+        user_proficiency = item_db.query(models_itembank.UserProficiency).filter(
             and_(
-                models.UserProficiency.user_id == user_id,
-                models.UserProficiency.subject == subject
+                models_itembank.UserProficiency.user_id == user_id,
+                models_itembank.UserProficiency.subject == subject
             )
         ).first()
 
-        # Set starting theta based on proficiency or competence level
         if user_proficiency:
             starting_theta = user_proficiency.theta
             logger.info(f"Using existing proficiency theta: {starting_theta:.3f}")
         else:
-            user = db.query(models.User).filter(models.User.id == user_id).first()
+            # Get user from registry to check competence level
+            user = registry_db.query(models_registry.User).filter(
+                models_registry.User.id == user_id
+            ).first()
             irt_engine = IRTEngine()
             starting_theta = irt_engine.get_initial_theta(user.initial_competence_level)
-            logger.info(f"Using initial competence level: {user.initial_competence_level}, theta: {starting_theta:.3f}")
+            logger.info(f"Using initial competence: {user.initial_competence_level}, theta: {starting_theta:.3f}")
 
-        # Create session with corrected column names
-        session = models.AssessmentSession(
+        # Create session in item bank DB
+        session = models_itembank.AssessmentSession(
             user_id=user_id,
             subject=subject,
             theta=starting_theta,
@@ -199,46 +257,42 @@ class AssessmentService:
             completed=False
         )
 
-        db.add(session)
-        db.commit()
-        db.refresh(session)
+        item_db.add(session)
+        item_db.commit()
+        item_db.refresh(session)
 
-        logger.info(f"services.start_assessment()>>Database committed successfully")
+        logger.info(f"Assessment session created successfully")
         return session
 
-    def get_session(self, db: Session, session_id: int) -> Optional[models.AssessmentSession]:
-        """Get assessment session by ID"""
-        return db.query(models.AssessmentSession).filter(
-            models.AssessmentSession.session_id == session_id
+    def get_session(self, db: Session, session_id: int) -> Optional[models_itembank.AssessmentSession]:
+        """Get assessment session by ID from item bank DB"""
+        return db.query(models_itembank.AssessmentSession).filter(
+            models_itembank.AssessmentSession.session_id == session_id
         ).first()
 
     def get_next_question(self, db: Session, session_id: int,
                           irt_engine: IRTEngine) -> Optional[schemas.QuestionResponse]:
-        """Get next question for assessment"""
+        """Get next question for assessment from item bank DB"""
         session = self.get_session(db, session_id)
         if not session or session.completed:
             return None
 
-        # Get response history
-        responses = db.query(models.Response).filter(
-            models.Response.session_id == session_id
-        ).order_by(models.Response.created_at).all()
+        responses = db.query(models_itembank.Response).filter(
+            models_itembank.Response.session_id == session_id
+        ).order_by(models_itembank.Response.created_at).all()
 
         response_history = [r.is_correct for r in responses]
 
-        # Get available questions
         available_questions = self.question_service.get_available_questions(
             db, session_id, session.subject
         )
 
         if not available_questions:
-            # No more questions available, complete assessment
             session.completed = True
             session.completed_at = datetime.utcnow()
             db.commit()
             return None
 
-        # Select next question using IRT engine
         next_question_data = irt_engine.select_next_question(
             session.theta,
             available_questions,
@@ -249,8 +303,7 @@ class AssessmentService:
         if not next_question_data:
             return None
 
-        logger.info(f"DEBUG: Rendered Question: {next_question_data['question']}")
-        logger.info(f"DEBUG: Rendered Question difficulty_b: {next_question_data['difficulty_b']}")
+        logger.info(f"Selected question: {next_question_data['question_id']}")
 
         return schemas.QuestionResponse(
             id=next_question_data['id'],
@@ -266,45 +319,30 @@ class AssessmentService:
             guessing_c=next_question_data['guessing_c']
         )
 
-    def record_response(self, db: Session, session_id: int, question_id: int,
-                        selected_option: str, irt_engine: IRTEngine):
-        """Record a response and update theta"""
-        logger.info("-" * 50)
-        session = self.get_session(db, session_id)
-        question = self.question_service.get_question_by_id(db, question_id)
+    def record_response(self, item_db: Session, registry_db: Session,
+                        session_id: int, question_id: int, selected_option: str,
+                        item_bank_name: str, irt_engine: IRTEngine):
+        """Record a response and update theta in item bank DB"""
+        session = self.get_session(item_db, session_id)
+        question = self.question_service.get_question_by_id(item_db, question_id)
 
         if not session or not question:
             return
 
-        # DEBUG: Print comparison details
-        logger.debug("\n\n")
-        logger.debug("-" * 50)
-        logger.debug(f"DEBUG: services.record_response():Question Id: {question.question_id}")
-        logger.debug(f"DEBUG: Question: {question.question}")
-        logger.debug(f"DEBUG: Selected option: '{selected_option}' (type: {type(selected_option)})")
-        logger.debug(f"DEBUG: Correct answer: '{question.answer}' (type: {type(question.answer)})")
-        logger.debug(f"DEBUG: Selected upper: '{selected_option.upper()}'")
-        logger.debug(f"DEBUG: Answer upper: '{question.answer.upper()}'")
-
-        # Check if answer is correct
         is_correct = self.is_answer_correct(selected_option, question.answer)
-        logger.debug(f"DEBUG: Is correct: {is_correct}")
 
-        # Get all previous responses for theta calculation
-        previous_responses = db.query(models.Response).filter(
-            models.Response.session_id == session_id
-        ).order_by(models.Response.created_at).all()
+        previous_responses = item_db.query(models_itembank.Response).filter(
+            models_itembank.Response.session_id == session_id
+        ).order_by(models_itembank.Response.created_at).all()
 
-        # Prepare response data for theta update
         response_data = [
             (r.is_correct,
-             self.question_service.get_question_by_id(db, r.question_id).difficulty_b,
-             self.question_service.get_question_by_id(db, r.question_id).discrimination_a,
-             self.question_service.get_question_by_id(db, r.question_id).guessing_c)
+             self.question_service.get_question_by_id(item_db, r.question_id).difficulty_b,
+             self.question_service.get_question_by_id(item_db, r.question_id).discrimination_a,
+             self.question_service.get_question_by_id(item_db, r.question_id).guessing_c)
             for r in previous_responses
         ]
 
-        # Add current response
         response_data.append((
             is_correct,
             question.difficulty_b,
@@ -312,13 +350,9 @@ class AssessmentService:
             question.guessing_c
         ))
 
-        # Create response history
         response_history = [r.is_correct for r in previous_responses] + [is_correct]
 
-        # Update theta
         theta_before = session.theta
-        logger.debug(f"DEBUG: AssessmentService.record_response(): theta_before: {theta_before}")
-
         new_theta, adjustment_info = irt_engine.update_theta(
             theta_before,
             response_data,
@@ -326,31 +360,16 @@ class AssessmentService:
             questions_answered=session.questions_asked
         )
 
-        logger.debug(f"DEBUG: AssessmentService.record_response(): new_theta: {new_theta}")
-
-        # Log theta adjustment information
-        if adjustment_info.get('consecutive_info', {}).get('apply_jump'):
-            consecutive_info = adjustment_info['consecutive_info']
-            logger.info(f"Session {session_id}: Applied theta jump for {consecutive_info['consecutive_count']} "
-                        f"consecutive {consecutive_info['response_type']} responses. "
-                        f"Theta change: {adjustment_info['theta_change']:.3f}")
-        else:
-            logger.debug(f"Session {session_id}: Regular theta update. "
-                         f"Theta change: {adjustment_info['theta_change']:.3f}")
-
-        # Calculate SEM
         questions_info = []
         for resp in previous_responses:
-            q = self.question_service.get_question_by_id(db, resp.question_id)
+            q = self.question_service.get_question_by_id(item_db, resp.question_id)
             questions_info.append((q.difficulty_b, q.discrimination_a, q.guessing_c))
 
-        # Add current question
         questions_info.append((question.difficulty_b, question.discrimination_a, question.guessing_c))
-
         new_sem = irt_engine.calculate_sem(new_theta, questions_info)
 
         # Record response
-        response = models.Response(
+        response = models_itembank.Response(
             session_id=session_id,
             question_id=question_id,
             selected_option=selected_option,
@@ -360,7 +379,7 @@ class AssessmentService:
             sem_after=new_sem
         )
 
-        db.add(response)
+        item_db.add(response)
 
         # Update session
         session.theta = new_theta
@@ -373,32 +392,27 @@ class AssessmentService:
             session.completed = True
             session.completed_at = datetime.utcnow()
 
-            # Update user proficiency
+            # Update user proficiency in both DBs
             new_tier = irt_engine.theta_to_tier(new_theta)
             self.user_service.update_user_proficiency(
-                db, session.user_id, session.subject, new_theta, new_sem, new_tier
+                registry_db, item_db,
+                session.user_id, item_bank_name, session.subject,
+                new_theta, new_sem, new_tier
             )
 
-            # Log final assessment metrics
-            metrics = irt_engine.calculate_assessment_metrics(response_data, new_theta, response_history)
-            logger.info(f"Assessment {session_id} completed. Final metrics: {metrics}")
-
-        logger.info("-" * 50)
-        db.commit()
+        item_db.commit()
         return response
 
     def get_assessment_results(self, db: Session, session_id: int) -> schemas.AssessmentResults:
-        """Get assessment results"""
+        """Get assessment results from item bank DB"""
         session = self.get_session(db, session_id)
-        responses = db.query(models.Response).filter(
-            models.Response.session_id == session_id
-        ).order_by(models.Response.created_at).all()
+        responses = db.query(models_itembank.Response).filter(
+            models_itembank.Response.session_id == session_id
+        ).order_by(models_itembank.Response.created_at).all()
 
-        # Calculate metrics
         correct_count = sum(1 for r in responses if r.is_correct)
         accuracy = correct_count / len(responses) if responses else 0.0
 
-        # Prepare response details
         response_details = []
         for resp in responses:
             question = self.question_service.get_question_by_id(db, resp.question_id)
@@ -433,11 +447,138 @@ class AssessmentService:
         """Robust answer comparison"""
         if not selected or not correct:
             return False
+        return str(selected).strip().upper() == str(correct).strip().upper()
 
-        # Clean both strings
-        selected_clean = str(selected).strip().upper()
-        correct_clean = str(correct).strip().upper()
 
-        logger.debug(f"Comparing: '{selected_clean}' == '{correct_clean}'")
+class ItemBankService:
+    """Service for managing item banks"""
 
-        return selected_clean == correct_clean
+    def __init__(self):
+        self.question_service = QuestionService()
+
+    def create_item_bank(self, db: Session, name: str, display_name: str,
+                         subject: str) -> models_registry.ItemBank:
+        """Create a new item bank entry in registry and create its database"""
+        item_bank = models_registry.ItemBank(
+            name=name,
+            display_name=display_name,
+            subject=subject,
+            status="pending"
+        )
+        db.add(item_bank)
+        db.commit()
+        db.refresh(item_bank)
+
+        # Create separate database file
+        item_bank_db.get_engine(name)
+        logger.info(f"Created item bank: {name} at {item_bank_db.get_db_path(name)}")
+
+        return item_bank
+
+    def upload_and_calibrate(self, item_bank_name: str, df: pd.DataFrame) -> Dict:
+        """Upload questions CSV to item bank and apply default calibration"""
+        item_db = item_bank_db.get_session(item_bank_name)
+
+        try:
+            required = ['question', 'option_a', 'option_b', 'option_c', 'option_d',
+                        'answer', 'tier', 'topic']
+            missing = [col for col in required if col not in df.columns]
+
+            if missing:
+                return {
+                    'success': False,
+                    'error': f'Missing required columns: {missing}'
+                }
+
+            if 'subject' not in df.columns:
+                df['subject'] = item_bank_name
+
+            if 'question_id' not in df.columns:
+                df['question_id'] = [f"{item_bank_name}_{i + 1}" for i in range(len(df))]
+
+            if 'content_area' not in df.columns:
+                df['content_area'] = df['topic']
+
+            if 'discrimination_a' not in df.columns:
+                df['discrimination_a'] = 1.5
+
+            if 'difficulty_b' not in df.columns:
+                tier_difficulty_map = {
+                    'C1': -1.5,
+                    'C2': -0.5,
+                    'C3': 0.5,
+                    'C4': 1.5
+                }
+                df['difficulty_b'] = df['tier'].map(tier_difficulty_map).fillna(0.0)
+
+            if 'guessing_c' not in df.columns:
+                df['guessing_c'] = 0.25
+
+            imported = self.question_service.import_questions_from_df(item_db, df)
+
+            logger.info(f"Imported {imported} questions to item bank: {item_bank_name}")
+
+            return {
+                'success': True,
+                'imported': imported,
+                'total_items': imported,
+                'message': f'Successfully imported {imported} questions'
+            }
+
+        except Exception as e:
+            logger.error(f"Error importing to item bank {item_bank_name}: {e}")
+            item_db.rollback()
+            return {
+                'success': False,
+                'error': str(e)
+            }
+        finally:
+            item_db.close()
+
+    def get_item_bank_stats(self, item_bank_name: str) -> Dict:
+        """Get statistics for an item bank"""
+        import sqlite3
+
+        db_path = item_bank_db.get_db_path(item_bank_name)
+
+        if not os.path.exists(db_path):
+            return {
+                'total_items': 0,
+                'test_takers': 0,
+                'total_responses': 0,
+                'accuracy': None
+            }
+
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+
+        try:
+            cursor.execute("SELECT COUNT(*) FROM questions")
+            total_items = cursor.fetchone()[0]
+
+            cursor.execute("SELECT COUNT(DISTINCT session_id) FROM assessment_sessions WHERE completed = 1")
+            test_takers = cursor.fetchone()[0]
+
+            cursor.execute("SELECT COUNT(*) FROM responses")
+            total_responses = cursor.fetchone()[0]
+
+            cursor.execute("SELECT AVG(is_correct) FROM responses")
+            accuracy_result = cursor.fetchone()
+            accuracy = accuracy_result[0] if accuracy_result[0] is not None else None
+
+            return {
+                'total_items': total_items,
+                'test_takers': test_takers,
+                'total_responses': total_responses,
+                'accuracy': accuracy
+            }
+        except sqlite3.OperationalError as e:
+            logger.error(f"Database error for {item_bank_name}: {e}")
+            return {
+                'total_items': 0,
+                'test_takers': 0,
+                'total_responses': 0,
+                'accuracy': None
+            }
+        finally:
+            conn.close()
