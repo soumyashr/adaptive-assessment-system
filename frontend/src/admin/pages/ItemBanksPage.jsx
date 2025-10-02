@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { theme } from '../../config/theme';
 
 const ItemBanksPage = () => {
   const [itemBanks, setItemBanks] = useState([]);
@@ -40,7 +41,6 @@ const ItemBanksPage = () => {
     setError(null);
 
     try {
-      // Create item bank
       const createResponse = await fetch(
         `${API_BASE}/item-banks/create?name=${encodeURIComponent(uploadConfig.name)}&display_name=${encodeURIComponent(uploadConfig.displayName)}&subject=${encodeURIComponent(uploadConfig.subject)}`,
         {
@@ -54,7 +54,6 @@ const ItemBanksPage = () => {
         throw new Error(errorData.detail || 'Failed to create item bank');
       }
 
-      // Upload CSV
       const formData = new FormData();
       formData.append('file', selectedFile);
 
@@ -74,7 +73,6 @@ const ItemBanksPage = () => {
       const uploadData = await uploadResponse.json();
       alert(`Success! Imported ${uploadData.imported} questions`);
 
-      // Reset and refresh
       setShowUploadModal(false);
       setUploadConfig({ name: '', displayName: '', subject: '' });
       setSelectedFile(null);
@@ -115,7 +113,7 @@ const ItemBanksPage = () => {
       console.log('Calibration result:', data);
 
       alert(`Calibration completed!\n\n${data.message}\n\nStats updated successfully.`);
-      await fetchItemBanks(); // Refresh the list
+      await fetchItemBanks();
 
     } catch (err) {
       console.error('Calibration error:', err);
@@ -130,17 +128,17 @@ const ItemBanksPage = () => {
   const getTotalTestTakers = () => itemBanks.reduce((sum, b) => sum + b.test_takers, 0);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className={`min-h-screen ${theme('bg-gray-900', 'bg-gray-50')} p-6`}>
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Item Banks</h1>
-          <p className="text-gray-600 mt-1">Browse and manage your adaptive testing item banks</p>
+          <h1 className={`text-3xl font-bold ${theme('text-white', 'text-gray-900')}`}>Item Banks</h1>
+          <p className={`${theme('text-gray-400', 'text-gray-600')} mt-1`}>Browse and manage your adaptive testing item banks</p>
         </div>
         <button
           onClick={() => setShowUploadModal(true)}
           disabled={loading}
-          className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 transition disabled:opacity-50"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 transition disabled:opacity-50"
         >
           <span className="text-xl">+</span> Upload & Create
         </button>
@@ -148,7 +146,7 @@ const ItemBanksPage = () => {
 
       {/* Error Message */}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
+        <div className={`${theme('bg-red-900/50 border-red-700 text-red-200', 'bg-red-50 border-red-200 text-red-700')} border px-4 py-3 rounded mb-6`}>
           {error}
           <button onClick={() => setError(null)} className="float-right font-bold">×</button>
         </div>
@@ -156,58 +154,58 @@ const ItemBanksPage = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-4 gap-4 mb-8">
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} p-6 rounded-lg shadow-lg border`}>
           <div className="flex items-center gap-3">
-            <div className="bg-blue-100 p-3 rounded-lg">
-              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className={`${theme('bg-blue-900/50', 'bg-blue-50')} p-3 rounded-lg`}>
+              <svg className={`w-6 h-6 ${theme('text-blue-400', 'text-blue-600')}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
               </svg>
             </div>
             <div>
-              <div className="text-gray-600 text-sm">Total Banks</div>
-              <div className="text-3xl font-bold">{itemBanks.length}</div>
+              <div className={`${theme('text-gray-400', 'text-gray-600')} text-sm`}>Total Banks</div>
+              <div className={`text-3xl font-bold ${theme('text-white', 'text-gray-900')}`}>{itemBanks.length}</div>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} p-6 rounded-lg shadow-lg border`}>
           <div className="flex items-center gap-3">
-            <div className="bg-orange-100 p-3 rounded-lg">
-              <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className={`${theme('bg-orange-900/50', 'bg-orange-50')} p-3 rounded-lg`}>
+              <svg className={`w-6 h-6 ${theme('text-orange-400', 'text-orange-600')}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
             <div>
-              <div className="text-gray-600 text-sm">Total Items</div>
-              <div className="text-3xl font-bold">{getTotalItems()}</div>
+              <div className={`${theme('text-gray-400', 'text-gray-600')} text-sm`}>Total Items</div>
+              <div className={`text-3xl font-bold ${theme('text-white', 'text-gray-900')}`}>{getTotalItems()}</div>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} p-6 rounded-lg shadow-lg border`}>
           <div className="flex items-center gap-3">
-            <div className="bg-green-100 p-3 rounded-lg">
-              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className={`${theme('bg-green-900/50', 'bg-green-50')} p-3 rounded-lg`}>
+              <svg className={`w-6 h-6 ${theme('text-green-400', 'text-green-600')}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
             </div>
             <div>
-              <div className="text-gray-600 text-sm">Test Takers</div>
-              <div className="text-3xl font-bold">{getTotalTestTakers()}</div>
+              <div className={`${theme('text-gray-400', 'text-gray-600')} text-sm`}>Test Takers</div>
+              <div className={`text-3xl font-bold ${theme('text-white', 'text-gray-900')}`}>{getTotalTestTakers()}</div>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} p-6 rounded-lg shadow-lg border`}>
           <div className="flex items-center gap-3">
-            <div className="bg-purple-100 p-3 rounded-lg">
-              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className={`${theme('bg-purple-900/50', 'bg-purple-50')} p-3 rounded-lg`}>
+              <svg className={`w-6 h-6 ${theme('text-purple-400', 'text-purple-600')}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
             </div>
             <div>
-              <div className="text-gray-600 text-sm">Active Jobs</div>
-              <div className="text-3xl font-bold">{calibratingBank ? '1' : '0'}</div>
+              <div className={`${theme('text-gray-400', 'text-gray-600')} text-sm`}>Active Jobs</div>
+              <div className={`text-3xl font-bold ${theme('text-white', 'text-gray-900')}`}>{calibratingBank ? '1' : '0'}</div>
             </div>
           </div>
         </div>
@@ -216,7 +214,7 @@ const ItemBanksPage = () => {
       {/* Item Banks Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {itemBanks.map((bank) => (
-          <div key={bank.name} className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg shadow-lg overflow-hidden">
+          <div key={bank.name} className="bg-gradient-to-br from-blue-600 to-purple-700 rounded-lg shadow-xl overflow-hidden">
             <div className="p-6">
               <div className="flex justify-between items-start mb-4">
                 <div className="text-white">
@@ -282,32 +280,32 @@ const ItemBanksPage = () => {
 
             <div className="bg-white bg-opacity-10 p-4 flex gap-2">
               <button
-                className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded transition font-medium"
+                className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded transition font-medium text-sm"
                 onClick={() => alert(`View details for ${bank.name} - Coming soon!`)}
               >
-                👁️ View Details
+                View Details
               </button>
               <button
-                className="px-4 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded transition"
+                className="px-4 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded transition text-sm"
                 onClick={() => window.open(`/student`, '_blank')}
               >
-                ▶️ Test
+                Test
               </button>
               <button
-                className={`px-4 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded transition ${
+                className={`px-4 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded transition text-sm ${
                   calibratingBank === bank.name ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
                 onClick={() => handleCalibrate(bank.name)}
                 disabled={calibratingBank === bank.name}
               >
-                {calibratingBank === bank.name ? '⏳' : '🔄'} {calibratingBank === bank.name ? 'Calibrating...' : 'Calibrate'}
+                {calibratingBank === bank.name ? 'Calibrating...' : 'Calibrate'}
               </button>
             </div>
           </div>
         ))}
 
         {itemBanks.length === 0 && !loading && (
-          <div className="col-span-3 text-center py-12 text-gray-500">
+          <div className={`col-span-3 text-center py-12 ${theme('text-gray-400', 'text-gray-600')}`}>
             <p className="text-lg">No item banks yet. Click "Upload & Create" to create one.</p>
           </div>
         )}
@@ -315,62 +313,62 @@ const ItemBanksPage = () => {
 
       {/* Upload Modal */}
       {showUploadModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 w-full max-w-md">
-            <h2 className="text-2xl font-bold mb-6">Upload & Create Item Bank</h2>
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+          <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} rounded-lg p-8 w-full max-w-md border`}>
+            <h2 className={`text-2xl font-bold mb-6 ${theme('text-white', 'text-gray-900')}`}>Upload & Create Item Bank</h2>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className={`block text-sm font-medium ${theme('text-gray-300', 'text-gray-700')} mb-1`}>
                   Item Bank Name*
                 </label>
                 <input
                   type="text"
                   placeholder="e.g., maths, vocabulary, physics"
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className={`w-full ${theme('bg-gray-700 border-gray-600 text-white placeholder-gray-400', 'bg-white border-gray-300 text-gray-900 placeholder-gray-500')} border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
                   value={uploadConfig.name}
                   onChange={(e) => setUploadConfig({...uploadConfig, name: e.target.value})}
                 />
-                <p className="text-xs text-gray-500 mt-1">Used in URLs - no spaces, lowercase</p>
+                <p className={`text-xs ${theme('text-gray-400', 'text-gray-500')} mt-1`}>Used in URLs - no spaces, lowercase</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className={`block text-sm font-medium ${theme('text-gray-300', 'text-gray-700')} mb-1`}>
                   Display Name*
                 </label>
                 <input
                   type="text"
                   placeholder="e.g., Mathematics, Vocabulary Assessment"
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className={`w-full ${theme('bg-gray-700 border-gray-600 text-white placeholder-gray-400', 'bg-white border-gray-300 text-gray-900 placeholder-gray-500')} border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
                   value={uploadConfig.displayName}
                   onChange={(e) => setUploadConfig({...uploadConfig, displayName: e.target.value})}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className={`block text-sm font-medium ${theme('text-gray-300', 'text-gray-700')} mb-1`}>
                   Subject*
                 </label>
                 <input
                   type="text"
                   placeholder="e.g., Mathematics, Vocabulary"
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className={`w-full ${theme('bg-gray-700 border-gray-600 text-white placeholder-gray-400', 'bg-white border-gray-300 text-gray-900 placeholder-gray-500')} border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
                   value={uploadConfig.subject}
                   onChange={(e) => setUploadConfig({...uploadConfig, subject: e.target.value})}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className={`block text-sm font-medium ${theme('text-gray-300', 'text-gray-700')} mb-1`}>
                   CSV File*
                 </label>
                 <input
                   type="file"
                   accept=".csv"
                   onChange={(e) => setSelectedFile(e.target.files[0])}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                  className={`w-full ${theme('bg-gray-700 border-gray-600 text-white file:bg-blue-600 file:text-white', 'bg-white border-gray-300 text-gray-900 file:bg-blue-50 file:text-blue-700')} border rounded-lg px-4 py-2 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 hover:file:bg-blue-700`}
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className={`text-xs ${theme('text-gray-400', 'text-gray-500')} mt-1`}>
                   Required columns: question, option_a, option_b, option_c, option_d, answer, tier, topic
                 </p>
               </div>
@@ -380,7 +378,7 @@ const ItemBanksPage = () => {
               <button
                 onClick={handleCreateAndUpload}
                 disabled={loading || !selectedFile || !uploadConfig.name}
-                className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? 'Uploading...' : 'Upload & Create'}
               </button>
@@ -392,7 +390,7 @@ const ItemBanksPage = () => {
                   setError(null);
                 }}
                 disabled={loading}
-                className="px-6 bg-gray-200 hover:bg-gray-300 text-gray-700 py-3 rounded-lg font-medium transition disabled:opacity-50"
+                className={`px-6 ${theme('bg-gray-700 hover:bg-gray-600 text-gray-200', 'bg-gray-200 hover:bg-gray-300 text-gray-700')} py-3 rounded-lg font-medium transition disabled:opacity-50`}
               >
                 Cancel
               </button>
@@ -403,13 +401,13 @@ const ItemBanksPage = () => {
 
       {/* Loading Overlay */}
       {calibratingBank && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-sm">
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+          <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} rounded-lg p-6 max-w-sm border`}>
             <div className="flex items-center gap-3 mb-4">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-              <span className="font-medium">Calibrating {calibratingBank}...</span>
+              <span className={`font-medium ${theme('text-white', 'text-gray-900')}`}>Calibrating {calibratingBank}...</span>
             </div>
-            <p className="text-sm text-gray-600">
+            <p className={`text-sm ${theme('text-gray-400', 'text-gray-600')}`}>
               This may take 1-2 minutes. Simulating 200 test-takers with 15 questions each...
             </p>
           </div>

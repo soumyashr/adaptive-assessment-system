@@ -7,8 +7,7 @@ import Dashboard from './pages/Dashboard';
 import ItemBanksPage from './pages/ItemBanksPage';
 import UploadData from './pages/UploadData';
 import TestSessions from './pages/TestSessions';
-
-
+import Calibration from './pages/Calibration';
 
 const AdminApp = () => {
   return (
@@ -19,6 +18,7 @@ const AdminApp = () => {
         <Route path="/item-banks" element={<ItemBanksPage />} />
         <Route path="/upload" element={<UploadData />} />
         <Route path="/sessions" element={<TestSessions />} />
+        <Route path="/calibration" element={<Calibration />} />
       </Routes>
     </AdminLayout>
   );
