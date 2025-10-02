@@ -9,10 +9,11 @@ import {
   Scatter,
   Cell,
   Tooltip,
-  ComposedChart
+  ComposedChart,
+  ReferenceLine
 } from 'recharts';
 import './App.css';
-import { theme } from '../config/theme';
+import { DARK_MODE, theme } from '../config/theme';
 
 const AdaptiveAssessment = () => {
   // State management
@@ -28,41 +29,137 @@ const AdaptiveAssessment = () => {
   const [showLogin, setShowLogin] = useState(true);
   const [error, setError] = useState(null);
   const [availableItemBanks, setAvailableItemBanks] = useState([]);
-
-  // Real-time tracking states
   const [liveResponses, setLiveResponses] = useState([]);
   const [questionDifficulties, setQuestionDifficulties] = useState([]);
+  const [currentQuestionDifficulty, setCurrentQuestionDifficulty] = useState(null);
+  const [topicPerformance, setTopicPerformance] = useState({});
 
   const API_BASE = 'http://localhost:8000/api';
-  const [currentQuestionDifficulty, setCurrentQuestionDifficulty] = useState(null);
-
-  // Default competence level
   const DEFAULT_COMPETENCE_LEVEL = 'beginner';
 
-  // Tier color mapping
+  // Professional color palette
   const tierColors = {
-    'C1': '#ef4444',
-    'C2': '#f97316',
-    'C3': '#eab308',
-    'C4': '#22c55e'
+    'C1': '#DC2626',
+    'C2': '#F59E0B',
+    'C3': '#10B981',
+    'C4': '#3B82F6'
+  };
+
+  // Chart colors based on theme
+  const chartColors = {
+    stroke: theme('#9CA3AF', '#9CA3AF'),
+    line: '#3B82F6',
+    referenceLine: '#3B82F6',
+    tooltip: {
+      bg: theme('#1F2937', '#FFFFFF'),
+      border: theme('#374151', '#E5E7EB'),
+      text: theme('#FFFFFF', '#000000')
+    }
+  };
+
+  // Custom Tooltip for ICC Curve
+  const ICCTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div
+          style={{
+            backgroundColor: chartColors.tooltip.bg,
+            border: `1px solid ${chartColors.tooltip.border}`,
+            borderRadius: '8px',
+            padding: '8px 12px',
+            fontSize: '11px',
+            color: chartColors.tooltip.text
+          }}
+        >
+          <div style={{ marginBottom: '4px' }}>
+            <span>θ: </span>
+            <span style={{ color: '#3B82F6', fontWeight: 'bold' }}>{data.x.toFixed(2)}</span>
+          </div>
+          <div>
+            <span>P(correct): </span>
+            <span style={{ color: '#3B82F6', fontWeight: 'bold' }}>{data.p.toFixed(3)}</span>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  // Custom Tooltip for Theta Progression
+  const ThetaProgressionTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div
+          style={{
+            backgroundColor: chartColors.tooltip.bg,
+            border: `1px solid ${chartColors.tooltip.border}`,
+            borderRadius: '8px',
+            padding: '8px 12px',
+            fontSize: '11px',
+            color: chartColors.tooltip.text
+          }}
+        >
+          <div style={{ marginBottom: '4px' }}>
+            <span>Question #: </span>
+            <span style={{ color: '#3B82F6', fontWeight: 'bold' }}>{data.question}</span>
+          </div>
+          <div>
+            <span>θ: </span>
+            <span style={{ color: '#3B82F6', fontWeight: 'bold' }}>{data.theta}</span>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  // Custom Tooltip for Response Pattern
+  const ResponsePatternTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div
+          style={{
+            backgroundColor: chartColors.tooltip.bg,
+            border: `1px solid ${chartColors.tooltip.border}`,
+            borderRadius: '8px',
+            padding: '8px 12px',
+            fontSize: '11px',
+            color: chartColors.tooltip.text
+          }}
+        >
+          <div style={{ marginBottom: '4px' }}>
+            <span>Question #: </span>
+            <span style={{ color: '#3B82F6', fontWeight: 'bold' }}>{data.question}</span>
+          </div>
+          <div style={{ marginBottom: '4px' }}>
+            <span>Difficulty: </span>
+            <span style={{ color: '#3B82F6', fontWeight: 'bold' }}>{data.x.toFixed(2)}</span>
+          </div>
+          <div>
+            <span>θ: </span>
+            <span style={{ color: '#3B82F6', fontWeight: 'bold' }}>{data.y.toFixed(2)}</span>
+          </div>
+        </div>
+      );
+    }
+    return null;
   };
 
   const getDisplayTheta = () => {
-    if (currentSession?.theta !== undefined) {
-      return currentSession.theta;
-    }
+    if (currentSession?.theta !== undefined) return currentSession.theta;
     if (userStats?.proficiencies?.length > 0) {
       const currentBankProficiency = userStats.proficiencies.find(
         p => p.item_bank === currentSession?.item_bank_name
       );
       if (currentBankProficiency) return currentBankProficiency.theta;
-
       return userStats.proficiencies[0]?.theta || 0.0;
     }
     return 0.0;
   };
 
-  // Generate ICC curve data
   const generateICCData = useCallback((theta) => {
     const data = [];
     for (let x = -3; x <= 3; x += 0.1) {
@@ -72,15 +169,12 @@ const AdaptiveAssessment = () => {
     return data;
   }, []);
 
-  // Generate real-time theta progression
   const generateThetaProgression = useCallback((liveData, finalData) => {
     const dataSource = assessmentComplete ? finalData : liveData;
     if (!dataSource || dataSource.length === 0) return [];
-
     return dataSource.map((resp, idx) => {
       const thetaValue = resp.theta_after || resp.theta || 0;
       const isCorrect = resp.is_correct !== undefined ? resp.is_correct : resp.correct;
-
       return {
         question: idx + 1,
         theta: parseFloat(thetaValue.toFixed(2)),
@@ -90,10 +184,8 @@ const AdaptiveAssessment = () => {
     });
   }, [assessmentComplete]);
 
-  // Generate difficulty data
   const generateDifficultyData = useCallback((responses, currentDifficulty, currentTheta, isComplete) => {
     const scatterData = [];
-
     if (responses && responses.length > 0) {
       responses.forEach((resp, idx) => {
         const isCorrect = Boolean(resp.is_correct !== undefined ? resp.is_correct : resp.correct);
@@ -106,7 +198,6 @@ const AdaptiveAssessment = () => {
         });
       });
     }
-
     if (!isComplete && currentDifficulty !== null && currentTheta !== undefined) {
       scatterData.push({
         x: parseFloat((currentDifficulty).toFixed(2)),
@@ -119,23 +210,19 @@ const AdaptiveAssessment = () => {
     return scatterData;
   }, []);
 
-  // API error handler
   const handleApiError = (error, context) => {
     console.error(`Error in ${context}:`, error);
-    setError(`Failed to ${context}. Please check if the backend server is running.`);
+    setError(`Failed to ${context}. Please try again.`);
     setLoading(false);
   };
 
-  // Login function
   const login = async () => {
     if (!username.trim()) {
       setError('Please enter a username');
       return;
     }
-
     setLoading(true);
     setError(null);
-
     try {
       const response = await fetch(`${API_BASE}/users/`, {
         method: 'POST',
@@ -145,7 +232,6 @@ const AdaptiveAssessment = () => {
           initial_competence_level: DEFAULT_COMPETENCE_LEVEL
         })
       });
-
       if (response.ok) {
         const user = await response.json();
         setCurrentUser(user);
@@ -161,7 +247,6 @@ const AdaptiveAssessment = () => {
     setLoading(false);
   };
 
-  // Load user statistics
   const loadUserStats = async (username) => {
     try {
       const response = await fetch(`${API_BASE}/users/${username}/proficiency`);
@@ -170,11 +255,10 @@ const AdaptiveAssessment = () => {
         setUserStats(stats);
       }
     } catch (error) {
-      console.log('No previous stats found for user');
+      console.log('No previous stats found');
     }
   };
 
-  // Load available item banks
   const loadAvailableItemBanks = async () => {
     try {
       const response = await fetch(`${API_BASE}/item-banks`);
@@ -183,15 +267,13 @@ const AdaptiveAssessment = () => {
         setAvailableItemBanks(banks);
       }
     } catch (error) {
-      console.log('Failed to load item banks:', error);
+      console.log('Failed to load item banks');
     }
   };
 
-  // Start assessment
   const startAssessment = async (subject = 'maths') => {
     setLoading(true);
     setError(null);
-
     try {
       const response = await fetch(`${API_BASE}/assessments/start`, {
         method: 'POST',
@@ -201,7 +283,6 @@ const AdaptiveAssessment = () => {
           subject: subject
         })
       });
-
       if (response.ok) {
         const session = await response.json();
         setCurrentSession({ ...session, item_bank_name: subject });
@@ -211,6 +292,7 @@ const AdaptiveAssessment = () => {
         setLiveResponses([]);
         setQuestionDifficulties([]);
         setCurrentQuestionDifficulty(session.current_question?.difficulty_b || 0);
+        setTopicPerformance({});
       } else {
         throw new Error('Failed to start assessment');
       }
@@ -220,13 +302,10 @@ const AdaptiveAssessment = () => {
     setLoading(false);
   };
 
-  // Submit answer
   const submitAnswer = async () => {
     if (!selectedOption || !currentSession || !currentQuestion) return;
-
     setLoading(true);
     setError(null);
-
     try {
       const response = await fetch(
         `${API_BASE}/assessments/${currentSession.session_id}/answer?item_bank_name=${currentSession.item_bank_name}`,
@@ -239,38 +318,35 @@ const AdaptiveAssessment = () => {
           })
         }
       );
-
       if (response.ok) {
         const updatedSession = await response.json();
+
+        // Update topic performance if available
+        if (updatedSession.topic_performance) {
+          setTopicPerformance(updatedSession.topic_performance);
+        }
 
         if (updatedSession.completed) {
           setCurrentSession({ ...updatedSession, item_bank_name: currentSession.item_bank_name });
           setAssessmentComplete(true);
           setCurrentQuestionDifficulty(null);
           setCurrentQuestion(null);
-
           try {
             await loadResults(updatedSession.session_id);
             await loadUserStats(currentUser.username);
           } catch (error) {
             console.error('Error loading results:', error);
           }
-
           setSelectedOption('');
           return;
         }
-
         let wasCorrect;
         if (updatedSession.last_response_correct !== undefined && updatedSession.last_response_correct !== null) {
           wasCorrect = Boolean(updatedSession.last_response_correct);
         } else {
           wasCorrect = String(selectedOption) === String(currentQuestion.correct_option);
         }
-
-        const questionDifficulty = currentQuestion.difficulty_b ||
-                                 currentQuestion.difficulty ||
-                                 0.0;
-
+        const questionDifficulty = currentQuestion.difficulty_b || currentQuestion.difficulty || 0.0;
         const responseData = {
           question: currentQuestion.question,
           selected: selectedOption,
@@ -285,14 +361,12 @@ const AdaptiveAssessment = () => {
           question_number: liveResponses.length + 1,
           timestamp: Date.now()
         };
-
         setLiveResponses(prev => [...prev, responseData]);
         setQuestionDifficulties(prev => [...prev, questionDifficulty]);
         setCurrentSession({ ...updatedSession, item_bank_name: currentSession.item_bank_name });
         setCurrentQuestion(updatedSession.current_question);
         setCurrentQuestionDifficulty(updatedSession.current_question?.difficulty_b || null);
         setSelectedOption('');
-
       } else {
         throw new Error('Failed to submit answer');
       }
@@ -302,7 +376,6 @@ const AdaptiveAssessment = () => {
     setLoading(false);
   };
 
-  // Load assessment results
   const loadResults = async (sessionId) => {
     try {
       const response = await fetch(
@@ -317,7 +390,6 @@ const AdaptiveAssessment = () => {
     }
   };
 
-  // Get current theta color
   const getCurrentThetaColor = (theta) => {
     if (theta < -1.0) return tierColors['C1'];
     if (theta < 0.0) return tierColors['C2'];
@@ -325,7 +397,6 @@ const AdaptiveAssessment = () => {
     return tierColors['C4'];
   };
 
-  // Get theta tier label
   const getThetaTierLabel = (theta) => {
     if (theta < -1.0) return 'Beginner';
     if (theta < 0.0) return 'Intermediate';
@@ -333,7 +404,6 @@ const AdaptiveAssessment = () => {
     return 'Expert';
   };
 
-  // Handle keyboard shortcuts
   useEffect(() => {
     const handleKeyPress = (event) => {
       if (currentQuestion && !loading) {
@@ -345,82 +415,54 @@ const AdaptiveAssessment = () => {
         }
       }
     };
-
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [currentQuestion, loading, selectedOption]);
 
-  // Reset loading when showing assessment selection
-  useEffect(() => {
-    if (!showLogin && !currentSession && !assessmentComplete) {
-      setLoading(false);
-    }
-  }, [showLogin, currentSession, assessmentComplete]);
-
   // Login Screen
   if (showLogin) {
     return (
-      <div className={`min-h-screen ${theme('bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900', 'bg-gradient-to-br from-blue-500 via-blue-600 to-purple-600')} flex items-center justify-center p-4`}>
-        <div className={`${theme('bg-gray-800 border border-gray-700', 'bg-white')} rounded-2xl shadow-2xl p-8 w-full max-w-md`}>
+      <div className={`min-h-screen ${theme('bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900', 'bg-gradient-to-br from-indigo-50 to-white')} flex items-center justify-center p-4`}>
+        <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-100')} rounded-2xl shadow-xl p-8 w-full max-w-md border`}>
           <div className="text-center mb-8">
-            <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-              <span className="text-4xl text-white font-bold">θ</span>
+            <div className={`w-16 h-16 ${theme('bg-blue-600', 'bg-indigo-600')} rounded-xl flex items-center justify-center mx-auto mb-4`}>
+              <span className="text-3xl text-white font-bold">θ</span>
             </div>
-            <h1 className={`text-3xl font-bold ${theme('text-white', 'text-gray-900')} mb-2`}>
-              MyTheta Assessment
-            </h1>
-            <p className={theme('text-gray-400', 'text-gray-600')}>Adaptive testing platform</p>
+            <h1 className={`text-2xl font-bold ${theme('text-white', 'text-gray-900')} mb-1`}>MyTheta</h1>
+            <p className={`${theme('text-gray-400', 'text-gray-600')} text-sm`}>Adaptive Assessment Platform</p>
           </div>
-
           {error && (
-            <div className={`mb-4 p-4 ${theme('bg-red-900/50 border-red-700 text-red-200', 'bg-red-50 border-red-200 text-red-700')} border rounded-lg text-sm flex items-start`}>
-              <svg className="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
-              <span>{error}</span>
+            <div className={`mb-4 p-3 ${theme('bg-red-900/50 border-red-700 text-red-200', 'bg-red-50 border-red-200 text-red-700')} border rounded-lg text-sm`}>
+              {error}
             </div>
           )}
-
           <div className="space-y-4">
             <div>
-              <label className={`block ${theme('text-gray-300', 'text-gray-700')} font-semibold mb-2`}>Username</label>
+              <label className={`block ${theme('text-gray-300', 'text-gray-700')} font-medium mb-2 text-sm`}>Username</label>
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && username.trim() && !loading && login()}
-                className={`w-full ${theme('bg-gray-700 border-gray-600 text-white', 'bg-white border-gray-300 text-gray-900')} border-2 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition`}
+                className={`w-full ${theme('bg-gray-700 border-gray-600 text-white placeholder-gray-400', 'bg-gray-50 border-gray-300 text-gray-900')} border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition`}
                 placeholder="Enter your username"
                 disabled={loading}
                 autoFocus
               />
             </div>
-
             <button
               onClick={login}
               disabled={!username.trim() || loading}
-              className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-400 text-white rounded-xl px-4 py-4 font-semibold transition shadow-lg hover:shadow-xl transform hover:scale-[1.02] disabled:transform-none disabled:cursor-not-allowed"
+              className={`w-full ${theme('bg-blue-600 hover:bg-blue-700', 'bg-indigo-600 hover:bg-indigo-700')} disabled:bg-gray-400 text-white rounded-lg px-4 py-3 font-semibold transition disabled:cursor-not-allowed`}
             >
-              {loading ? (
-                <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                  Logging in...
-                </div>
-              ) : 'Start Assessment'}
+              {loading ? 'Logging in...' : 'Continue'}
             </button>
-
-            <div className={`text-center text-xs ${theme('text-gray-400', 'text-gray-500')} mt-4 pt-4 ${theme('border-gray-700', 'border-gray-200')} border-t`}>
-              <a href="/admin" className={`${theme('text-blue-400 hover:text-blue-300', 'text-blue-600 hover:text-blue-700')} font-medium`}>
-                Admin Panel
-              </a>
-            </div>
           </div>
         </div>
       </div>
     );
   }
 
-  // Generate chart data
   const displayTheta = getDisplayTheta();
   const iccData = generateICCData(displayTheta);
   const thetaProgression = generateThetaProgression(liveResponses, results?.responses);
@@ -431,37 +473,22 @@ const AdaptiveAssessment = () => {
     assessmentComplete
   );
 
-  // Chart color based on theme
-  const chartColors = {
-    stroke: theme('#9CA3AF', '#6B7280'),
-    line: '#3B82F6',
-
-    tooltip: {
-      bg: theme('#1f2937', '#fff'),
-      border: theme('#374151', '#E5E7EB')
-    }
-  };
-
-  // Main Application
   return (
     <div className={`min-h-screen ${theme('bg-gray-900', 'bg-gray-50')}`}>
-      {/* Header */}
-      <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} border-b shadow-sm sticky top-0 z-10`}>
-        <div className="max-w-7xl mx-auto px-6 py-4">
+      {/* Professional Header */}
+      <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} border-b sticky top-0 z-10 shadow-sm`}>
+        <div className="max-w-7xl mx-auto px-6 py-3">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-md">
-                <span className="text-2xl text-white font-bold">θ</span>
+              <div className={`w-10 h-10 ${theme('bg-blue-600', 'bg-indigo-600')} rounded-lg flex items-center justify-center`}>
+                <span className="text-xl text-white font-bold">θ</span>
               </div>
-              <div>
-                <h1 className={`text-xl font-bold ${theme('text-white', 'text-gray-900')}`}>MyTheta</h1>
-                <p className={`text-xs ${theme('text-gray-400', 'text-gray-500')}`}>Student Assessment</p>
-              </div>
+              <h1 className={`text-lg font-bold ${theme('text-white', 'text-gray-900')}`}>MyTheta</h1>
             </div>
             <div className="flex items-center space-x-4">
-              <div className={theme('text-gray-300', 'text-gray-700')}>
-                <span className={theme('text-gray-400', 'text-gray-500')}>Welcome,</span> <span className="font-semibold">{currentUser?.username}</span>
-              </div>
+              <span className={`text-sm ${theme('text-gray-400', 'text-gray-600')}`}>
+                <span className={`font-medium ${theme('text-white', 'text-gray-900')}`}>{currentUser?.username}</span>
+              </span>
               <button
                 onClick={() => {
                   setShowLogin(true);
@@ -479,8 +506,9 @@ const AdaptiveAssessment = () => {
                   setError(null);
                   setUserStats(null);
                   setAvailableItemBanks([]);
+                  setTopicPerformance({});
                 }}
-                className={`${theme('text-gray-400 hover:text-white', 'text-gray-600 hover:text-gray-900')} text-sm font-medium transition`}
+                className={`text-sm ${theme('text-gray-400 hover:text-white', 'text-gray-600 hover:text-gray-900')} font-medium transition`}
               >
                 Logout
               </button>
@@ -489,493 +517,608 @@ const AdaptiveAssessment = () => {
         </div>
       </div>
 
-      {/* Error Banner */}
       {error && (
         <div className={`${theme('bg-red-900/50 border-red-700', 'bg-red-50 border-red-200')} border-b px-6 py-3`}>
           <div className="max-w-7xl mx-auto flex justify-between items-center">
-            <div className="flex items-center">
-              <svg className={`w-5 h-5 ${theme('text-red-400', 'text-red-500')} mr-2`} fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
-              <span className={`${theme('text-red-200', 'text-red-700')} text-sm font-medium`}>{error}</span>
-            </div>
-            <button
-              onClick={() => setError(null)}
-              className={`${theme('text-red-200 hover:text-red-100', 'text-red-700 hover:text-red-900')} font-bold text-lg`}
-            >
-              ×
-            </button>
+            <span className={`text-sm ${theme('text-red-200', 'text-red-700')}`}>{error}</span>
+            <button onClick={() => setError(null)} className={`${theme('text-red-200', 'text-red-700')} font-bold`}>×</button>
           </div>
         </div>
       )}
 
       <div className="max-w-7xl mx-auto p-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - ICC Chart */}
-          <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} rounded-xl shadow-lg border p-6`}>
-            <h3 className={`text-lg font-bold mb-2 ${theme('text-white', 'text-gray-900')}`}>Item Characteristic Curve</h3>
-            <p className={`text-xs ${theme('text-gray-400', 'text-gray-600')} mb-4`}>
-              Probability of correct response across ability levels
-            </p>
-            <div className="h-48 mb-4">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={iccData}>
-                  <XAxis
-                    dataKey="x"
-                    domain={[-3, 3]}
-                    type="number"
-                    tickFormatter={(value) => value.toFixed(0)}
-                    stroke={chartColors.stroke}
-                    fontSize={11}
-                    label={{ value: 'Ability (θ)', position: 'insideBottom', offset: -1, fill: chartColors.stroke, fontSize: 10 }}
-                  />
-                  <YAxis
-                    domain={[0, 1]}
-                    tickFormatter={(value) => value.toFixed(1)}
-                    stroke={chartColors.stroke}
-                    fontSize={11}
-                    label={{ value: 'Probability', angle: -90, position: 'outside', offset:10, fill: chartColors.stroke, fontSize: 10 }}
-                  />
-                  <Tooltip
-                    formatter={(value) => [value.toFixed(3), 'Probability']}
-                    labelFormatter={(label) => `θ: ${label}`}
-                    contentStyle={{
-                      backgroundColor: chartColors.tooltip.bg,
-                      border: `1px solid ${chartColors.tooltip.border}`,
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                      color: theme('#fff', '#000')
-                    }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="p"
-                    stroke={chartColors.line}
-                    strokeWidth={2}
-                    dot={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+        {!currentSession ? (
+          /* ASSESSMENT SELECTION */
+          <div className="max-w-2xl mx-auto">
+            <div className="text-center mb-8">
+              <h2 className={`text-2xl font-bold ${theme('text-white', 'text-gray-900')} mb-2`}>Choose Your Assessment</h2>
+              <p className={theme('text-gray-400', 'text-gray-600')}>Select a subject to begin your adaptive test</p>
             </div>
 
-            <div>
-              <h4 className={`text-sm font-bold mb-3 ${theme('text-white', 'text-gray-900')}`}>Current Proficiency</h4>
-              <div className={`${theme('bg-gradient-to-br from-blue-900/50 to-purple-900/50 border-blue-700', 'bg-gradient-to-br from-blue-50 to-purple-50 border-blue-100')} rounded-xl p-4 border-2`}>
-                <div className="flex justify-between items-center">
-                  <span className={`${theme('text-white', 'text-gray-900')} capitalize font-semibold text-lg`}>
-                    {currentSession?.item_bank_name || 'Assessment'}
-                  </span>
-                  <span
-                    className="px-3 py-1 rounded-full text-xs font-bold text-white shadow-sm"
-                    style={{ backgroundColor: getCurrentThetaColor(displayTheta) }}
-                  >
-                    {getThetaTierLabel(displayTheta)}
-                  </span>
+            {userStats && userStats.proficiencies.length > 0 && (
+              <div className={`mb-6 ${theme('bg-blue-900/30 border-blue-700', 'bg-blue-50 border-blue-100')} border rounded-xl p-4`}>
+                <h3 className={`text-sm font-semibold ${theme('text-blue-300', 'text-blue-900')} mb-3`}>Your Progress</h3>
+                <div className="space-y-2">
+                  {userStats.proficiencies.map(prof => (
+                    <div key={prof.item_bank} className={`flex justify-between items-center ${theme('bg-gray-700/50', 'bg-white')} rounded-lg px-4 py-2.5 text-sm`}>
+                      <span className={`font-semibold ${theme('text-white', 'text-gray-900')} capitalize`}>{prof.item_bank}</span>
+                      <div className="flex items-center space-x-2">
+                        <span
+                          className="px-2.5 py-1 rounded-full text-xs font-bold text-white"
+                          style={{ backgroundColor: getCurrentThetaColor(prof.theta) }}
+                        >
+                          {getThetaTierLabel(prof.theta)}
+                        </span>
+                        <span className={`${theme('text-gray-400', 'text-gray-500')} text-xs`}>θ = {prof.theta.toFixed(2)}</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <div className={`mt-2 text-sm ${theme('text-gray-300', 'text-gray-700')} font-medium`}>
-                  θ = {displayTheta.toFixed(2)}
-                  {currentSession && `, SEM = ${currentSession.sem?.toFixed(2)}`}
+              </div>
+            )}
+
+            <div className="space-y-3">
+              {availableItemBanks.length > 0 ? (
+                availableItemBanks.map((bank) => (
+                  <button
+                    key={bank.name}
+                    onClick={() => startAssessment(bank.name)}
+                    disabled={loading}
+                    className={`w-full ${theme('bg-gray-800 hover:bg-gray-700 border-gray-700 hover:border-blue-600', 'bg-white hover:bg-gray-50 border-gray-200 hover:border-indigo-300')} border-2 rounded-xl px-6 py-4 transition text-left disabled:opacity-50`}
+                  >
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <div className={`font-bold ${theme('text-white', 'text-gray-900')} text-lg`}>{bank.display_name}</div>
+                        <div className={`text-sm ${theme('text-gray-400', 'text-gray-600')} mt-0.5`}>
+                          {bank.total_items} questions • {bank.status}
+                        </div>
+                      </div>
+                      <svg className={`w-5 h-5 ${theme('text-gray-500', 'text-gray-400')}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </button>
+                ))
+              ) : (
+                <div className={`text-center py-12 ${theme('text-gray-400', 'text-gray-500')}`}>
+                  <div className={`animate-spin rounded-full h-8 w-8 border-b-2 ${theme('border-blue-500', 'border-indigo-600')} mx-auto mb-2`}></div>
+                  Loading assessments...
+                </div>
+              )}
+            </div>
+          </div>
+        ) : assessmentComplete ? (
+          /* RESULTS PAGE */
+          <div className="max-w-5xl mx-auto">
+            <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} rounded-2xl shadow-sm border p-8 mb-6`}>
+              <div className="text-center mb-8">
+                <div className={`w-16 h-16 ${theme('bg-green-900/50', 'bg-green-100')} rounded-full flex items-center justify-center mx-auto mb-4`}>
+                  <svg className={`w-8 h-8 ${theme('text-green-400', 'text-green-600')}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h2 className={`text-2xl font-bold ${theme('text-white', 'text-gray-900')} mb-2`}>Assessment Complete</h2>
+                <p className={theme('text-gray-400', 'text-gray-600')}>Great job! Here are your results</p>
+              </div>
+
+              {results && (
+                <>
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div className={`${theme('bg-blue-900/30 border-blue-700', 'bg-blue-50 border-blue-100')} rounded-xl p-6 border`}>
+                      <div className={`text-sm font-medium ${theme('text-blue-300', 'text-blue-700')} mb-1`}>Performance Level</div>
+                      <div className={`text-3xl font-bold ${theme('text-blue-100', 'text-blue-900')} mb-1`}>{results.tier}</div>
+                      <div className={`text-sm ${theme('text-blue-400', 'text-blue-600')}`}>{getThetaTierLabel(results.final_theta)}</div>
+                    </div>
+
+                    <div className={`${theme('bg-gray-700/50 border-gray-600', 'bg-gray-50 border-gray-200')} rounded-xl p-6 border`}>
+                      <div className={`text-sm font-medium ${theme('text-gray-300', 'text-gray-700')} mb-3`}>Proficiency Levels</div>
+                      <div className="space-y-1.5">
+                        {[
+                          { label: 'Beginner', color: tierColors.C1, range: 'θ < -1.0' },
+                          { label: 'Intermediate', color: tierColors.C2, range: '-1.0 ≤ θ < 0.0' },
+                          { label: 'Advanced', color: tierColors.C3, range: '0.0 ≤ θ < 1.0' },
+                          { label: 'Expert', color: tierColors.C4, range: 'θ ≥ 1.0' }
+                        ].map((item) => (
+                          <div key={item.label} className="flex items-center justify-between text-xs">
+                            <div className="flex items-center">
+                              <div
+                                className="w-2 h-2 rounded-full mr-2"
+                                style={{ backgroundColor: item.color }}
+                              ></div>
+                              <span className={`font-medium ${theme('text-gray-200', 'text-gray-900')}`}>{item.label}</span>
+                            </div>
+                            <span className={theme('text-gray-400', 'text-gray-500')}>{item.range}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className={`${theme('bg-gray-700/50', 'bg-gray-50')} rounded-xl p-4 mb-6 text-sm ${theme('text-gray-300', 'text-gray-700')}`}>
+                    <div className="flex justify-around">
+                      <div>
+                        <span className={theme('text-gray-400', 'text-gray-500')}>Final θ:</span>{' '}
+                        <span className="font-semibold">{results.final_theta?.toFixed(2)}</span>
+                      </div>
+                      <div>
+                        <span className={theme('text-gray-400', 'text-gray-500')}>SEM:</span>{' '}
+                        <span className="font-semibold">{results.final_sem?.toFixed(2)}</span>
+                      </div>
+                      <div>
+                        <span className={theme('text-gray-400', 'text-gray-500')}>Accuracy:</span>{' '}
+                        <span className="font-semibold">{(results.accuracy * 100).toFixed(0)}%</span>
+                      </div>
+                      <div>
+                        <span className={theme('text-gray-400', 'text-gray-500')}>Questions:</span>{' '}
+                        <span className="font-semibold">{results.questions_asked}</span>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              <button
+                onClick={() => {
+                  setAssessmentComplete(false);
+                  setResults(null);
+                  setCurrentSession(null);
+                  setCurrentQuestion(null);
+                  setLiveResponses([]);
+                  setQuestionDifficulties([]);
+                  setCurrentQuestionDifficulty(null);
+                  setSelectedOption('');
+                  setTopicPerformance({});
+                }}
+                className={`w-full ${theme('bg-blue-600 hover:bg-blue-700', 'bg-indigo-600 hover:bg-indigo-700')} text-white rounded-xl py-3 font-semibold transition`}
+              >
+                Take Another Assessment
+              </button>
+            </div>
+
+            {/* All Charts Grid */}
+            <div className="grid grid-cols-3 gap-6">
+              {/* ICC Chart with vertical line and custom tooltip */}
+              <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} rounded-xl shadow-sm border p-5`}>
+                <h3 className={`font-semibold ${theme('text-white', 'text-gray-900')} mb-1 text-sm`}>Item Characteristic Curve</h3>
+                <p className={`text-xs ${theme('text-gray-400', 'text-gray-500')} mb-3`}>Probability of correct response</p>
+                <div className="h-56">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={iccData}>
+                      <XAxis
+                        dataKey="x"
+                        domain={[-3, 3]}
+                        type="number"
+                        fontSize={10}
+                        stroke={chartColors.stroke}
+                        label={{ value: 'Ability (θ)', position: 'insideBottom', offset: -5, fontSize: 10, fill: chartColors.stroke }}
+                      />
+                      <YAxis
+                        domain={[0, 1]}
+                        fontSize={10}
+                        stroke={chartColors.stroke}
+                        label={{ value: 'P(correct)', angle: -90, position: 'insideLeft', fontSize: 10, fill: chartColors.stroke }}
+                      />
+                      <Tooltip content={<ICCTooltip />} />
+                      <ReferenceLine
+                        x={displayTheta}
+                        stroke={chartColors.referenceLine}
+                        strokeWidth={2}
+                        strokeDasharray="3 3"
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="p"
+                        stroke="#3B82F6"
+                        strokeWidth={2}
+                        dot={false}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Topic-wise theta beneath ICC */}
+                {topicPerformance && Object.keys(topicPerformance).length > 0 && (
+                  <div className="mt-4 space-y-2">
+                    <h4 className={`text-xs font-semibold ${theme('text-gray-400', 'text-gray-700')} uppercase tracking-wide`}>Topic Performance</h4>
+                    {Object.values(topicPerformance).map((perf) => (
+                      <div key={perf.topic} className={`flex justify-between items-center text-xs ${theme('bg-gray-700/50', 'bg-gray-100')} rounded px-2.5 py-1.5`}>
+                        <span className={`font-medium ${theme('text-gray-200', 'text-gray-900')} capitalize`}>{perf.topic}</span>
+                        <span className={`font-semibold ${theme('text-gray-300', 'text-gray-700')}`}>θ = {perf.theta.toFixed(2)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Theta Progression with custom tooltip */}
+              <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} rounded-xl shadow-sm border p-5`}>
+                <h3 className={`font-semibold ${theme('text-white', 'text-gray-900')} mb-1 text-sm`}>θ Progression</h3>
+                <p className={`text-xs ${theme('text-gray-400', 'text-gray-500')} mb-3`}>Ability estimate over time</p>
+                <div className="h-56">
+                  {thetaProgression.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <ComposedChart data={thetaProgression}>
+                        <XAxis
+                          dataKey="question"
+                          fontSize={10}
+                          stroke={chartColors.stroke}
+                          label={{ value: 'Question #', position: 'insideBottom', offset: -5, fontSize: 10, fill: chartColors.stroke }}
+                        />
+                        <YAxis
+                          domain={[-2, 2]}
+                          fontSize={10}
+                          stroke={chartColors.stroke}
+                          label={{ value: 'θ', angle: -90, position: 'insideLeft', fontSize: 10, fill: chartColors.stroke }}
+                        />
+                        <Tooltip content={<ThetaProgressionTooltip />} />
+                        <Line
+                          type="monotone"
+                          dataKey="theta"
+                          stroke="#3B82F6"
+                          strokeWidth={2}
+                          dot={false}
+                        />
+                        <Scatter dataKey="theta">
+                          {thetaProgression.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.correct ? '#10B981' : '#EF4444'} />
+                          ))}
+                        </Scatter>
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className={`h-full flex items-center justify-center ${theme('text-gray-500', 'text-gray-400')} text-xs`}>
+                      No data available
+                    </div>
+                  )}
+                </div>
+                <div className="mt-3 flex justify-center space-x-4 text-xs">
+                  <div className="flex items-center">
+                    <div className="w-2.5 h-2.5 rounded-full bg-green-500 mr-1.5"></div>
+                    <span className={theme('text-gray-300', 'text-gray-600')}>Correct</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-2.5 h-2.5 rounded-full bg-red-500 mr-1.5"></div>
+                    <span className={theme('text-gray-300', 'text-gray-600')}>Incorrect</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Response Pattern with enhanced custom tooltip */}
+              <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} rounded-xl shadow-sm border p-5`}>
+                <h3 className={`font-semibold ${theme('text-white', 'text-gray-900')} mb-1 text-sm`}>Response Pattern</h3>
+                <p className={`text-xs ${theme('text-gray-400', 'text-gray-500')} mb-3`}>Difficulty vs ability</p>
+                <div className="h-56">
+                  {difficultyData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <ScatterChart>
+                        <XAxis
+                          dataKey="x"
+                          type="number"
+                          fontSize={10}
+                          stroke={chartColors.stroke}
+                          label={{ value: 'Difficulty', position: 'insideBottom', offset: -5, fontSize: 10, fill: chartColors.stroke }}
+                        />
+                        <YAxis
+                          domain={[-2, 2]}
+                          fontSize={10}
+                          stroke={chartColors.stroke}
+                          label={{ value: 'θ', angle: -90, position: 'insideLeft', fontSize: 10, fill: chartColors.stroke }}
+                        />
+                        <Tooltip content={<ResponsePatternTooltip />} />
+                        <Scatter data={difficultyData} dataKey="y">
+                          {difficultyData.map((entry, index) => (
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={entry.type === 'current' ? '#6B7280' : (entry.correct ? '#10B981' : '#EF4444')}
+                            />
+                          ))}
+                        </Scatter>
+                      </ScatterChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className={`h-full flex items-center justify-center ${theme('text-gray-500', 'text-gray-400')} text-xs`}>
+                      No data available
+                    </div>
+                  )}
+                </div>
+                <div className="mt-3 flex justify-center space-x-3 text-xs">
+                  <div className="flex items-center">
+                    <div className="w-2.5 h-2.5 rounded-full bg-green-500 mr-1.5"></div>
+                    <span className={theme('text-gray-300', 'text-gray-600')}>Correct</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-2.5 h-2.5 rounded-full bg-red-500 mr-1.5"></div>
+                    <span className={theme('text-gray-300', 'text-gray-600')}>Incorrect</span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
+        ) : currentQuestion ? (
+          /* TEST IN PROGRESS */
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left: ICC Chart with vertical line and custom tooltip */}
+            <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} rounded-xl shadow-sm border p-5`}>
+              <h3 className={`font-semibold ${theme('text-white', 'text-gray-900')} mb-1 text-sm`}>Item Characteristic Curve</h3>
+              <p className={`text-xs ${theme('text-gray-400', 'text-gray-500')} mb-3`}>Probability of correct response</p>
+              <div className="h-48">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={iccData}>
+                    <XAxis
+                      dataKey="x"
+                      domain={[-3, 3]}
+                      type="number"
+                      fontSize={10}
+                      stroke={chartColors.stroke}
+                      label={{ value: 'Ability (θ)', position: 'insideBottom', offset: -5, fontSize: 10, fill: chartColors.stroke }}
+                    />
+                    <YAxis
+                      domain={[0, 1]}
+                      fontSize={10}
+                      stroke={chartColors.stroke}
+                      label={{ value: 'P(correct)', angle: -90, position: 'insideLeft', fontSize: 10, fill: chartColors.stroke }}
+                    />
+                    <Tooltip content={<ICCTooltip />} />
+                    <ReferenceLine
+                      x={displayTheta}
+                      stroke={chartColors.referenceLine}
+                      strokeWidth={2}
+                      strokeDasharray="3 3"
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="p"
+                      stroke="#3B82F6"
+                      strokeWidth={2}
+                      dot={false}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
 
-          {/* Center Column - Assessment Interface */}
-          <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} rounded-xl shadow-lg border p-8`}>
-            {!currentSession ? (
-              <div className="text-center">
-                <div className="mb-8">
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto shadow-lg mb-4">
-                    <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                  </div>
-                  <h2 className={`text-2xl font-bold mb-4 ${theme('text-white', 'text-gray-900')}`}>Select Assessment</h2>
-                  <p className={theme('text-gray-400', 'text-gray-600')}>
-                    Choose an assessment that adapts to your ability
-                  </p>
+              {/* Topic-wise theta beneath ICC - real-time updates */}
+              {topicPerformance && Object.keys(topicPerformance).length > 0 && (
+                <div className="mt-4 space-y-2">
+                  <h4 className={`text-xs font-semibold ${theme('text-gray-400', 'text-gray-700')} uppercase tracking-wide`}>Topic Performance</h4>
+                  {Object.values(topicPerformance).map((perf) => (
+                    <div key={perf.topic} className={`flex justify-between items-center text-xs ${theme('bg-gray-700/50', 'bg-gray-100')} rounded px-2.5 py-1.5`}>
+                      <span className={`font-medium ${theme('text-gray-200', 'text-gray-900')} capitalize`}>{perf.topic}</span>
+                      <span className={`font-semibold ${theme('text-gray-300', 'text-gray-700')}`}>θ = {perf.theta.toFixed(2)}</span>
+                    </div>
+                  ))}
                 </div>
+              )}
+            </div>
 
-                {userStats && userStats.proficiencies.length > 0 && (
-                  <div className={`mb-8 p-5 ${theme('bg-blue-900/30 border-blue-700', 'bg-blue-50 border-blue-100')} rounded-xl border-2`}>
-                    <h3 className={`text-sm font-bold ${theme('text-blue-300', 'text-blue-900')} mb-3 uppercase tracking-wide`}>Your Previous Results</h3>
-                    <div className="space-y-2">
-                      {userStats.proficiencies.map(prof => (
-                        <div key={prof.item_bank} className={`flex justify-between items-center text-sm ${theme('bg-gray-700/50', 'bg-white')} rounded-lg p-3`}>
-                          <span className={`font-semibold ${theme('text-white', 'text-gray-900')} capitalize`}>{prof.item_bank}</span>
-                          <span className={theme('text-gray-300', 'text-gray-600')}>
-                            {getThetaTierLabel(prof.theta)} <span className={`text-xs ${theme('text-gray-400', 'text-gray-500')}`}>(θ={prof.theta.toFixed(2)})</span>
-                          </span>
-                        </div>
-                      ))}
+            {/* Center: Question */}
+            <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} rounded-2xl shadow-sm border p-6`}>
+              <div className="mb-6">
+                <div className={`flex justify-between text-sm ${theme('text-gray-400', 'text-gray-600')} mb-2`}>
+                  <span>Question {currentSession.questions_asked + 1}</span>
+                  <span>SEM: {currentSession.sem?.toFixed(2)}</span>
+                </div>
+                <div className={`w-full ${theme('bg-gray-700', 'bg-gray-200')} rounded-full h-2`}>
+                  <div
+                    className={`h-2 rounded-full ${theme('bg-blue-600', 'bg-indigo-600')} transition-all duration-500`}
+                    style={{ width: `${Math.min((currentSession.questions_asked / 20) * 100, 100)}%` }}
+                  ></div>
+                </div>
+              </div>
+
+              <h2 className={`text-lg font-semibold ${theme('text-white', 'text-gray-900')} mb-5 leading-relaxed`}>
+                {currentQuestion.question}
+              </h2>
+
+              <div className="space-y-2.5 mb-6">
+                {[
+                  { key: 'A', text: currentQuestion.option_a },
+                  { key: 'B', text: currentQuestion.option_b },
+                  { key: 'C', text: currentQuestion.option_c },
+                  { key: 'D', text: currentQuestion.option_d }
+                ].map((option) => (
+                  <label
+                    key={option.key}
+                    className={`flex items-start p-3.5 rounded-xl border-2 cursor-pointer transition ${
+                      selectedOption === option.key
+                        ? theme('border-blue-500 bg-blue-900/20', 'border-indigo-500 bg-indigo-50')
+                        : theme('border-gray-600 hover:border-gray-500 hover:bg-gray-700/50', 'border-gray-200 hover:border-gray-300 hover:bg-gray-50')
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="option"
+                      value={option.key}
+                      checked={selectedOption === option.key}
+                      onChange={(e) => setSelectedOption(e.target.value)}
+                      disabled={loading}
+                      className="hidden"
+                    />
+                    <div className={`w-5 h-5 rounded-full border-2 mr-3 flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                      selectedOption === option.key ? theme('border-blue-500 bg-blue-500', 'border-indigo-500 bg-indigo-500') : theme('border-gray-500', 'border-gray-400')
+                    }`}>
+                      {selectedOption === option.key && (
+                        <div className="w-2 h-2 bg-white rounded-full"></div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <span className={`font-semibold ${theme('text-gray-300', 'text-gray-700')} mr-2`}>{option.key}.</span>
+                      <span className={`${theme('text-gray-200', 'text-gray-900')} text-sm`}>{option.text}</span>
+                    </div>
+                  </label>
+                ))}
+              </div>
+
+              <div className="flex justify-between items-center">
+                <button
+                  onClick={() => setSelectedOption('')}
+                  disabled={loading || !selectedOption}
+                  className={`px-4 py-2 border-2 ${theme('border-gray-600 text-gray-300 hover:bg-gray-700', 'border-gray-300 text-gray-700 hover:bg-gray-50')} rounded-lg disabled:opacity-50 disabled:cursor-not-allowed font-medium transition text-sm`}
+                >
+                  Clear
+                </button>
+                <button
+                  onClick={submitAnswer}
+                  disabled={!selectedOption || loading}
+                  className={`px-7 py-2 ${theme('bg-blue-600 hover:bg-blue-700', 'bg-indigo-600 hover:bg-indigo-700')} disabled:bg-gray-400 text-white rounded-lg font-semibold transition disabled:cursor-not-allowed text-sm`}
+                >
+                  {loading ? 'Submitting...' : 'Submit'}
+                </button>
+              </div>
+
+              <div className={`mt-4 text-xs ${theme('text-gray-500', 'text-gray-500')} text-center`}>
+                Press A, B, C, or D to select • Enter to submit
+              </div>
+            </div>
+
+            {/* Right: Live Stats & Charts */}
+            <div className="space-y-4">
+              <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} rounded-xl shadow-sm border p-4`}>
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <div className={`text-xs ${theme('text-gray-400', 'text-gray-500')} mb-1`}>Current θ</div>
+                    <div className={`text-2xl font-bold ${theme('text-white', 'text-gray-900')}`}>{displayTheta.toFixed(2)}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className={`text-xs ${theme('text-gray-400', 'text-gray-500')} mb-1`}>Current Level</div>
+                    <div
+                      className="text-xl font-bold"
+                      style={{ color: getCurrentThetaColor(displayTheta) }}
+                    >
+                      {getThetaTierLabel(displayTheta)}
                     </div>
                   </div>
-                )}
+                </div>
+              </div>
 
-                <div className="space-y-4">
-                  {availableItemBanks.length > 0 ? (
-                    availableItemBanks.map((bank) => {
-                      const gradientColors = {
-                        'maths': 'from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700',
-                        'mathematics': 'from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700',
-                        'vocabulary': 'from-green-500 to-green-600 hover:from-green-600 hover:to-green-700',
-                        'science': 'from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700',
-                        'physics': 'from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700',
-                        'chemistry': 'from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700',
-                        'biology': 'from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700',
-                        'default': 'from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700'
-                      };
+              <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} rounded-xl shadow-sm border p-4`}>
+                <div className={`text-xs font-semibold ${theme('text-gray-400', 'text-gray-700')} mb-2 uppercase tracking-wide`}>Proficiency Levels</div>
+                <div className="space-y-1.5">
+                  {[
+                    { label: 'Beginner', color: tierColors.C1, range: 'θ < -1.0' },
+                    { label: 'Intermediate', color: tierColors.C2, range: '-1.0 ≤ θ < 0.0' },
+                    { label: 'Advanced', color: tierColors.C3, range: '0.0 ≤ θ < 1.0' },
+                    { label: 'Expert', color: tierColors.C4, range: 'θ ≥ 1.0' }
+                  ].map((item) => (
+                    <div key={item.label} className="flex items-center justify-between text-xs">
+                      <div className="flex items-center">
+                        <div
+                          className="w-2 h-2 rounded-full mr-2"
+                          style={{ backgroundColor: item.color }}
+                        ></div>
+                        <span className={`font-medium ${theme('text-gray-200', 'text-gray-900')}`}>{item.label}</span>
+                      </div>
+                      <span className={theme('text-gray-400', 'text-gray-500')}>{item.range}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-                      const gradient = gradientColors[bank.name.toLowerCase()] || gradientColors['default'];
-
-                      return (
-                        <button
-                          key={bank.name}
-                          onClick={() => startAssessment(bank.name)}
-                          disabled={loading}
-                          className={`w-full bg-gradient-to-r ${gradient} disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed text-white rounded-xl px-8 py-5 font-semibold transition shadow-lg hover:shadow-xl transform hover:scale-[1.02] disabled:transform-none`}
-                        >
-                          <div className="text-lg font-bold">{bank.display_name}</div>
-                          <div className="text-sm opacity-90 mt-1">
-                            {bank.total_items} questions • {bank.status}
-                          </div>
-                        </button>
-                      );
-                    })
+              <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} rounded-xl shadow-sm border p-4`}>
+                <h3 className={`font-semibold ${theme('text-white', 'text-gray-900')} mb-2 text-sm`}>θ Progression</h3>
+                <div className="h-40">
+                  {thetaProgression.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <ComposedChart data={thetaProgression}>
+                        <XAxis
+                          dataKey="question"
+                          fontSize={9}
+                          stroke={chartColors.stroke}
+                          label={{ value: 'Question #', position: 'insideBottom', offset: -5, fontSize: 9, fill: chartColors.stroke }}
+                        />
+                        <YAxis
+                          domain={[-2, 2]}
+                          fontSize={9}
+                          stroke={chartColors.stroke}
+                          label={{ value: 'θ', angle: -90, position: 'insideLeft', fontSize: 9, fill: chartColors.stroke }}
+                        />
+                        <Tooltip content={<ThetaProgressionTooltip />} />
+                        <Line type="monotone" dataKey="theta" stroke="#3B82F6" strokeWidth={1.5} dot={false} />
+                        <Scatter dataKey="theta">
+                          {thetaProgression.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.correct ? '#10B981' : '#EF4444'} />
+                          ))}
+                        </Scatter>
+                      </ComposedChart>
+                    </ResponsiveContainer>
                   ) : (
-                    <div className={`${theme('text-gray-400', 'text-gray-500')} text-sm py-8`}>
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
-                      Loading assessments...
+                    <div className={`h-full flex items-center justify-center ${theme('text-gray-500', 'text-gray-400')} text-xs`}>
+                      Answer questions to see progression
+                    </div>
+                  )}
+                </div>
+                <div className="mt-2 flex justify-center space-x-3 text-xs">
+                  <div className="flex items-center">
+                    <div className="w-2 h-2 rounded-full bg-green-500 mr-1"></div>
+                    <span className={theme('text-gray-300', 'text-gray-600')}>Correct</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-2 h-2 rounded-full bg-red-500 mr-1"></div>
+                    <span className={theme('text-gray-300', 'text-gray-600')}>Incorrect</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} rounded-xl shadow-sm border p-4`}>
+                <h3 className={`font-semibold ${theme('text-white', 'text-gray-900')} mb-2 text-sm`}>Response Pattern</h3>
+                <div className="h-40">
+                  {difficultyData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <ScatterChart>
+                        <XAxis
+                          dataKey="x"
+                          type="number"
+                          fontSize={9}
+                          stroke={chartColors.stroke}
+                          label={{ value: 'Difficulty', position: 'insideBottom', offset: -5, fontSize: 9, fill: chartColors.stroke }}
+                        />
+                        <YAxis
+                          domain={[-2, 2]}
+                          fontSize={9}
+                          stroke={chartColors.stroke}
+                          label={{ value: 'θ', angle: -90, position: 'insideLeft', fontSize: 9, fill: chartColors.stroke }}
+                        />
+                        <Tooltip content={<ResponsePatternTooltip />} />
+                        <Scatter data={difficultyData} dataKey="y">
+                          {difficultyData.map((entry, index) => (
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={entry.type === 'current' ? '#6B7280' : (entry.correct ? '#10B981' : '#EF4444')}
+                            />
+                          ))}
+                        </Scatter>
+                      </ScatterChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className={`h-full flex items-center justify-center ${theme('text-gray-500', 'text-gray-400')} text-xs`}>
+                      Answer questions to see pattern
+                    </div>
+                  )}
+                </div>
+                <div className="mt-2 flex justify-center space-x-2 text-xs">
+                  <div className="flex items-center">
+                    <div className="w-2 h-2 rounded-full bg-green-500 mr-1"></div>
+                    <span className={theme('text-gray-300', 'text-gray-600')}>Correct</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-2 h-2 rounded-full bg-red-500 mr-1"></div>
+                    <span className={theme('text-gray-300', 'text-gray-600')}>Incorrect</span>
+                  </div>
+                  {!assessmentComplete && (
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 rounded-full bg-gray-500 mr-1"></div>
+                      <span className={theme('text-gray-300', 'text-gray-600')}>Current</span>
                     </div>
                   )}
                 </div>
               </div>
-            ) : assessmentComplete ? (
-              <div className="text-center">
-                <div className="mb-6">
-                  <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto shadow-lg">
-                    <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                </div>
-                <h2 className={`text-2xl font-bold mb-6 ${theme('text-white', 'text-gray-900')}`}>Assessment Complete!</h2>
-
-                {results && (
-                  <div className="mb-8">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className={`${theme('bg-gradient-to-br from-blue-900/50 to-blue-800/50 border-blue-700', 'bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200')} rounded-xl p-5 border-2`}>
-                        <div className={`text-sm ${theme('text-blue-300', 'text-blue-700')} font-semibold uppercase tracking-wide`}>Final Level</div>
-                        <div className={`text-2xl font-bold ${theme('text-white', 'text-blue-900')} mt-2`}>{results.tier}</div>
-                      </div>
-                      <div className={`${theme('bg-gradient-to-br from-green-900/50 to-green-800/50 border-green-700', 'bg-gradient-to-br from-green-50 to-green-100 border-green-200')} rounded-xl p-5 border-2`}>
-                        <div className={`text-sm ${theme('text-green-300', 'text-green-700')} font-semibold uppercase tracking-wide`}>Accuracy</div>
-                        <div className={`text-2xl font-bold ${theme('text-white', 'text-green-900')} mt-2`}>{(results.accuracy * 100).toFixed(1)}%</div>
-                      </div>
-                      <div className={`${theme('bg-gradient-to-br from-purple-900/50 to-purple-800/50 border-purple-700', 'bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200')} rounded-xl p-5 border-2`}>
-                        <div className={`text-sm ${theme('text-purple-300', 'text-purple-700')} font-semibold uppercase tracking-wide`}>Questions</div>
-                        <div className={`text-2xl font-bold ${theme('text-white', 'text-purple-900')} mt-2`}>{results.questions_asked}</div>
-                      </div>
-                      <div className={`${theme('bg-gradient-to-br from-orange-900/50 to-orange-800/50 border-orange-700', 'bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200')} rounded-xl p-5 border-2`}>
-                        <div className={`text-sm ${theme('text-orange-300', 'text-orange-700')} font-semibold uppercase tracking-wide`}>Final θ</div>
-                        <div className={`text-2xl font-bold ${theme('text-white', 'text-orange-900')} mt-2`}>{results.final_theta?.toFixed(2)}</div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <button
-                  onClick={() => {
-                    setAssessmentComplete(false);
-                    setResults(null);
-                    setCurrentSession(null);
-                    setCurrentQuestion(null);
-                    setLiveResponses([]);
-                    setQuestionDifficulties([]);
-                    setCurrentQuestionDifficulty(null);
-                    setSelectedOption('');
-                  }}
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-xl px-8 py-4 font-semibold transition shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
-                >
-                  Take Another Assessment
-                </button>
-              </div>
-            ) : currentQuestion ? (
-              <div>
-                <div className="mb-8">
-                  <div className={`flex justify-between text-sm ${theme('text-gray-400', 'text-gray-600')} mb-3`}>
-                    <span className="font-semibold">Question {currentSession.questions_asked + 1}</span>
-                    <span className="font-medium">θ: {currentSession.theta?.toFixed(2)} | SEM: {currentSession.sem?.toFixed(2)}</span>
-                  </div>
-                  <div className={`w-full ${theme('bg-gray-700', 'bg-gray-200')} rounded-full h-3 shadow-inner`}>
-                    <div
-                      className="h-3 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 transition-all duration-500 shadow-sm"
-                      style={{
-                        width: `${Math.min((currentSession.questions_asked / 20) * 100, 100)}%`
-                      }}
-                    ></div>
-                  </div>
-                </div>
-
-                <div className="mb-8">
-                  <h2 className={`text-xl font-semibold mb-6 ${theme('text-white', 'text-gray-900')} leading-relaxed`}>
-                    {currentQuestion.question}
-                  </h2>
-
-                  <div className="space-y-3">
-                    {[
-                      { key: 'A', text: currentQuestion.option_a },
-                      { key: 'B', text: currentQuestion.option_b },
-                      { key: 'C', text: currentQuestion.option_c },
-                      { key: 'D', text: currentQuestion.option_d }
-                    ].map((option) => (
-                      <label
-                        key={option.key}
-                        className={`flex items-center p-5 rounded-xl border-2 cursor-pointer transition-all ${
-                          selectedOption === option.key 
-                            ? theme('border-blue-500 bg-blue-900/30 shadow-md scale-[1.02]', 'border-blue-500 bg-blue-50 shadow-md scale-[1.02]')
-                            : theme('border-gray-600 hover:border-blue-500 hover:bg-gray-700/50 hover:shadow-sm', 'border-gray-300 hover:border-blue-300 hover:bg-gray-50 hover:shadow-sm')
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name="option"
-                          value={option.key}
-                          checked={selectedOption === option.key}
-                          onChange={(e) => setSelectedOption(e.target.value)}
-                          disabled={loading}
-                          className="hidden"
-                        />
-                        <div className={`w-6 h-6 rounded-full border-2 mr-4 flex items-center justify-center flex-shrink-0 transition ${
-                          selectedOption === option.key ? 'border-blue-500 bg-blue-500' : theme('border-gray-500', 'border-gray-400')
-                        }`}>
-                          {selectedOption === option.key && (
-                            <div className="w-2.5 h-2.5 bg-white rounded-full"></div>
-                          )}
-                        </div>
-                        <span className={`font-bold ${theme('text-gray-300', 'text-gray-700')} mr-3`}>{option.key}.</span>
-                        <span className={theme('text-gray-200', 'text-gray-900')}>{option.text}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex justify-between items-center">
-                  <button
-                    onClick={() => setSelectedOption('')}
-                    disabled={loading || !selectedOption}
-                    className={`px-5 py-2.5 ${theme('border-gray-600 text-gray-300 hover:bg-gray-700 hover:border-gray-500', 'border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400')} border-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed font-medium transition text-sm`}
-                  >
-                    Clear
-                  </button>
-                  <button
-                    onClick={submitAnswer}
-                    disabled={!selectedOption || loading}
-                    className="px-8 py-2.5 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-400 text-white rounded-lg font-medium transition shadow-md hover:shadow-lg transform hover:scale-[1.01] disabled:transform-none disabled:cursor-not-allowed text-sm"
-                  >
-                    {loading ? (
-                      <div className="flex items-center">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Submitting...
-                      </div>
-                    ) : 'Submit Answer'}
-                  </button>
-                </div>
-
-                <div className={`mt-6 text-xs ${theme('text-gray-500', 'text-gray-500')} text-center font-medium`}>
-                  Press A, B, C, or D to select • Enter to submit
-                </div>
-              </div>
-            ) : (
-              <div className={`text-center ${theme('text-gray-400', 'text-gray-500')} py-16`}>
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-                <p className="font-medium">Loading question...</p>
-              </div>
-            )}
-          </div>
-
-          {/* Right Column - Statistics & Charts */}
-          <div className="space-y-4">
-            <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} rounded-xl shadow-lg border p-4`}>
-              <h3 className={`text-xs font-bold mb-3 ${theme('text-white', 'text-gray-900')} uppercase tracking-wide`}>Proficiency Levels</h3>
-              <div className="space-y-2">
-                {[
-                  { label: 'Beginner', color: tierColors.C1, range: 'θ < -1.0' },
-                  { label: 'Intermediate', color: tierColors.C2, range: '-1.0 ≤ θ < 0.0' },
-                  { label: 'Advanced', color: tierColors.C3, range: '0.0 ≤ θ < 1.0' },
-                  { label: 'Expert', color: tierColors.C4, range: 'θ ≥ 1.0' }
-                ].map((item) => (
-                  <div key={item.label} className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <div
-                        className="w-3 h-3 rounded-full mr-2 shadow-sm"
-                        style={{ backgroundColor: item.color }}
-                      ></div>
-                      <span className={`text-sm font-semibold ${theme('text-gray-200', 'text-gray-900')}`}>{item.label}</span>
-                    </div>
-                    <span className={`text-xs ${theme('text-gray-400', 'text-gray-500')} font-medium`}>{item.range}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} rounded-xl shadow-lg border p-4`}>
-              <h3 className={`text-sm font-bold mb-3 ${theme('text-white', 'text-gray-900')}`}>θ Progression</h3>
-              <div className="h-36 mb-2">
-                {thetaProgression.length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={thetaProgression}>
-                      <XAxis
-                        dataKey="question"
-                        type="number"
-                        domain={[1, 'dataMax']}
-                        stroke={chartColors.stroke}
-                        fontSize={10}
-                        label={{
-                          value: 'Question #',
-                          position: 'insideBottom',
-                          offset: -2,
-                          fill: chartColors.stroke,
-                          fontSize: 10
-                        }}
-                      />
-                      <YAxis
-                        domain={[-2, 2]}
-                        stroke={chartColors.stroke}
-                        fontSize={10}
-                        label={{
-                          value: 'θ',
-                          angle: -90,
-                          position: 'insideLeft',
-                          fill: chartColors.stroke,
-                          fontSize: 12
-                        }}
-                      />
-                      <Tooltip
-                        formatter={(value) => [value, 'θ']}
-                        contentStyle={{
-                          backgroundColor: chartColors.tooltip.bg,
-                          border: `1px solid ${chartColors.tooltip.border}`,
-                          borderRadius: '8px',
-                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                          fontSize: '12px',
-                          color: theme('#fff', '#000')
-                        }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="theta"
-                        stroke={chartColors.line}
-                        strokeWidth={1}
-                        dot={false}
-                      />
-                      <Scatter dataKey="theta" fill="#000" name="Responses">
-                        {thetaProgression.map((entry, index) => {
-                          const color = entry.correct ? '#22C55E' : '#EF4444';
-                          return <Cell key={`cell-${index}`} fill={color} />;
-                        })}
-                      </Scatter>
-                    </ComposedChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className={`h-full flex items-center justify-center ${theme('text-gray-400', 'text-gray-500')} text-xs font-medium`}>
-                    Answer questions to see progression
-                  </div>
-                )}
-              </div>
-              <div className="flex justify-center space-x-4 mt-1">
-                <div className="flex items-center">
-                  <div className="w-2.5 h-2.5 rounded-full bg-green-500 mr-1.5 shadow-sm"></div>
-                  <span className={`text-xs ${theme('text-gray-300', 'text-gray-700')} font-medium`}>Correct</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-2.5 h-2.5 rounded-full bg-red-500 mr-1.5 shadow-sm"></div>
-                  <span className={`text-xs ${theme('text-gray-300', 'text-gray-700')} font-medium`}>Incorrect</span>
-                </div>
-              </div>
-            </div>
-
-            <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} rounded-xl shadow-lg border p-4`}>
-              <h3 className={`text-sm font-bold mb-3 ${theme('text-white', 'text-gray-900')}`}>Response Pattern</h3>
-              <div className="h-36 mb-2">
-                {difficultyData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={difficultyData}>
-                      <XAxis
-                        dataKey="x"
-                        type="number"
-                        domain={['dataMin - 0.1', 'dataMax + 0.1']}
-                        stroke={chartColors.stroke}
-                        fontSize={10}
-                        tickFormatter={(value) => value.toFixed(2)}
-                        label={{
-                          value: 'Difficulty',
-                          position: 'insideBottom',
-                          offset: -2,
-                          fill: chartColors.stroke,
-                          fontSize: 10
-                        }}
-                      />
-                      <YAxis
-                        domain={[-2, 2]}
-                        stroke={chartColors.stroke}
-                        fontSize={10}
-                        label={{
-                          value: 'θ',
-                          angle: -90,
-                          position: 'insideLeft',
-                          fill: chartColors.stroke,
-                          fontSize: 12
-                        }}
-                      />
-                      <Tooltip
-                        formatter={(value, name) => {
-                          if (name === 'y') return [value.toFixed(2), 'θ'];
-                          return [value, name];
-                        }}
-                        labelFormatter={(value) => `Difficulty: ${parseFloat(value).toFixed(2)}`}
-                        contentStyle={{
-                          backgroundColor: chartColors.tooltip.bg,
-                          border: `1px solid ${chartColors.tooltip.border}`,
-                          borderRadius: '8px',
-                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                          fontSize: '12px',
-                          color: theme('#fff', '#000')
-                        }}
-                      />
-                      <Scatter dataKey="y" name="Responses">
-                        {difficultyData.map((entry, index) => {
-                          const color = entry.type === 'current' ? '#6B7280' : (entry.correct ? '#22C55E' : '#EF4444');
-                          return <Cell key={`cell-${index}`} fill={color} />;
-                        })}
-                      </Scatter>
-                    </ComposedChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className={`h-full flex items-center justify-center ${theme('text-gray-400', 'text-gray-500')} text-xs font-medium`}>
-                    Answer questions to see pattern
-                  </div>
-                )}
-              </div>
-              <div className="flex justify-center space-x-3 mt-1">
-                <div className="flex items-center">
-                  <div className="w-2.5 h-2.5 rounded-full bg-green-500 mr-1.5 shadow-sm"></div>
-                  <span className={`text-xs ${theme('text-gray-300', 'text-gray-700')} font-medium`}>Correct</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-2.5 h-2.5 rounded-full bg-red-500 mr-1.5 shadow-sm"></div>
-                  <span className={`text-xs ${theme('text-gray-300', 'text-gray-700')} font-medium`}>Incorrect</span>
-                </div>
-                {!assessmentComplete && (
-                  <div className="flex items-center">
-                    <div className="w-2.5 h-2.5 rounded-full bg-gray-500 mr-1.5 shadow-sm"></div>
-                    <span className={`text-xs ${theme('text-gray-300', 'text-gray-700')} font-medium`}>Current</span>
-                  </div>
-                )}
-              </div>
             </div>
           </div>
-        </div>
+        ) : (
+          <div className={`text-center py-16 ${theme('text-gray-400', 'text-gray-500')}`}>
+            <div className={`animate-spin rounded-full h-12 w-12 border-b-2 ${theme('border-blue-500', 'border-indigo-600')} mx-auto mb-4`}></div>
+            <p>Loading question...</p>
+          </div>
+        )}
       </div>
     </div>
   );
