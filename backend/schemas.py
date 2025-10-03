@@ -1,15 +1,19 @@
+# backend/schemas.py
+# ADDITIVE CHANGES: Added optional topic_performance and learning_roadmap fields
+
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from datetime import datetime
 
+# EXISTING - NO CHANGES
 class UserCreate(BaseModel):
     username: str
-    initial_competence_level: str = "beginner"  # Changed
+    initial_competence_level: str = "beginner"
 
 class User(BaseModel):
     id: int
     username: str
-    initial_competence_level: str  # Changed
+    initial_competence_level: str
     created_at: datetime
 
     class Config:
@@ -41,14 +45,16 @@ class AnswerSubmission(BaseModel):
     response_time_ms: Optional[int] = None
 
 
+# MODIFIED: Added optional topic_performance field
 class AssessmentSession(BaseModel):
-    session_id: int  # Changed from id
+    session_id: int
     current_question: Optional[QuestionResponse] = None
-    theta: float  # Changed from current_theta
-    sem: float    # Changed from current_sem
+    theta: float
+    sem: float
     questions_asked: int
-    completed: bool = False  # Changed from is_completed
+    completed: bool = False
     last_response_correct: Optional[bool] = None
+    topic_performance: Optional[Dict[str, Any]] = None  # NEW: Optional field
 
 
 class ResponseDetails(BaseModel):
@@ -61,6 +67,7 @@ class ResponseDetails(BaseModel):
     theta_after: float
 
 
+# MODIFIED: Added optional topic_performance and learning_roadmap fields
 class AssessmentResults(BaseModel):
     session_id: int
     user_id: int
@@ -73,10 +80,13 @@ class AssessmentResults(BaseModel):
     accuracy: float
     responses: List[ResponseDetails]
     completed_at: Optional[datetime]
+    topic_performance: Optional[Dict[str, Any]] = None  # NEW: Optional field
+    learning_roadmap: Optional[Dict[str, Any]] = None   # NEW: Optional field
 
 
+# EXISTING - NO CHANGES
 class UserProficiencySubject(BaseModel):
-    item_bank: str  # Item bank name
+    item_bank: str
     subject: str
     theta: float
     sem: float

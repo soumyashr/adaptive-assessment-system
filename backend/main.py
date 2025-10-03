@@ -1,3 +1,6 @@
+# backend/main.py
+# ADDITIVE CHANGES: Modified submit_answer to return topic_performance
+
 from datetime import datetime
 
 from fastapi import FastAPI, Depends, HTTPException, UploadFile, File
@@ -45,7 +48,7 @@ logger = logging.getLogger(__name__)
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
-    title=config.API_CONFIG["title"], 
+    title=config.API_CONFIG["title"],
     version=config.API_CONFIG["version"]
 )
 
@@ -73,6 +76,8 @@ def get_item_bank_session(item_bank_name: str):
         session.close()
 
 
+# ========== EXISTING ENDPOINTS - NO CHANGES ==========
+
 @app.post("/api/users/", response_model=schemas.User)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     """Create a new user or get existing user"""
@@ -92,19 +97,16 @@ def upload_questions(file: UploadFile = File(...), db: Session = Depends(get_db)
     if not file.filename.endswith('.csv'):
         raise HTTPException(status_code=400, detail="File must be a CSV")
 
-    # Read CSV content
     content = file.file.read()
     df = pd.read_csv(io.StringIO(content.decode('utf-8')))
 
-    # Validate required columns
-    required_columns = ['subject', 'question_id', 'question', 'option_a', 'option_b', 
-                       'option_c', 'option_d', 'answer', 'topic', 'tier', 
+    required_columns = ['subject', 'question_id', 'question', 'option_a', 'option_b',
+                       'option_c', 'option_d', 'answer', 'topic', 'tier',
                        'discrimination_a', 'difficulty_b', 'guessing_c']
 
     if not all(col in df.columns for col in required_columns):
         raise HTTPException(status_code=400, detail="CSV missing required columns")
 
-    # Import questions
     imported_count = question_service.import_questions_from_df(db, df)
     return {"message": f"Successfully imported {imported_count} questions"}
 
@@ -139,7 +141,7 @@ def start_assessment(
             registry_db=db,
             user_id=user.id,
             subject=assessment_start.subject,
-            item_bank_name=item_bank_name  # ← Make sure this is passed
+            item_bank_name=item_bank_name
         )
 
         first_question = assessment_service.get_next_question(
@@ -162,6 +164,8 @@ def start_assessment(
     finally:
         item_db.close()
 
+
+# ========== MODIFIED ENDPOINT: Returns topic_performance ==========
 
 @app.post("/api/assessments/{session_id}/answer", response_model=schemas.AssessmentSession)
 def submit_answer(
@@ -189,8 +193,8 @@ def submit_answer(
     item_db = item_bank_db.get_session(item_bank_name)
 
     try:
-        # Record response in item bank DB
-        recorded_response = assessment_service.record_response(
+        # MODIFIED: Now returns dict with response and topic_performance
+        recorded_data = assessment_service.record_response(
             item_db=item_db,
             registry_db=db,
             session_id=session_id,
@@ -200,8 +204,12 @@ def submit_answer(
             irt_engine=irt_engine
         )
 
-        if not recorded_response:
+        if not recorded_data:
             raise HTTPException(status_code=400, detail="Failed to record response")
+
+        # NEW: Extract both response and topic_performance
+        recorded_response = recorded_data.get('response')
+        topic_performance = recorded_data.get('topic_performance')
 
         # Get updated session
         session = assessment_service.get_session(item_db, session_id)
@@ -218,7 +226,8 @@ def submit_answer(
                 "sem": session.sem,
                 "questions_asked": session.questions_asked,
                 "completed": True,
-                "last_response_correct": recorded_response.is_correct
+                "last_response_correct": recorded_response.is_correct,
+                "topic_performance": topic_performance  # NEW: Added
             }
             logger.info(f"Assessment {session_id} completed")
             return response_data
@@ -235,7 +244,8 @@ def submit_answer(
             "sem": session.sem,
             "questions_asked": session.questions_asked,
             "completed": session.completed,
-            "last_response_correct": recorded_response.is_correct
+            "last_response_correct": recorded_response.is_correct,
+            "topic_performance": topic_performance  # NEW: Added
         }
     except Exception as e:
         logger.error(f"Error in submit_answer: {str(e)}", exc_info=True)
@@ -243,10 +253,13 @@ def submit_answer(
     finally:
         item_db.close()
 
+
+# ========== EXISTING ENDPOINTS - NO CHANGES ==========
+
 @app.get("/api/assessments/{session_id}/results", response_model=schemas.AssessmentResults)
 def get_assessment_results(
         session_id: int,
-        item_bank_name: str,  # NEW: Need to know which item bank
+        item_bank_name: str,
         db: Session = Depends(get_db)
 ):
     """Get assessment results"""
@@ -258,16 +271,13 @@ def get_assessment_results(
         item_db.close()
 
 
-
 @app.get("/api/users/{username}/proficiency")
 def get_user_proficiency(username: str, db: Session = Depends(get_db)):
     """Get user's proficiency across all item banks (from cache)"""
-    # Get user from registry
     user = user_service.get_user_by_username(db, username)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # Query cached proficiencies from registry (FAST - single query)
     proficiencies = db.query(models.UserProficiencySummary).filter(
         models.UserProficiencySummary.user_id == user.id
     ).all()
@@ -290,7 +300,6 @@ def get_user_proficiency(username: str, db: Session = Depends(get_db)):
     }
 
 
-# File upload
 item_bank_service = ItemBankService()
 
 
@@ -303,7 +312,6 @@ async def create_item_bank(
 ):
     """Create a new item bank or return existing"""
     try:
-        # Check if already exists
         existing = db.query(models.ItemBank).filter(
             models.ItemBank.name == name
         ).first()
@@ -320,7 +328,6 @@ async def create_item_bank(
                 }
             }
 
-        # Create new
         item_bank = item_bank_service.create_item_bank(
             db, name, display_name, subject
         )
@@ -389,7 +396,6 @@ async def calibrate_item_bank(
         db: Session = Depends(get_db)
 ):
     """Run simulation and recalibration on item bank"""
-    # Check item bank exists
     item_bank = db.query(models.ItemBank).filter(
         models.ItemBank.name == item_bank_name
     ).first()
@@ -402,7 +408,6 @@ async def calibrate_item_bank(
     if not os.path.exists(db_path):
         raise HTTPException(status_code=404, detail="Item bank database not found")
 
-    # Get absolute paths
     backend_dir = os.path.dirname(os.path.abspath(__file__))
     scripts_dir = os.path.join(backend_dir, 'scripts')
     simulate_script = os.path.join(scripts_dir, 'simulate_test_takers.py')
@@ -412,37 +417,33 @@ async def calibrate_item_bank(
     try:
         logger.info(f"Starting calibration for {item_bank_name}...")
 
-        # Run simulation
         logger.info(f"Running simulation: {simulate_script}")
         sim_result = subprocess.run([
             sys.executable,
-            simulate_script,  # ← Use absolute path
+            simulate_script,
             "--db", db_path,
             "--subject", item_bank_name,
             "-n", str(n_examinees),
             "--questions-per-examinee", str(questions_per)
-        ], capture_output=True, text=True, check=True, cwd=backend_dir)  # ← Set working directory
+        ], capture_output=True, text=True, check=True, cwd=backend_dir)
 
         logger.info(f"Simulation output: {sim_result.stdout}")
 
-        # Run calibration
         logger.info(f"Running recalibration: {recalibrate_script}")
         calib_result = subprocess.run([
             sys.executable,
-            recalibrate_script,  # ← Use absolute path
+            recalibrate_script,
             "--db", db_path,
             "--subject", item_bank_name,
             "--min-responses", "30",
             "--report", report_path
-        ], capture_output=True, text=True, check=True, cwd=backend_dir)  # ← Set working directory
+        ], capture_output=True, text=True, check=True, cwd=backend_dir)
 
         logger.info(f"Calibration output: {calib_result.stdout}")
 
-        # Update item bank status
         item_bank.status = "calibrated"
         item_bank.last_calibrated = datetime.utcnow()
 
-        # Update stats
         stats = item_bank_service.get_item_bank_stats(item_bank_name)
         item_bank.total_items = stats['total_items']
         item_bank.test_takers = stats['test_takers']
@@ -477,22 +478,18 @@ def get_all_sessions(db: Session = Depends(get_db)):
     """Get all assessment sessions across all item banks"""
     sessions_list = []
 
-    # Get all item banks
     item_banks = db.query(models.ItemBank).all()
 
     for item_bank in item_banks:
         item_db = item_bank_db.get_session(item_bank.name)
         try:
-            # Get sessions from this item bank
             sessions = item_db.query(models_itembank.AssessmentSession).all()
 
             for session in sessions:
-                # Get user info from registry
                 user = db.query(models.User).filter(
                     models.User.id == session.user_id
                 ).first()
 
-                # Calculate accuracy
                 responses = item_db.query(models_itembank.Response).filter(
                     models_itembank.Response.session_id == session.session_id
                 ).all()
@@ -514,7 +511,6 @@ def get_all_sessions(db: Session = Depends(get_db)):
         finally:
             item_db.close()
 
-    # Sort by most recent first
     sessions_list.sort(key=lambda x: x['started_at'] if x['started_at'] else '', reverse=True)
 
     return sessions_list

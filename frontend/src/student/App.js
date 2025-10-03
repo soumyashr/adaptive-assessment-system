@@ -15,6 +15,7 @@ import {
 import './App.css';
 import { DARK_MODE, theme } from '../config/theme';
 
+
 const AdaptiveAssessment = () => {
   // State management
   const [currentUser, setCurrentUser] = useState(null);
@@ -264,12 +265,238 @@ const AdaptiveAssessment = () => {
       const response = await fetch(`${API_BASE}/item-banks`);
       if (response.ok) {
         const banks = await response.json();
+        console.log('Available item banks:', banks); // DEBUG: See question returned
         setAvailableItemBanks(banks);
       }
     } catch (error) {
       console.log('Failed to load item banks');
     }
   };
+
+  // ========== COMPONENT: Learning Roadmap ==========
+  const LearningRoadmap = ({ results, theme }) => {
+    const topicPerformance = results?.topic_performance || {};
+    const roadmap = results?.learning_roadmap;
+
+    if (!topicPerformance || Object.keys(topicPerformance).length === 0) {
+      return null;
+    }
+
+    const topics = Object.values(topicPerformance);
+
+    const strengthColors = {
+      'Strong': { bg: 'bg-green-100', text: 'text-green-800', border: 'border-green-300' },
+      'Proficient': { bg: 'bg-blue-100', text: 'text-blue-800', border: 'border-blue-300' },
+      'Developing': { bg: 'bg-yellow-100', text: 'text-yellow-800', border: 'border-yellow-300' },
+      'Needs Practice': { bg: 'bg-red-100', text: 'text-red-800', border: 'border-red-300' }
+    };
+
+    const getStrengthColor = (level) => strengthColors[level] || strengthColors['Developing'];
+
+    return (
+      <div className="space-y-6 mt-6">
+        {/* Overall Assessment */}
+        {roadmap?.overall_message && (
+          <div className={`${theme('bg-blue-900/30 border-blue-700', 'bg-blue-50 border-blue-200')} border rounded-xl p-5`}>
+            <div className="flex items-start space-x-3">
+              <div className={`${theme('bg-blue-600', 'bg-blue-500')} rounded-full p-2 flex-shrink-0`}>
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h3 className={`font-semibold ${theme('text-blue-200', 'text-blue-900')} mb-1`}>Overall Assessment</h3>
+                <p className={`text-sm ${theme('text-blue-300', 'text-blue-800')}`}>{roadmap.overall_message}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Stats Grid */}
+
+        <div className="grid grid-cols-3 gap-4">
+          <div className={`${theme('bg-green-900/30 border-green-700', 'bg-green-50 border-green-200')} border rounded-xl p-4 text-center`}>
+            <div className={`text-2xl font-bold ${theme('text-green-400', 'text-green-700')}`}>
+              {roadmap?.strengths?.length || 0}
+            </div>
+            <div className={`text-xs ${theme('text-green-300', 'text-green-600')} mt-1`}>Strong Topics</div>
+          </div>
+
+          <div className={`${theme('bg-yellow-900/30 border-yellow-700', 'bg-yellow-50 border-yellow-200')} border rounded-xl p-4 text-center`}>
+            <div className={`text-2xl font-bold ${theme('text-yellow-400', 'text-yellow-700')}`}>
+              {roadmap?.weaknesses?.length || 0}
+            </div>
+            <div className={`text-xs ${theme('text-yellow-300', 'text-yellow-600')} mt-1`}>Focus Areas</div>
+          </div>
+
+          <div className={`${theme('bg-blue-900/30 border-blue-700', 'bg-blue-50 border-blue-200')} border rounded-xl p-4 text-center`}>
+            <div className={`text-2xl font-bold ${theme('text-blue-400', 'text-blue-700')}`}>
+              {topics.length}
+            </div>
+            <div className={`text-xs ${theme('text-blue-300', 'text-blue-600')} mt-1`}>Topics Assessed</div>
+          </div>
+        </div>
+        {/* End Stats Grid */}
+
+
+
+        {/* Your Learning Roadmap Section */}
+        {roadmap?.recommendations && roadmap.recommendations.length > 0 && (
+          <div>
+            <h3 className={`font-bold ${theme('text-white', 'text-gray-900')} mb-4 text-lg`}>Your Learning Roadmap</h3>
+            <div className="space-y-4">
+              {/* Next Milestone */}
+              {roadmap?.next_milestone && (
+                <div className={`${theme('bg-gradient-to-r from-purple-900/50 to-blue-900/50 border-purple-700', 'bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200')} border rounded-xl p-5`}>
+                  <div className="flex items-start space-x-3">
+                    <div className={`${theme('bg-purple-600', 'bg-purple-500')} rounded-full p-2 flex-shrink-0`}>
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className={`font-semibold ${theme('text-purple-200', 'text-purple-900')} mb-2`}>Next Milestone</h4>
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div>
+                          <span className={`${theme('text-purple-400', 'text-purple-700')} block text-xs mb-0.5`}>Target Level</span>
+                          <span className={`font-bold ${theme('text-purple-100', 'text-purple-900')}`}>{roadmap.next_milestone.target_tier}</span>
+                        </div>
+                        <div>
+                          <span className={`${theme('text-purple-400', 'text-purple-700')} block text-xs mb-0.5`}>Target θ</span>
+                          <span className={`font-bold ${theme('text-purple-100', 'text-purple-900')}`}>{roadmap.next_milestone.target_theta.toFixed(2)}</span>
+                        </div>
+                        <div>
+                          <span className={`${theme('text-purple-400', 'text-purple-700')} block text-xs mb-0.5`}>Est. Questions</span>
+                          <span className={`font-bold ${theme('text-purple-100', 'text-purple-900')}`}>{roadmap.next_milestone.estimated_questions}</span>
+                        </div>
+                        <div>
+                          <span className={`${theme('text-purple-400', 'text-purple-700')} block text-xs mb-0.5`}>Focus Area</span>
+                          <span className={`font-bold ${theme('text-purple-100', 'text-purple-900')} text-xs`}>{roadmap.next_milestone.focus}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {/* End Next Milestone */}
+              {roadmap.recommendations.map((rec, index) => {
+                const iconMap = {
+                  'immediate_focus': { icon: '🎯', color: 'red' },
+                  'practice_more': { icon: '📚', color: 'yellow' },
+                  'maintain': { icon: '✅', color: 'green' }
+                };
+                const recStyle = iconMap[rec.type] || iconMap['practice_more'];
+
+                return (
+                  <div
+                    key={index}
+                    className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} border rounded-xl p-5`}
+                  >
+                    <div className="flex items-start space-x-3">
+                      <div className="text-2xl flex-shrink-0">{recStyle.icon}</div>
+                      <div className="flex-1">
+                        <h4 className={`font-semibold ${theme('text-white', 'text-gray-900')} mb-1`}>{rec.title}</h4>
+                        <p className={`text-sm ${theme('text-gray-300', 'text-gray-700')} mb-2`}>{rec.description}</p>
+
+                        {rec.topics && rec.topics.length > 0 && (
+                          <div className="mb-2">
+                            <div className={`text-xs ${theme('text-gray-400', 'text-gray-600')} mb-1 font-medium`}>Topics:</div>
+                            <div className="flex flex-wrap gap-1.5">
+                              {rec.topics.map((topic, idx) => (
+                                <span
+                                  key={idx}
+                                  className={`px-2.5 py-1 ${theme('bg-gray-700', 'bg-gray-100')} rounded-md text-xs font-medium ${theme('text-gray-200', 'text-gray-700')} capitalize`}
+                                >
+                                  {topic}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {rec.action && (
+                          <div className={`text-xs ${theme('text-blue-400', 'text-blue-600')} font-medium mt-2`}>
+                            💡 {rec.action}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+
+
+
+
+        {/* Topic-wise Performance */}
+        <div>
+          <h3 className={`font-bold ${theme('text-white', 'text-gray-900')} mb-4 text-lg`}>Topic-wise Performance</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {topics.map((topic) => {
+              const colors = getStrengthColor(topic.strength_level);
+              return (
+                <div
+                  key={topic.topic}
+                  className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} border rounded-xl p-4 hover:shadow-md transition`}
+                >
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <h4 className={`font-semibold ${theme('text-white', 'text-gray-900')} capitalize text-base`}>
+                        {topic.topic}
+                      </h4>
+                      <div className={`text-xs ${theme('text-gray-400', 'text-gray-600')} mt-1`}>
+                        {topic.questions_answered} question{topic.questions_answered !== 1 ? 's' : ''} answered
+                      </div>
+                    </div>
+                    <span className={`px-3 py-1 ${colors.bg} ${colors.text} ${colors.border} border rounded-full text-xs font-bold`}>
+                      {topic.strength_level}
+                    </span>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className={`text-sm ${theme('text-gray-400', 'text-gray-600')}`}>Proficiency (θ)</span>
+                      <span className={`font-bold ${theme('text-blue-400', 'text-blue-600')}`}>{topic.theta.toFixed(2)}</span>
+                    </div>
+
+                    <div className="flex justify-between items-center">
+                      <span className={`text-sm ${theme('text-gray-400', 'text-gray-600')}`}>Accuracy</span>
+                      <span className={`font-bold ${theme('text-white', 'text-gray-900')}`}>
+                        {(topic.accuracy * 100).toFixed(0)}%
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-center">
+                      <span className={`text-sm ${theme('text-gray-400', 'text-gray-600')}`}>Correct</span>
+                      <span className={`font-semibold ${theme('text-gray-300', 'text-gray-700')}`}>
+                        {topic.correct_count}/{topic.questions_answered}
+                      </span>
+                    </div>
+
+                    <div className={`w-full ${theme('bg-gray-700', 'bg-gray-200')} rounded-full h-2 mt-2`}>
+                      <div
+                        className={`h-2 rounded-full transition-all duration-500 ${
+                          topic.accuracy >= 0.8 ? 'bg-green-500' :
+                          topic.accuracy >= 0.6 ? 'bg-blue-500' :
+                          topic.accuracy >= 0.4 ? 'bg-yellow-500' : 'bg-red-500'
+                        }`}
+                        style={{ width: `${topic.accuracy * 100}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  };
+  // ========== END Learning Roadmap ==========
 
   const startAssessment = async (subject = 'maths') => {
     setLoading(true);
@@ -293,6 +520,8 @@ const AdaptiveAssessment = () => {
         setQuestionDifficulties([]);
         setCurrentQuestionDifficulty(session.current_question?.difficulty_b || 0);
         setTopicPerformance({});
+        console.log('sstart_Assessment() >>ession.current_question:', session.current_question); // Debug
+
       } else {
         throw new Error('Failed to start assessment');
       }
@@ -558,13 +787,16 @@ const AdaptiveAssessment = () => {
             )}
 
             <div className="space-y-3">
+
               {availableItemBanks.length > 0 ? (
+
                 availableItemBanks.map((bank) => (
-                  <button
+
+                  <button id={'check_here'}
                     key={bank.name}
                     onClick={() => startAssessment(bank.name)}
-                    disabled={loading}
-                    className={`w-full ${theme('bg-gray-800 hover:bg-gray-700 border-gray-700 hover:border-blue-600', 'bg-white hover:bg-gray-50 border-gray-200 hover:border-indigo-300')} border-2 rounded-xl px-6 py-4 transition text-left disabled:opacity-50`}
+                    disabled={loading || bank.status !== 'calibrated'} // Add status check
+                    className={`w-full ${theme('bg-gray-800 hover:bg-gray-700 border-gray-700 hover:border-blue-600', 'bg-white hover:bg-gray-50 border-gray-200 hover:border-indigo-300')} border-2 rounded-xl px-6 py-4 transition text-left ${(loading || bank.status !== 'calibrated') ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <div className="flex justify-between items-center">
                       <div>
@@ -668,6 +900,7 @@ const AdaptiveAssessment = () => {
                   setCurrentQuestionDifficulty(null);
                   setSelectedOption('');
                   setTopicPerformance({});
+                  setLoading(false);
                 }}
                 className={`w-full ${theme('bg-blue-600 hover:bg-blue-700', 'bg-indigo-600 hover:bg-indigo-700')} text-white rounded-xl py-3 font-semibold transition`}
               >
@@ -676,11 +909,12 @@ const AdaptiveAssessment = () => {
             </div>
 
             {/* All Charts Grid */}
-            <div className="grid grid-cols-3 gap-6">
+            <div className="grid grid-cols-3 gap-6 mb-6">
               {/* ICC Chart with vertical line and custom tooltip */}
               <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} rounded-xl shadow-sm border p-5`}>
                 <h3 className={`font-semibold ${theme('text-white', 'text-gray-900')} mb-1 text-sm`}>Item Characteristic Curve</h3>
-                <p className={`text-xs ${theme('text-gray-400', 'text-gray-500')} mb-3`}>Probability of correct response</p>
+
+                <p className={`text-xs ${theme('text-gray-400', 'text-gray-500')} mb-3`}>Probability of correct response versus Proficiency(θ)</p>
                 <div className="h-56">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={iccData}>
@@ -690,7 +924,7 @@ const AdaptiveAssessment = () => {
                         type="number"
                         fontSize={10}
                         stroke={chartColors.stroke}
-                        label={{ value: 'Ability (θ)', position: 'insideBottom', offset: -5, fontSize: 10, fill: chartColors.stroke }}
+                        label={{ value: 'Proficiency (θ)', position: 'insideBottom', offset: -5, fontSize: 10, fill: chartColors.stroke }}
                       />
                       <YAxis
                         domain={[0, 1]}
@@ -715,25 +949,12 @@ const AdaptiveAssessment = () => {
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
-
-                {/* Topic-wise theta beneath ICC */}
-                {topicPerformance && Object.keys(topicPerformance).length > 0 && (
-                  <div className="mt-4 space-y-2">
-                    <h4 className={`text-xs font-semibold ${theme('text-gray-400', 'text-gray-700')} uppercase tracking-wide`}>Topic Performance</h4>
-                    {Object.values(topicPerformance).map((perf) => (
-                      <div key={perf.topic} className={`flex justify-between items-center text-xs ${theme('bg-gray-700/50', 'bg-gray-100')} rounded px-2.5 py-1.5`}>
-                        <span className={`font-medium ${theme('text-gray-200', 'text-gray-900')} capitalize`}>{perf.topic}</span>
-                        <span className={`font-semibold ${theme('text-gray-300', 'text-gray-700')}`}>θ = {perf.theta.toFixed(2)}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
 
               {/* Theta Progression with custom tooltip */}
               <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} rounded-xl shadow-sm border p-5`}>
-                <h3 className={`font-semibold ${theme('text-white', 'text-gray-900')} mb-1 text-sm`}>θ Progression</h3>
-                <p className={`text-xs ${theme('text-gray-400', 'text-gray-500')} mb-3`}>Ability estimate over time</p>
+                <h3 className={`font-semibold ${theme('text-white', 'text-gray-900')} mb-1 text-sm`}>Proficiency(θ) Progression</h3>
+                <p className={`text-xs ${theme('text-gray-400', 'text-gray-500')} mb-3`}>Proficiency estimate over time</p>
                 <div className="h-56">
                   {thetaProgression.length > 0 ? (
                     <ResponsiveContainer width="100%" height="100%">
@@ -786,7 +1007,7 @@ const AdaptiveAssessment = () => {
               {/* Response Pattern with enhanced custom tooltip */}
               <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} rounded-xl shadow-sm border p-5`}>
                 <h3 className={`font-semibold ${theme('text-white', 'text-gray-900')} mb-1 text-sm`}>Response Pattern</h3>
-                <p className={`text-xs ${theme('text-gray-400', 'text-gray-500')} mb-3`}>Difficulty vs ability</p>
+                <p className={`text-xs ${theme('text-gray-400', 'text-gray-500')} mb-3`}>Difficulty vs Proficiency</p>
                 <div className="h-56">
                   {difficultyData.length > 0 ? (
                     <ResponsiveContainer width="100%" height="100%">
@@ -833,6 +1054,9 @@ const AdaptiveAssessment = () => {
                 </div>
               </div>
             </div>
+
+            {/* Learning Roadmap - Now appears after the charts */}
+            <LearningRoadmap results={results} theme={theme} />
           </div>
         ) : currentQuestion ? (
           /* TEST IN PROGRESS */
@@ -840,7 +1064,8 @@ const AdaptiveAssessment = () => {
             {/* Left: ICC Chart with vertical line and custom tooltip */}
             <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} rounded-xl shadow-sm border p-5`}>
               <h3 className={`font-semibold ${theme('text-white', 'text-gray-900')} mb-1 text-sm`}>Item Characteristic Curve</h3>
-              <p className={`text-xs ${theme('text-gray-400', 'text-gray-500')} mb-3`}>Probability of correct response</p>
+
+              <p className={`text-xs ${theme('text-gray-400', 'text-gray-500')} mb-3`}>Probability of correct response versus proficiency(θ)</p>
               <div className="h-48">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={iccData}>
@@ -850,7 +1075,7 @@ const AdaptiveAssessment = () => {
                       type="number"
                       fontSize={10}
                       stroke={chartColors.stroke}
-                      label={{ value: 'Ability (θ)', position: 'insideBottom', offset: -5, fontSize: 10, fill: chartColors.stroke }}
+                      label={{ value: 'Proficiency (θ)', position: 'insideBottom', offset: -5, fontSize: 10, fill: chartColors.stroke }}
                     />
                     <YAxis
                       domain={[0, 1]}
@@ -966,7 +1191,7 @@ const AdaptiveAssessment = () => {
               </div>
 
               <div className={`mt-4 text-xs ${theme('text-gray-500', 'text-gray-500')} text-center`}>
-                Press A, B, C, or D to select • Enter to submit
+                Press A, B , C, or D to select • Enter to submit
               </div>
             </div>
 
@@ -975,7 +1200,7 @@ const AdaptiveAssessment = () => {
               <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} rounded-xl shadow-sm border p-4`}>
                 <div className="flex justify-between items-start mb-2">
                   <div>
-                    <div className={`text-xs ${theme('text-gray-400', 'text-gray-500')} mb-1`}>Current θ</div>
+                    <div className={`text-xs ${theme('text-gray-400', 'text-gray-500')} mb-1`}>Current Proficiency (θ)</div>
                     <div className={`text-2xl font-bold ${theme('text-white', 'text-gray-900')}`}>{displayTheta.toFixed(2)}</div>
                   </div>
                   <div className="text-right">
@@ -991,7 +1216,7 @@ const AdaptiveAssessment = () => {
               </div>
 
               <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} rounded-xl shadow-sm border p-4`}>
-                <div className={`text-xs font-semibold ${theme('text-gray-400', 'text-gray-700')} mb-2 uppercase tracking-wide`}>Proficiency Levels</div>
+                <div className={`text-xs font-semibold ${theme('text-gray-400', 'text-gray-700')} mb-2 uppercase tracking-wide`}>Proficiency (θ) Levels</div>
                 <div className="space-y-1.5">
                   {[
                     { label: 'Beginner', color: tierColors.C1, range: 'θ < -1.0' },
@@ -1014,7 +1239,7 @@ const AdaptiveAssessment = () => {
               </div>
 
               <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} rounded-xl shadow-sm border p-4`}>
-                <h3 className={`font-semibold ${theme('text-white', 'text-gray-900')} mb-2 text-sm`}>θ Progression</h3>
+                <h3 className={`font-semibold ${theme('text-white', 'text-gray-900')} mb-2 text-sm`}>Proficiency(θ) Progression</h3>
                 <div className="h-40">
                   {thetaProgression.length > 0 ? (
                     <ResponsiveContainer width="100%" height="100%">
@@ -1029,7 +1254,7 @@ const AdaptiveAssessment = () => {
                           domain={[-2, 2]}
                           fontSize={9}
                           stroke={chartColors.stroke}
-                          label={{ value: 'θ', angle: -90, position: 'insideLeft', fontSize: 9, fill: chartColors.stroke }}
+                          label={{ value: 'Proficiency(θ)', angle: -90, position: 'insideLeft', fontSize: 9, fill: chartColors.stroke }}
                         />
                         <Tooltip content={<ThetaProgressionTooltip />} />
                         <Line type="monotone" dataKey="theta" stroke="#3B82F6" strokeWidth={1.5} dot={false} />
@@ -1075,7 +1300,7 @@ const AdaptiveAssessment = () => {
                           domain={[-2, 2]}
                           fontSize={9}
                           stroke={chartColors.stroke}
-                          label={{ value: 'θ', angle: -90, position: 'insideLeft', fontSize: 9, fill: chartColors.stroke }}
+                          label={{ value: 'Proficiency(θ)', angle: -90, position: 'insideLeft', fontSize: 9, fill: chartColors.stroke }}
                         />
                         <Tooltip content={<ResponsePatternTooltip />} />
                         <Scatter data={difficultyData} dataKey="y">
