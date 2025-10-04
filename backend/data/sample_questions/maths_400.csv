@@ -1,0 +1,326 @@
+question,option_a,option_b,option_c,option_d,answer,tier,topic
+What is 5 + 3?,6,7,8,9,C,C1,arithmetic
+What is 12 - 4?,6,7,8,9,C,C1,arithmetic
+What is 3 _ 4?,10,11,12,13,C,C1,multiplication
+What is 20 Ö 5?,3,4,5,6,B,C1,division
+What is half of 10?,4,5,6,7,B,C1,fractions
+What is 15 + 25?,35,40,45,50,B,C1,arithmetic
+What is 100 - 45?,50,55,60,65,B,C1,arithmetic
+What is 7 _ 8?,48,52,54,56,D,C2,multiplication
+What is 144 Ö 12?,10,11,12,13,C,C2,division
+What is 25% of 80?,15,18,20,25,C,C2,percentages
+What is the square of 9?,72,81,90,99,B,C2,algebra
+Solve: 2x + 5 = 15,3,4,5,6,C,C2,algebra
+What is the area of a rectangle with length 8 and width 5?,35,40,45,50,B,C2,geometry
+What is 3/4 + 1/4?,01-Feb,03-Apr,1,05-Apr,C,C2,fractions
+What is 0.5 _ 0.4?,0.2,0.9,0.02,2,A,C2,decimals
+Solve: 3x - 7 = 14,5,6,7,8,C,C3,algebra
+What is the circumference of a circle with radius 7? (Use ¹ Å 22/7),22,44,88,154,B,C3,geometry
+"If a shirt costs $40 after a 20% discount, what was the original price?",45,48,50,55,C,C3,percentages
+What is the value of x in: x_ = 64?,6,7,8,9,C,C3,algebra
+"What is the slope of the line passing through (2,3) and (4,7)?",1,2,3,4,B,C3,coordinate_geometry
+Solve the quadratic equation: x_ - 5x + 6 = 0,x=1 or x=6,x=2 or x=3,x=1 or x=5,x=2 or x=4,B,C4,algebra
+What is the derivative of f(x) = 3x_ + 2x?,3x + 2,6x + 2,6x_ + 2x,3x_ + 2,B,C4,calculus
+Find the area under the curve y = x from x=0 to x=4,4,8,12,16,B,C4,calculus
+"What is the determinant of matrix [[2,3],[1,4]]?",5,8,11,14,A,C4,linear_algebra
+What is log_(32)?,3,4,5,6,C,C4,logarithms
+What is 9 + 6?,13,14,15,16,C,C1,arithmetic
+What is 18 - 7?,9,10,11,12,C,C1,arithmetic
+What is 6 _ 5?,25,28,30,35,C,C1,multiplication
+What is 36 Ö 6?,4,5,6,7,C,C1,division
+What is one-third of 15?,3,4,5,6,C,C1,fractions
+What is 45 + 35?,70,75,80,85,C,C1,arithmetic
+What is 200 - 85?,105,110,115,120,C,C1,arithmetic
+What is 9 _ 7?,56,61,63,72,C,C2,multiplication
+What is 96 Ö 8?,10,11,12,13,C,C2,division
+What is 30% of 60?,12,15,18,21,C,C2,percentages
+What is the square of 12?,121,132,144,156,C,C2,algebra
+Solve: 3x + 8 = 20,2,3,4,5,C,C2,algebra
+What is the perimeter of a square with side length 7?,21,24,28,35,C,C2,geometry
+What is 2/5 + 3/5?,04-May,1,06-May,02-May,B,C2,fractions
+What is 0.75 _ 0.2?,0.15,0.3,1.5,7.5,A,C2,decimals
+Solve: 4x + 12 = 32,3,4,5,6,C,C3,algebra
+What is the area of a triangle with base 10 and height 6?,25,30,35,40,B,C3,geometry
+"A product is marked up 40%. If the markup is $20, what is the cost price?",40,45,50,55,C,C3,percentages
+What is the value of x in: x_ = 100?,8,9,10,11,C,C3,algebra
+"What is the distance between points (1,2) and (4,6)?",3,4,5,6,C,C3,coordinate_geometry
+Solve: 2x_ - 8x + 6 = 0,x=1 or x=3,x=2 or x=4,x=1 or x=6,x=3 or x=5,A,C4,algebra
+What is the integral of 2x dx?,x_,x_ + C,2x_ + C,x_/2 + C,B,C4,calculus
+What is sin(30¡)?,0,0.5,1,Ã3/2,B,C4,trigonometry
+"Find the eigenvalues of matrix [[3,1],[1,3]]",1 and 3,2 and 4,3 and 5,4 and 6,B,C4,linear_algebra
+What is ln(e_)?,1,2,e,e_,B,C4,logarithms
+What is 11 + 8?,17,18,19,20,C,C1,arithmetic
+What is 25 - 13?,10,11,12,13,C,C1,arithmetic
+What is 8 _ 3?,21,24,27,30,B,C1,multiplication
+What is 45 Ö 9?,4,5,6,7,B,C1,division
+What is two-fifths of 20?,6,7,8,9,C,C1,fractions
+What is 55 + 45?,95,100,105,110,B,C1,arithmetic
+What is 150 - 68?,78,80,82,84,C,C1,arithmetic
+What is 11 _ 6?,60,64,66,72,C,C2,multiplication
+What is 132 Ö 11?,10,11,12,13,C,C2,division
+What is 40% of 75?,25,28,30,35,C,C2,percentages
+What is the cube of 4?,48,56,60,64,D,C2,algebra
+Solve: 5x - 10 = 25,5,6,7,8,C,C2,algebra
+What is the area of a circle with radius 5? (Use ¹ Å 3.14),62.8,75.4,78.5,85.2,C,C2,geometry
+What is 5/6 - 1/6?,01-Mar,02-Mar,04-Jun,05-Jun,B,C2,fractions
+What is 1.5 Ö 0.5?,2,3,4,5,B,C2,decimals
+Solve: 2x_ = 50,x=5,x=±5,x=10,x=25,B,C3,algebra
+What is the volume of a cube with side length 4?,48,56,60,64,D,C3,geometry
+"If 3 items cost $45, how much do 7 items cost?",90,95,100,105,D,C3,proportions
+Simplify: (x_)_,x_,x_,x_,x__,B,C3,algebra
+"What is the midpoint between (2,4) and (8,10)?","(4,6)","(5,7)","(6,8)","(10,14)",B,C3,coordinate_geometry
+Find the roots of: x_ + 6x + 9 = 0,x=-3 (repeated),x=3 (repeated),x=-3 or x=3,x=-9 or x=1,A,C4,algebra
+What is d/dx(sin x)?,sin x,-sin x,cos x,-cos x,C,C4,calculus
+What is cos(60¡)?,0,0.5,1,Ã3/2,B,C4,trigonometry
+"What is the trace of matrix [[5,2],[3,7]]?",10,12,14,15,B,C4,linear_algebra
+Solve: log_(x) = 4,27,64,81,243,C,C4,logarithms
+What is 14 + 17?,29,30,31,32,C,C1,arithmetic
+What is 50 - 23?,25,26,27,28,C,C1,arithmetic
+What is 4 _ 9?,32,34,36,38,C,C1,multiplication
+What is 56 Ö 7?,6,7,8,9,C,C1,division
+What is one-quarter of 24?,4,5,6,7,C,C1,fractions
+What is 38 + 42?,78,80,82,84,B,C1,arithmetic
+What is 120 - 47?,71,72,73,74,C,C1,arithmetic
+What is 13 _ 5?,60,63,65,70,C,C2,multiplication
+What is 108 Ö 9?,10,11,12,13,C,C2,division
+What is 15% of 200?,25,28,30,35,C,C2,percentages
+What is the square of 15?,200,215,225,240,C,C2,algebra
+Solve: 4x + 3 = 19,3,4,5,6,B,C2,algebra
+What is the area of a rectangle with length 12 and width 7?,72,78,84,90,C,C2,geometry
+What is 7/8 - 3/8?,01-Apr,01-Feb,05-Aug,03-Apr,B,C2,fractions
+What is 0.6 _ 0.5?,0.3,0.11,3,0.03,A,C2,decimals
+Solve: 5x - 8 = 27,5,6,7,8,C,C3,algebra
+What is the perimeter of a rectangle with length 9 and width 6?,24,28,30,36,C,C3,geometry
+A laptop costs $600 after a 25% discount. What was the original price?,750,775,800,825,C,C3,percentages
+What is the value of x in: x_ = 27?,2,3,4,5,B,C3,algebra
+"What is the equation of a line with slope 2 passing through (1,3)?",y=2x+1,y=2x+3,y=2x-1,y=2x+5,A,C3,coordinate_geometry
+Solve: x_ - 7x + 12 = 0,x=2 or x=5,x=3 or x=4,x=2 or x=6,x=1 or x=12,B,C4,algebra
+What is the derivative of f(x) = x_ - 5x?,3x_ - 5,x_ - 5,3x_ - 5x,3x_ - 5x,A,C4,calculus
+What is tan(45¡)?,0,0.5,1,Ã2,C,C4,trigonometry
+"What is the rank of matrix [[1,2],[2,4]]?",0,1,2,3,B,C4,linear_algebra
+What is log__(1000)?,2,3,4,5,B,C4,logarithms
+What is 22 + 19?,39,40,41,42,C,C1,arithmetic
+What is 75 - 38?,35,36,37,38,C,C1,arithmetic
+What is 7 _ 6?,36,40,42,48,C,C1,multiplication
+What is 63 Ö 9?,6,7,8,9,B,C1,division
+What is three-fifths of 25?,12,13,15,18,C,C1,fractions
+What is 67 + 33?,98,100,102,104,B,C1,arithmetic
+What is 180 - 94?,84,85,86,87,C,C1,arithmetic
+What is 14 _ 4?,52,54,56,58,C,C2,multiplication
+What is 156 Ö 13?,11,12,13,14,B,C2,division
+What is 45% of 120?,48,52,54,60,C,C2,percentages
+What is the square of 11?,111,121,131,141,B,C2,algebra
+Solve: 6x - 15 = 21,4,5,6,7,C,C2,algebra
+"What is the perimeter of a triangle with sides 5, 7, and 8?",18,19,20,21,C,C2,geometry
+What is 4/9 + 2/9?,02-Mar,06-Sep,04-Sep,08-Sep,A,C2,fractions
+What is 2.5 _ 0.4?,0.1,1,10,2.9,B,C2,decimals
+Solve: 3x_ = 75,x=5,x=±5,x=25,x=±25,B,C3,algebra
+"What is the volume of a rectangular prism with dimensions 3, 4, and 5?",50,55,60,65,C,C3,geometry
+"If 5 books cost $75, what is the unit price per book?",12,13,15,18,C,C3,proportions
+Simplify: (2x_)_,6x_,6x_,8x_,8x_,D,C3,algebra
+Find the y-intercept of the line 3x + 4y = 12,2,3,4,5,B,C3,coordinate_geometry
+Solve: x_ + 8x + 15 = 0,x=-2 or x=-6,x=-3 or x=-5,x=3 or x=5,x=2 or x=6,B,C4,algebra
+What is d/dx(cos x)?,cos x,-cos x,sin x,-sin x,D,C4,calculus
+What is sin(90¡)?,0,0.5,Ã3/2,1,D,C4,trigonometry
+"What is the determinant of matrix [[1,5],[2,10]]?",0,5,10,15,A,C4,linear_algebra
+Solve: e^x = 7.389 (approximately),1.5,2,2.5,3,B,C4,logarithms
+What is 16 + 29?,43,44,45,46,C,C1,arithmetic
+What is 92 - 47?,43,44,45,46,C,C1,arithmetic
+What is 9 _ 5?,40,42,45,48,C,C1,multiplication
+What is 72 Ö 8?,8,9,10,11,B,C1,division
+What is two-thirds of 18?,10,11,12,13,C,C1,fractions
+What is 54 + 46?,98,100,102,104,B,C1,arithmetic
+What is 250 - 123?,125,126,127,128,C,C1,arithmetic
+What is 12 _ 7?,78,80,84,88,C,C2,multiplication
+What is 169 Ö 13?,12,13,14,15,B,C2,division
+What is 20% of 150?,25,28,30,35,C,C2,percentages
+What is the square of 13?,156,164,169,176,C,C2,algebra
+Solve: 7x + 5 = 33,3,4,5,6,B,C2,algebra
+What is the area of a square with side length 9?,72,77,81,85,C,C2,geometry
+What is 5/7 + 1/7?,04-Jul,06-Jul,05-Aug,03-Apr,B,C2,fractions
+What is 0.8 _ 0.25?,0.02,0.2,2,20,B,C2,decimals
+Solve: 6x - 18 = 24,5,6,7,8,C,C3,algebra
+What is the area of a trapezoid with bases 6 and 10 and height 4?,28,30,32,36,C,C3,geometry
+An item costs $72 after a 10% discount. What was the original price?,75,78,80,82,C,C3,percentages
+What is the value of x in: x_ = 144?,10,11,12,13,C,C3,algebra
+What is the slope of a vertical line?,0,1,-1,undefined,D,C3,coordinate_geometry
+Solve: x_ - 9x + 20 = 0,x=3 or x=6,x=4 or x=5,x=2 or x=10,x=1 or x=20,B,C4,algebra
+What is the derivative of f(x) = 4x_ + x_?,12x_ + 2x,4x_ + 2x,12x_ + x_,12x_ + x,A,C4,calculus
+What is cos(0¡)?,0,0.5,Ã3/2,1,D,C4,trigonometry
+"What is the inverse of matrix [[2,0],[0,3]]?","[[1/2,0],[0,1/3]]","[[2,0],[0,3]]","[[3,0],[0,2]]","[[1,0],[0,1]]",A,C4,linear_algebra
+What is log_(125)?,2,3,4,5,B,C4,logarithms
+What is 31 + 28?,57,58,59,60,C,C1,arithmetic
+What is 88 - 52?,34,35,36,37,C,C1,arithmetic
+What is 8 _ 7?,49,52,56,64,C,C1,multiplication
+What is 81 Ö 9?,8,9,10,11,B,C1,division
+What is one-fifth of 35?,5,6,7,8,C,C1,fractions
+What is 73 + 27?,98,100,102,104,B,C1,arithmetic
+What is 300 - 147?,151,152,153,154,C,C1,arithmetic
+What is 15 _ 6?,85,88,90,95,C,C2,multiplication
+What is 195 Ö 15?,12,13,14,15,B,C2,division
+What is 35% of 140?,42,45,49,52,C,C2,percentages
+What is the square of 14?,184,192,196,200,C,C2,algebra
+Solve: 8x - 12 = 28,4,5,6,7,B,C2,algebra
+What is the circumference of a circle with diameter 10? (Use ¹ Å 3.14),28.4,30.4,31.4,32.4,C,C2,geometry
+What is 7/10 - 3/10?,02-May,03-Oct,04-Oct,01-Feb,A,C2,fractions
+What is 1.2 _ 0.5?,0.06,0.6,6,60,B,C2,decimals
+Solve: 7x + 14 = 49,4,5,6,7,B,C3,algebra
+What is the volume of a cylinder with radius 3 and height 5? (Use ¹ Å 3.14),135.3,141.3,145.3,150.3,B,C3,geometry
+"If a car travels 180 miles in 3 hours, what is its average speed?",55,58,60,65,C,C3,proportions
+Simplify: (3x)_,6x_,9x,9x_,3x_,C,C3,algebra
+What is the x-intercept of the line y = 2x - 6?,2,3,4,6,B,C3,coordinate_geometry
+Solve: x_ - 10x + 21 = 0,x=2 or x=8,x=3 or x=7,x=4 or x=6,x=1 or x=21,B,C4,algebra
+What is the second derivative of f(x) = x_?,4x_,12x_,24x,4x,B,C4,calculus
+What is sin(60¡)?,0.5,Ã2/2,Ã3/2,1,C,C4,trigonometry
+What are the dimensions of the product of a 2_3 matrix and a 3_2 matrix?,2_2,2_3,3_2,3_3,A,C4,linear_algebra
+What is ln(1)?,0,1,e,-1,A,C4,logarithms
+What is 27 + 35?,60,61,62,63,C,C1,arithmetic
+What is 105 - 68?,35,36,37,38,C,C1,arithmetic
+What is 9 _ 9?,72,77,81,85,C,C1,multiplication
+What is 96 Ö 12?,7,8,9,10,B,C1,division
+What is three-quarters of 32?,20,22,24,28,C,C1,fractions
+What is 85 + 15?,98,100,102,104,B,C1,arithmetic
+What is 400 - 178?,220,221,222,223,C,C1,arithmetic
+What is 16 _ 5?,75,78,80,85,C,C2,multiplication
+What is 182 Ö 14?,12,13,14,15,B,C2,division
+What is 60% of 80?,42,45,48,52,C,C2,percentages
+What is the square of 16?,236,246,256,266,C,C2,algebra
+Solve: 9x - 18 = 45,5,6,7,8,C,C2,algebra
+What is the area of a parallelogram with base 8 and height 6?,42,46,48,52,C,C2,geometry
+What is 3/8 + 3/8?,03-Apr,06-Aug,01-Feb,05-Aug,A,C2,fractions
+What is 3.5 Ö 0.7?,4,5,6,7,B,C2,decimals
+Solve: 4x_ = 144,x=6,x=±6,x=36,x=±36,B,C3,algebra
+What is the surface area of a cube with side length 5?,125,130,140,150,D,C3,geometry
+"If 4 pens cost $12, how much do 9 pens cost?",24,25,27,30,C,C3,proportions
+Simplify: (x_)_,x_,x__,x__,3x_,B,C3,algebra
+"Find the distance from point (3,4) to the origin",3,4,5,7,C,C3,coordinate_geometry
+Solve: x_ + 4x - 21 = 0,x=-7 or x=3,x=-3 or x=7,x=3 or x=7,x=-7 or x=-3,A,C4,algebra
+What is the integral of 3x_ dx?,x_,x_ + C,3x_ + C,x_/3 + C,B,C4,calculus
+What is tan(60¡)?,1,Ã2,Ã3,2,C,C4,trigonometry
+What is the determinant of a 3_3 identity matrix?,0,1,3,9,B,C4,linear_algebra
+Solve: log_(x) = 6,32,48,64,128,C,C4,logarithms
+What is 43 + 37?,78,79,80,81,C,C1,arithmetic
+What is 130 - 76?,52,53,54,55,C,C1,arithmetic
+What is 11 _ 8?,82,84,86,88,D,C1,multiplication
+What is 108 Ö 12?,8,9,10,11,B,C1,division
+What is four-fifths of 40?,28,30,32,36,C,C1,fractions
+What is 92 + 8?,98,100,102,104,B,C1,arithmetic
+What is 500 - 237?,261,262,263,264,C,C1,arithmetic
+What is 17 _ 4?,64,66,68,72,C,C2,multiplication
+What is 221 Ö 17?,12,13,14,15,B,C2,division
+What is 75% of 200?,140,145,150,155,C,C2,percentages
+What is the cube of 5?,100,115,125,135,C,C2,algebra
+Solve: 10x + 20 = 70,4,5,6,7,B,C2,algebra
+What is the area of a circle with diameter 8? (Use ¹ Å 3.14),48.24,50.24,52.24,54.24,B,C2,geometry
+What is 9/11 - 2/11?,05-Nov,07-Nov,09-Nov,11-Nov,B,C2,fractions
+What is 0.9 _ 0.8?,0.72,7.2,0.17,1.7,A,C2,decimals
+Solve: 8x - 24 = 40,6,7,8,9,C,C3,algebra
+What is the volume of a sphere with radius 3? (Use ¹ Å 3.14),103.62,113.04,123.04,133.04,B,C3,geometry
+A bicycle is sold for $240 after a 20% markup. What was the cost price?,180,190,200,210,C,C3,percentages
+What is the value of x in: 2^x = 16?,2,3,4,5,C,C3,algebra
+What is the gradient of the line 5x - 2y = 10?,2.5,05-Feb,-2.5,-2.5,A,C3,coordinate_geometry
+Solve: x_ + 2x - 15 = 0,x=-5 or x=3,x=-3 or x=5,x=3 or x=5,x=-5 or x=-3,A,C4,algebra
+What is d/dx(e^x)?,e,e^x,xe^(x-1),1,B,C4,calculus
+What is cos(90¡)?,0,0.5,Ã3/2,1,A,C4,trigonometry
+What is the trace of a 2_2 zero matrix?,0,1,2,4,A,C4,linear_algebra
+What is log__(100)?,1,2,3,10,B,C4,logarithms
+What is 48 + 52?,98,99,100,101,C,C1,arithmetic
+What is 145 - 89?,54,55,56,57,C,C1,arithmetic
+What is 12 _ 9?,98,102,108,112,C,C1,multiplication
+What is 117 Ö 13?,8,9,10,11,B,C1,division
+What is five-sixths of 48?,36,38,40,42,C,C1,fractions
+What is 78 + 22?,98,100,102,104,B,C1,arithmetic
+What is 600 - 287?,311,312,313,314,C,C1,arithmetic
+What is 18 _ 6?,102,106,108,112,C,C2,multiplication
+What is 238 Ö 14?,15,16,17,18,C,C2,division
+What is 85% of 120?,96,98,102,106,C,C2,percentages
+What is the square of 17?,272,281,289,297,C,C2,algebra
+Solve: 11x - 22 = 33,4,5,6,7,B,C2,algebra
+What is the perimeter of a regular hexagon with side length 7?,35,40,42,49,C,C2,geometry
+What is 11/15 - 4/15?,May-15,Jul-15,Sep-15,Nov-15,B,C2,fractions
+What is 4.2 _ 0.5?,2.1,21,0.21,42,A,C2,decimals
+Solve: 5x_ = 125,x=5,x=±5,x=25,x=±25,B,C3,algebra
+What is the lateral surface area of a cylinder with radius 4 and height 6? (Use ¹ Å 3.14),150.72,155.72,160.72,165.72,A,C3,geometry
+"If 6 workers complete a job in 8 days, how many days for 4 workers?",10,11,12,14,C,C3,proportions
+Simplify: x_ Ö x_,x_,x_,x__,x_á_,A,C3,algebra
+"What is the reflection of point (4,-3) across the x-axis?","(4,3)","(-4,-3)","(-4,3)","(4,-3)",A,C3,coordinate_geometry
+Solve: x_ - 12x + 35 = 0,x=5 or x=7,x=4 or x=8,x=3 or x=9,x=2 or x=10,A,C4,algebra
+What is the integral of (6x_ + 4x) dx?,2x_ + 2x_,2x_ + 2x_ + C,6x_ + 4x_ + C,3x_ + 2x_ + C,B,C4,calculus
+What is sin(45¡)?,0.5,Ã2/2,Ã3/2,1,B,C4,trigonometry
+"What is the determinant of matrix [[4,2],[6,3]]?",0,2,6,12,A,C4,linear_algebra
+What is log_(64)?,2,3,4,6,B,C4,logarithms
+What is 56 + 44?,98,99,100,101,C,C1,arithmetic
+What is 160 - 94?,64,65,66,67,C,C1,arithmetic
+What is 13 _ 7?,84,88,91,95,C,C1,multiplication
+What is 126 Ö 14?,8,9,10,11,B,C1,division
+What is seven-eighths of 56?,42,45,48,49,D,C1,fractions
+What is 89 + 11?,98,100,102,104,B,C1,arithmetic
+What is 700 - 346?,352,353,354,355,C,C1,arithmetic
+What is 19 _ 5?,90,93,95,100,C,C2,multiplication
+What is 247 Ö 19?,12,13,14,15,B,C2,division
+What is 90% of 150?,125,130,135,140,C,C2,percentages
+What is the square of 18?,314,320,324,330,C,C2,algebra
+Solve: 12x + 24 = 60,2,3,4,5,B,C2,algebra
+What is the area of an equilateral triangle with side 6? (Use Ã3 Å 1.73),14.56,15.56,15.86,16.56,B,C2,geometry
+What is 13/20 - 5/20?,02-May,Aug-20,03-Oct,Jul-20,A,C2,fractions
+What is 5.6 Ö 0.8?,6,7,8,9,B,C2,decimals
+Solve: 6x_ = 216,x=6,x=±6,x=36,x=±36,B,C3,algebra
+What is the diagonal of a rectangle with dimensions 6 and 8?,10,12,14,16,A,C3,geometry
+"A store increases prices by 30%. If a new price is $65, what was the old price?",45,48,50,55,C,C3,percentages
+What is the value of x in: 3^x = 81?,2,3,4,5,C,C3,algebra
+What is the equation of a line perpendicular to y = 2x + 3?,y = -2x + 1,y = -1/2x + 1,y = 2x - 3,y = 1/2x + 1,B,C3,coordinate_geometry
+Solve: 2x_ + 7x + 3 = 0,x=-3 or x=-1/2,x=-1 or x=-3/2,x=3 or x=1/2,x=1 or x=3/2,A,C4,algebra
+What is d/dx(ln x)?,x,1,1/x,ln x,C,C4,calculus
+What is tan(30¡)?,01-Feb,1/Ã3,Ã3/3,Ã3,C,C4,trigonometry
+"What are the eigenvalues of matrix [[2,0],[0,5]]?",0 and 2,2 and 5,0 and 5,1 and 7,B,C4,linear_algebra
+Solve: log_(x) = 2,14,35,49,343,C,C4,logarithms
+What is 64 + 36?,98,99,100,101,C,C1,arithmetic
+What is 175 - 98?,75,76,77,78,C,C1,arithmetic
+What is 14 _ 8?,102,106,108,112,D,C1,multiplication
+What is 135 Ö 15?,8,9,10,11,B,C1,division
+What is two-sevenths of 49?,12,13,14,16,C,C1,fractions
+What is 93 + 7?,98,100,102,104,B,C1,arithmetic
+What is 800 - 423?,375,376,377,378,C,C1,arithmetic
+What is 21 _ 4?,78,82,84,88,C,C2,multiplication
+What is 273 Ö 21?,12,13,14,15,B,C2,division
+What is 95% of 180?,165,169,171,175,C,C2,percentages
+What is the square of 19?,351,361,371,381,B,C2,algebra
+Solve: 13x - 39 = 52,6,7,8,9,B,C2,algebra
+What is the volume of a cone with radius 3 and height 7? (Use ¹ Å 3.14),65.94,69.94,72.94,75.94,A,C3,geometry
+What is 17/24 - 5/24?,01-Feb,Jul-24,05-Dec,13/24,A,C2,fractions
+What is 6.3 _ 0.4?,2.42,2.52,2.62,2.72,B,C2,decimals
+Solve: 7x_ = 343,x=7,x=±7,x=49,x=±49,B,C3,algebra
+What is the area of a rhombus with diagonals 8 and 10?,36,38,40,42,C,C3,geometry
+"If the ratio of boys to girls is 3:5 and there are 24 boys, how many girls?",30,35,40,45,C,C3,proportions
+Simplify: (2x_y_)_,4x_y_,4x_y_,2x_y_,8x_y_,A,C3,algebra
+Find the coordinates of the center of a circle with equation (x-3)_ + (y+2)_ = 25,"(3,-2)","(-3,2)","(3,2)","(-3,-2)",A,C3,coordinate_geometry
+Solve: x_ + 10x + 16 = 0,x=-2 or x=-8,x=-4 or x=-4,x=2 or x=8,x=-2 or x=-4,A,C4,algebra
+What is the derivative of f(x) = x_sin(x)?,2xsin(x) + x_cos(x),x_cos(x),2xcos(x),sin(x) + xcos(x),A,C4,calculus
+What is cos(45¡)?,0.5,1/Ã2,Ã3/2,1,B,C4,trigonometry
+What is the nullity of a 3_4 matrix with rank 2?,1,2,3,4,B,C4,linear_algebra
+What is ln(e_)?,1,2,3,e_,C,C4,logarithms
+What is 71 + 29?,98,99,100,101,C,C1,arithmetic
+What is 190 - 107?,81,82,83,84,C,C1,arithmetic
+What is 15 _ 7?,95,100,105,110,C,C1,multiplication
+What is 144 Ö 16?,8,9,10,11,B,C1,division
+What is three-eighths of 64?,20,22,24,26,C,C1,fractions
+What is 94 + 6?,98,100,102,104,B,C1,arithmetic
+What is 900 - 512?,386,387,388,389,C,C1,arithmetic
+What is 22 _ 5?,100,105,110,115,C,C2,multiplication
+What is 299 Ö 23?,12,13,14,15,B,C2,division
+What is 65% of 240?,146,152,156,160,C,C2,percentages
+What is the cube of 6?,196,206,216,226,C,C2,algebra
+Solve: 14x + 28 = 70,2,3,4,5,B,C2,algebra
+What is the surface area of a sphere with radius 4? (Use ¹ Å 3.14),188.4,196.8,200.96,205.6,C,C2,geometry
+What is 19/30 - 7/30?,02-May,Dec-30,01-Mar,Nov-30,A,C2,fractions
+What is 7.2 Ö 0.9?,7,8,9,10,B,C2,decimals
+Solve: 8x_ = 392,x=7,x=±7,x=49,x=±49,B,C3,algebra
+What is the hypotenuse of a right triangle with legs 5 and 12?,11,12,13,14,C,C3,geometry
+"A recipe calls for a 2:3 ratio of flour to sugar. If using 6 cups of flour, how much sugar?",8,9,10,12,B,C3,proportions
+Simplify: (x_y_)_,x_y__,x_y_,x_y_,x_y__,A,C3,algebra
+What is the area of a sector with radius 6 and central angle 60¡? (Use ¹ Å 3.14),17.28,18.84,19.84,20.84,B,C3,coordinate_geometry
+Solve: x_ - 14x + 45 = 0,x=5 or x=9,x=3 or x=15,x=6 or x=8,x=7 or x=7,A,C4,algebra
+What is the integral of (1/x) dx?,x,1/x_,ln|x| + C,1/x + C,C,C4,calculus
+What is sin(0¡)?,0,0.5,Ã3/2,1,A,C4,trigonometry
+"What is the determinant of matrix [[3,6],[1,2]]?",0,3,6,9,A,C4,linear_algebra
+What is log_(512)?,2,3,4,6,B,C4,logarithms

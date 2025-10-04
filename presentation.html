@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IRT-Based Adaptive Assessment - Business Presentation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Arial', sans-serif;
+            background: #1a1a2e;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .presentation-container {
+            background: white;
+            max-width: 1200px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .slide {
+            display: none;
+            padding: 60px 80px;
+            min-height: 700px;
+        }
+
+        .slide.active {
+            display: block;
+        }
+
+        .slide-header {
+            border-bottom: 3px solid #2c5aa0;
+            padding-bottom: 20px;
+            margin-bottom: 40px;
+        }
+
+        .slide h1 {
+            font-size: 2.8em;
+            color: #1a1a2e;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        .slide h2 {
+            font-size: 1.3em;
+            color: #666;
+            margin-top: 10px;
+            font-weight: 400;
+        }
+
+        .content-section {
+            margin: 30px 0;
+        }
+
+        .content-section h3 {
+            font-size: 1.3em;
+            color: #2c5aa0;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .content-box {
+            background: #f8f9fa;
+            padding: 25px;
+            margin: 20px 0;
+            border-left: 4px solid #2c5aa0;
+        }
+
+        .content-box ul {
+            margin-left: 25px;
+            line-height: 1.8;
+        }
+
+        .content-box li {
+            margin: 12px 0;
+            color: #333;
+        }
+
+        .formula-box {
+            background: white;
+            border: 2px solid #e0e0e0;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 1.15em;
+            text-align: center;
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        .column-box {
+            background: #f8f9fa;
+            padding: 25px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .column-box h4 {
+            color: #2c5aa0;
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            border: 1px solid #e0e0e0;
+        }
+
+        .stat-number {
+            font-size: 3em;
+            color: #2c5aa0;
+            font-weight: 700;
+        }
+
+        .stat-label {
+            color: #666;
+            margin-top: 10px;
+            font-size: 0.95em;
+        }
+
+        .process-step {
+            background: white;
+            border: 2px solid #e0e0e0;
+            padding: 20px;
+            margin: 15px 0;
+            position: relative;
+            padding-left: 70px;
+        }
+
+        .process-step::before {
+            content: attr(data-step);
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #2c5aa0;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .process-step h4 {
+            color: #1a1a2e;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+
+        .process-step p {
+            color: #666;
+            font-size: 0.95em;
+        }
+
+        .technique-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .technique-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .technique-card h4 {
+            color: #2c5aa0;
+            font-size: 0.95em;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .technique-card p {
+            color: #666;
+            font-size: 0.85em;
+            line-height: 1.5;
+        }
+
+        .reference-section {
+            font-size: 0.85em;
+            line-height: 1.7;
+            color: #444;
+        }
+
+        .reference-section li {
+            margin: 10px 0;
+        }
+
+        .reference-section em {
+            color: #666;
+        }
+
+        .highlight-box {
+            background: #e8f4f8;
+            border-left: 4px solid #2c5aa0;
+            padding: 20px;
+            margin: 25px 0;
+        }
+
+        .navigation {
+            background: #2c5aa0;
+            padding: 20px 80px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-button {
+            background: white;
+            color: #2c5aa0;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .nav-button:hover:not(:disabled) {
+            background: #f0f0f0;
+            transform: translateY(-2px);
+        }
+
+        .nav-button:disabled {
+            background: #5a7eb8;
+            color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .slide-info {
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .slide-counter {
+            font-size: 0.95em;
+        }
+
+        .dots {
+            display: flex;
+            gap: 8px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.4);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .dot.active {
+            background: white;
+            width: 24px;
+            border-radius: 4px;
+        }
+
+        .title-slide {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            min-height: 700px;
+        }
+
+        .title-slide h1 {
+            font-size: 3.5em;
+            margin-bottom: 20px;
+        }
+
+        .title-slide h2 {
+            font-size: 1.5em;
+            color: #666;
+            margin-bottom: 60px;
+        }
+
+        .title-slide p {
+            font-size: 1.1em;
+            color: #888;
+            max-width: 600px;
+        }
+    </style>
+</head>
+<body>
+    <div class="presentation-container">
+        <!-- Slide 1: Title -->
+        <div class="slide active title-slide">
+            <h1>Adaptive Assessment System</h1>
+            <h2>Item Response Theory Engine for Intelligent Testing</h2>
+            <p style="margin-top: 40px; color: #666;">
+                A science-based approach to precise ability measurement through adaptive question selection
+            </p>
+        </div>
+
+        <!-- Slide 2: What is IRT -->
+        <div class="slide">
+            <div class="slide-header">
+                <h1>What is Item Response Theory?</h1>
+            </div>
+
+            <div class="content-section">
+                <h3>Mathematical Framework for Ability Measurement</h3>
+                <p style="color: #666; line-height: 1.8; margin-bottom: 30px;">
+                    Item Response Theory (IRT) models the relationship between a student's ability and their probability
+                    of answering questions correctly. This enables precise measurement with fewer questions through adaptive testing.
+                </p>
+            </div>
+
+            <div class="content-box">
+                <h3 style="color: #1a1a2e; margin-bottom: 20px;">3-Parameter Logistic (3PL) Model</h3>
+                <div class="formula-box">
+                    P(θ) = c + (1-c) / (1 + e<sup>-a(θ-b)</sup>)
+                </div>
+                <div style="margin-top: 20px;">
+                    <p style="margin: 10px 0;"><strong>θ (theta):</strong> Student ability level (estimated in real-time)</p>
+                    <p style="margin: 10px 0;"><strong>a:</strong> Discrimination parameter (how well the question differentiates ability)</p>
+                    <p style="margin: 10px 0;"><strong>b:</strong> Difficulty parameter (ability level needed for 50% success probability)</p>
+                    <p style="margin: 10px 0;"><strong>c:</strong> Guessing parameter (probability of correct guess ≈ 0.25)</p>
+                </div>
+            </div>
+
+            <p style="color: #888; font-size: 0.9em; margin-top: 30px;">
+                <em>References: Lord (1980), Embretson & Reise (2000)</em>
+            </p>
+        </div>
+
+        <!-- Slide 3: First Question Selection -->
+        <div class="slide">
+            <div class="slide-header">
+                <h1>First Question Selection</h1>
+            </div>
+
+            <div class="content-section">
+                <h3>Initial Ability Estimation</h3>
+                <p style="color: #666; line-height: 1.8; margin-bottom: 25px;">
+                    The system begins by mapping the student's self-reported competency level to an initial ability estimate (θ₀),
+                    which determines the difficulty tier for the first question.
+                </p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">-1.5</div>
+                    <div class="stat-label">Beginner Level</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">0.0</div>
+                    <div class="stat-label">Intermediate Level</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">1.5</div>
+                    <div class="stat-label">Advanced Level</div>
+                </div>
+            </div>
+
+            <div class="content-box">
+                <h3 style="color: #1a1a2e; margin-bottom: 15px;">Question Matching Process</h3>
+                <ul>
+                    <li>Initial θ is mapped to a competency tier (C1, C2, C3, or C4)</li>
+                    <li>Questions are filtered by tier-appropriate difficulty ranges</li>
+                    <li>Fisher Information is calculated for each eligible question at θ₀</li>
+                    <li>The question with maximum information is selected to optimize measurement precision</li>
+                </ul>
+            </div>
+
+            <div class="highlight-box">
+                <strong>Example:</strong> An intermediate student (θ = 0.0) is assigned to Tier C2, which contains
+                questions with difficulty parameters ranging from -1.0 to +1.0.
+            </div>
+
+            <p style="color: #888; font-size: 0.9em; margin-top: 30px;">
+                <em>References: van der Linden & Glas (2010)</em>
+            </p>
+        </div>
+
+        <!-- Slide 4: Next Question Selection -->
+        <div class="slide">
+            <div class="slide-header">
+                <h1>Adaptive Question Selection</h1>
+            </div>
+
+            <div class="content-section">
+                <h3>Multi-Stage Selection Algorithm</h3>
+            </div>
+
+            <div class="process-step" data-step="1">
+                <h4>Theta Update (Newton-Raphson Method)</h4>
+                <p>Recalculate ability estimate based on all previous responses using maximum likelihood estimation</p>
+            </div>
+
+            <div class="process-step" data-step="2">
+                <h4>Anticipated Theta Calculation</h4>
+                <p>Predict future ability using recent response patterns (1.5× adjustment multiplier for proactive selection)</p>
+            </div>
+
+            <div class="process-step" data-step="3">
+                <h4>Fisher Information Maximization</h4>
+                <p>Calculate information value for each eligible question at the anticipated ability level</p>
+            </div>
+
+            <div class="process-step" data-step="4">
+                <h4>Constraint Application</h4>
+                <p>Apply business rules: no question repetition, difficulty progression after correct responses, content balancing, exposure control</p>
+            </div>
+
+            <div class="content-box" style="margin-top: 30px;">
+                <h3 style="color: #1a1a2e; margin-bottom: 10px;">Fisher Information Formula</h3>
+                <div class="formula-box">
+                    I(θ) = a² × p*(1-p*) / (1-c)²
+                </div>
+                <p style="margin-top: 15px; color: #666;">Higher information = more precise ability measurement at that theta level</p>
+            </div>
+
+            <p style="color: #888; font-size: 0.9em; margin-top: 30px;">
+                <em>References: Chang & Ying (1996), Wang et al. (2023)</em>
+            </p>
+        </div>
+
+        <!-- Slide 5: Newton-Raphson -->
+        <div class="slide">
+            <div class="slide-header">
+                <h1>Ability Estimation Algorithm</h1>
+            </div>
+
+            <div class="content-section">
+                <h3>Newton-Raphson Maximum Likelihood Estimation</h3>
+            </div>
+
+            <div class="content-box">
+                <h3 style="color: #1a1a2e; margin-bottom: 15px;">Iterative Convergence Method</h3>
+                <div class="formula-box">
+                    θ<sub>n+1</sub> = θ<sub>n</sub> - L'(θ) / L''(θ)
+                </div>
+                <div style="margin-top: 20px;">
+                    <p style="margin: 10px 0;"><strong>L'(θ):</strong> First derivative of log-likelihood function</p>
+                    <p style="margin: 10px 0;"><strong>L''(θ):</strong> Second derivative (equivalent to Fisher Information)</p>
+                    <p style="margin: 10px 0;"><strong>Convergence:</strong> Typically achieves stable estimates within 5-10 iterations</p>
+                </div>
+            </div>
+
+            <div class="two-column">
+                <div class="column-box">
+                    <h4>Conservative Update Limits</h4>
+                    <p style="margin: 15px 0;"><strong>Early Questions (1-5):</strong> Maximum change ±0.2</p>
+                    <p style="margin: 15px 0;"><strong>Later Questions (6+):</strong> Maximum change ±0.3</p>
+                    <p style="margin-top: 20px; color: #666; font-size: 0.9em;">
+                        Prevents extreme oscillations and ensures measurement stability
+                    </p>
+                </div>
+
+                <div class="column-box">
+                    <h4>Exponential Smoothing</h4>
+                    <div class="formula-box" style="font-size: 0.95em;">
+                        θ<sub>smooth</sub> = α × θ<sub>new</sub> + (1-α) × θ<sub>current</sub>
+                    </div>
+                    <p style="margin-top: 15px; color: #666; font-size: 0.9em;">
+                        Smoothing factor (α) ranges from 0.3 to 0.7, balancing responsiveness with stability
+                    </p>
+                </div>
+            </div>
+
+            <p style="color: #888; font-size: 0.9em; margin-top: 30px;">
+                <em>References: Baker & Kim (2004), Bock & Mislevy (1982)</em>
+            </p>
+        </div>
+
+        <!-- Slide 6: Stopping Criteria -->
+        <div class="slide">
+            <div class="slide-header">
+                <h1>Assessment Termination Criteria</h1>
+            </div>
+
+            <div class="content-section">
+                <h3>Multi-Criteria Stopping Rules</h3>
+            </div>
+
+            <div class="content-box">
+                <h3 style="color: #1a1a2e; margin-bottom: 15px;">1. Standard Error of Measurement (Primary Criterion)</h3>
+                <div class="formula-box">
+                    SEM = 1 / √(Σ Information)
+                </div>
+                <p style="margin-top: 15px; color: #666;">
+                    <strong>Target SEM:</strong> ≤ 0.25 for diagnostic testing, ≤ 0.35 for placement testing<br>
+                    <strong>Interpretation:</strong> Lower SEM indicates higher precision in ability estimation
+                </p>
+            </div>
+
+            <div class="two-column">
+                <div class="column-box">
+                    <h4>2. Question Limits</h4>
+                    <p style="margin: 10px 0;">Minimum: 10 questions</p>
+                    <p style="margin: 10px 0;">Maximum: 30 questions</p>
+                    <p style="margin-top: 15px; color: #666; font-size: 0.9em;">
+                        Ensures sufficient data while preventing excessive test length
+                    </p>
+                </div>
+
+                <div class="column-box">
+                    <h4>3. Theta Stability</h4>
+                    <p style="margin: 10px 0;">Variance of last 5 estimates &lt; 0.01</p>
+                    <p style="margin-top: 15px; color: #666; font-size: 0.9em;">
+                        Indicates convergence to stable ability estimate
+                    </p>
+                </div>
+            </div>
+
+            <div class="column-box" style="margin-top: 20px;">
+                <h4>4. Consecutive Response Patterns</h4>
+                <p style="color: #666;">
+                    Six or more consecutive correct/incorrect responses indicate ceiling or floor effects,
+                    suggesting the test has reached the limits of measurement precision for that ability level.
+                </p>
+            </div>
+
+            <div class="highlight-box" style="margin-top: 25px;">
+                <strong>95% Confidence Interval:</strong> θ ± 1.96 × SEM
+            </div>
+
+            <p style="color: #888; font-size: 0.9em; margin-top: 30px;">
+                <em>References: Kingsbury & Zara (1989), Weiss (1982)</em>
+            </p>
+        </div>
+
+        <!-- Slide 7: Advanced Techniques -->
+        <div class="slide">
+            <div class="slide-header">
+                <h1>Advanced Techniques Implemented</h1>
+            </div>
+
+            <div class="technique-grid">
+                <div class="technique-card">
+                    <h4>Newton-Raphson</h4>
+                    <p>Maximum likelihood estimation with rapid convergence</p>
+                </div>
+                <div class="technique-card">
+                    <h4>Fisher Information</h4>
+                    <p>Optimal item selection criterion for precision</p>
+                </div>
+                <div class="technique-card">
+                    <h4>SEM Monitoring</h4>
+                    <p>Real-time measurement precision tracking</p>
+                </div>
+                <div class="technique-card">
+                    <h4>Exponential Smoothing</h4>
+                    <p>Prevents ability estimate oscillations</p>
+                </div>
+                <div class="technique-card">
+                    <h4>3PL IRT Model</h4>
+                    <p>Accounts for discrimination and guessing</p>
+                </div>
+                <div class="technique-card">
+                    <h4>Response Time Weighting</h4>
+                    <p>Optional RT-adjusted information</p>
+                </div>
+                <div class="technique-card">
+                    <h4>Anticipated Theta</h4>
+                    <p>Proactive selection with 1.5× multiplier</p>
+                </div>
+                <div class="technique-card">
+                    <h4>Content Balancing</h4>
+                    <p>Ensures domain coverage</p>
+                </div>
+                <div class="technique-card">
+                    <h4>Item Exposure Control</h4>
+                    <p>Limits overuse to 30% maximum</p>
+                </div>
+                <div class="technique-card">
+                    <h4>Tier Progression</h4>
+                    <p>Conservative single-tier transitions</p>
+                </div>
+                <div class="technique-card">
+                    <h4>EAP/MLE Fallbacks</h4>
+                    <p>Robust estimation alternatives</p>
+                </div>
+                <div class="technique-card">
+                    <h4>Difficulty Progression</h4>
+                    <p>Never decreases after correct responses</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 8: Scientific Foundation -->
+        <div class="slide">
+            <div class="slide-header">
+                <h1>Scientific Foundation</h1>
+            </div>
+
+            <div class="content-section">
+                <h3>Evidence-Based Psychometric Framework</h3>
+                <ul style="line-height: 2; color: #666; margin-left: 25px;">
+                    <li>Grounded in 40+ years of peer-reviewed IRT research</li>
+                    <li>Uses industry-standard 3-Parameter Logistic Model</li>
+                    <li>Implements proven adaptive testing algorithms</li>
+                    <li>Conservative parameter constraints prevent measurement errors</li>
+                    <li>Multiple fallback mechanisms ensure system robustness</li>
+                </ul>
+            </div>
+
+            <div class="content-section" style="margin-top: 40px;">
+                <h3>Advantages Over Fixed-Length Tests</h3>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">50%</div>
+                    <div class="stat-label">Fewer Questions Required</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">2-3×</div>
+                    <div class="stat-label">Higher Precision</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">100%</div>
+                    <div class="stat-label">Personalized Experience</div>
+                </div>
+            </div>
+
+            <div class="content-box" style="margin-top: 30px;">
+                <h3 style="color: #1a1a2e; margin-bottom: 15px;">Production-Ready Features</h3>
+                <div class="two-column">
+                    <div>
+                        <p>• Question uniqueness enforcement</p>
+                        <p>• Response time integration</p>
+                        <p>• Performance caching (LRU)</p>
+                    </div>
+                    <div>
+                        <p>• Comprehensive error handling</p>
+                        <p>• Configurable test purposes</p>
+                        <p>• Detailed diagnostic reporting</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 9: References -->
+        <div class="slide">
+            <div class="slide-header">
+                <h1>Research References</h1>
+            </div>
+
+            <div class="content-section reference-section">
+                <h3>Foundational Research (Classic)</h3>
+                <ul style="margin-left: 25px;">
+                    <li>Lord, F. M. (1980). <em>Applications of Item Response Theory to Practical Testing Problems.</em> Erlbaum.</li>
+                    <li>Embretson, S. E., & Reise, S. P. (2000). <em>Item Response Theory for Psychologists.</em> Psychology Press.</li>
+                    <li>Baker, F. B., & Kim, S. H. (2004). <em>Item Response Theory: Parameter Estimation Techniques.</em> CRC Press.</li>
+                    <li>Weiss, D. J., & Kingsbury, G. G. (1984). Application of computerized adaptive testing to educational problems. <em>Journal of Educational Measurement, 21</em>(4), 361-375.</li>
+                </ul>
+            </div>
+
+            <div class="content-section reference-section" style="margin-top: 30px;">
+                <h3>Recent Research (2023-2025)</h3>
+                <ul style="margin-left: 25px;">
+                    <li>Schroeders, U., & Gnambs, T. (2025). Sample-size planning in item-response theory: A tutorial. <em>Advances in Methods and Practices in Psychological Science.</em></li>
+                    <li>Gibbons, R., et al. (2024). Adaptive measurement of cognitive function based on multidimensional item response theory. <em>Alzheimer's & Dementia: Translational Research, 10</em>(4).</li>
+                    <li>Huda, A., et al. (2024). Optimizing educational assessment: The practicality of computer adaptive testing with an IRT approach. <em>JOIV: International Journal on Informatics Visualization, 8</em>(1), 473-480.</li>
+                    <li>Wu, J., et al. (2024). Psychometric properties of CAT for COPD patient-reported outcome measurement. <em>Health and Quality of Life Outcomes, 22</em>, 73.</li>
+                    <li>Wang, Q., et al. (2023). Item selection methods in multidimensional CAT for forced-choice items using Thurstonian IRT model. <em>Behavior Research Methods, 56</em>, 600-614.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 10: Summary -->
+        <div class="slide">
+            <div class="slide-header">
+                <h1>Business Impact Summary</h1>
+            </div>
+
+            <div class="two-column">
+                <div class="column-box">
+                    <h4>Benefits for Students</h4>
+                    <ul style="margin-left: 20px; line-height: 2;">
+                        <li>50% fewer questions to answer</li>
+                        <li>Reduced test anxiety through appropriate challenge</li>
+                        <li>Personalized difficulty progression</li>
+                        <li>Faster completion time</li>
+                    </ul>
+                </div>
+
+                <div class="column-box">
+                    <h4>Benefits for Educators</h4>
+                    <ul style="margin-left: 20px; line-height: 2;">
+                        <li>2-3× higher measurement precision</li>
+                        <li>Detailed diagnostic insights</li>
+                        <li>Content area performance analytics</li>
+                        <li>Scalable assessment delivery</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="content-section" style="margin-top: 40px;">
+                <h3>Technical Rigor Ensures Quality</h3>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div style="font-size: 1.5em; color: #2c5aa0; font-weight: 700; margin-bottom: 10px;">Accuracy</div>
+                    <div class="stat-label">SEM-based precision targeting</div>
+                </div>
+                <div class="stat-card">
+                    <div style="font-size: 1.5em; color: #2c5aa0; font-weight: 700; margin-bottom: 10px;">Fairness</div>
+                    <div class="stat-label">Tier-based progression rules</div>
+                </div>
+                <div class="stat-card">
+                    <div style="font-size: 1.5em; color: #2c5aa0; font-weight: 700; margin-bottom: 10px;">Reliability</div>
+                    <div class="stat-label">Conservative theta updates</div>
+                </div>
+            </div>
+
+            <div class="highlight-box" style="margin-top: 40px; text-align: center; font-size: 1.1em;">
+                <strong>Result:</strong> Efficient, precise, and scientifically validated assessment platform
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="navigation">
+            <button class="nav-button" id="prevBtn" onclick="changeSlide(-1)">← Previous</button>
+            <div class="slide-info">
+                <span class="slide-counter">Slide <span id="currentSlide">1</span> of 10</span>
+                <div class="dots" id="dotsContainer"></div>
+            </div>
+            <button class="nav-button" id="nextBtn" onclick="changeSlide(1)">Next →</button>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+
+        const dotsContainer = document.getElementById('dotsContainer');
+        for (let i = 0; i < totalSlides; i++) {
+            const dot = document.createElement('div');
+            dot.className = 'dot';
+            dot.onclick = () => goToSlide(i);
+            dotsContainer.appendChild(dot);
+        }
+
+        function showSlide(n) {
+            slides.forEach(slide => slide.classList.remove('active'));
+            document.querySelectorAll('.dot').forEach(dot => dot.classList.remove('active'));
+
+            if (n >= totalSlides) currentSlide = totalSlides - 1;
+            if (n < 0) currentSlide = 0;
+
+            slides[currentSlide].classList.add('active');
+            document.querySelectorAll('.dot')[currentSlide].classList.add('active');
+            document.getElementById('currentSlide').textContent = currentSlide + 1;
+
+            document.getElementById('prevBtn').disabled = currentSlide === 0;
+            document.getElementById('nextBtn').disabled = currentSlide === totalSlides - 1;
+        }
+
+        function changeSlide(n) {
+            currentSlide += n;
+            showSlide(currentSlide);
+        }
+
+        function goToSlide(n) {
+            currentSlide = n;
+            showSlide(currentSlide);
+        }
+
+        showSlide(0);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') changeSlide(-1);
+            if (e.key === 'ArrowRight') changeSlide(1);
+        });
+    </script>
+</body>
+</html>
