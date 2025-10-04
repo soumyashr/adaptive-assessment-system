@@ -4,7 +4,7 @@
 # JetBrains IDE settings (e.g., PyCharm)
 .idea/
 
-/*.zip
+#/*.zip
 
 # Python cache files
 __pycache__
