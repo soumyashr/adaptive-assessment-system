@@ -688,7 +688,8 @@ class AssessmentService:
                 'correct_answer': question.answer,
                 'is_correct': resp.is_correct,
                 'theta_before': resp.theta_before,
-                'theta_after': resp.theta_after
+                'theta_after': resp.theta_after,
+                'difficulty': question.difficulty_b
             }
             # NEW: Add topic if available
             try:
@@ -731,6 +732,7 @@ class AssessmentService:
                         result_dict['learning_roadmap'] = roadmap
         except Exception as e:
             logger.debug(f"Enhanced results not available: {e}")
+
 
         return schemas.AssessmentResults(**result_dict)
 

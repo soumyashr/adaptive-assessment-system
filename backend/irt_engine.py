@@ -489,6 +489,8 @@ class IRTEngine:
                 logger.warning(f"No tier-appropriate questions, using all {len(available_questions)}")
 
         # NEW CONTRACT: Prevent question repetition
+        # Som: Check this, is this for a user session or for server session.
+        # So if I start the server then error "All questions in bank have been asked!" will go?
         if self.asked_question_ids:
             suitable_questions = [q for q in suitable_questions
                                  if q.get('id') not in self.asked_question_ids]

@@ -65,6 +65,7 @@ class ResponseDetails(BaseModel):
     is_correct: bool
     theta_before: float
     theta_after: float
+    difficulty: float
 
 
 # MODIFIED: Added optional topic_performance and learning_roadmap fields

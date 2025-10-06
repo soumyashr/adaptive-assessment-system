@@ -10,7 +10,13 @@ import {
   Cell,
   Tooltip,
   ComposedChart,
-  ReferenceLine
+  ReferenceLine,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
+  Legend
 } from 'recharts';
 import './App.css';
 import { DARK_MODE, theme } from '../config/theme';
@@ -429,12 +435,77 @@ const AdaptiveAssessment = () => {
         )}
 
 
-
-
-
+      {/* Topic-wise Performance with Radar chart */}
         {/* Topic-wise Performance */}
         <div>
           <h3 className={`font-bold ${theme('text-white', 'text-gray-900')} mb-4 text-lg`}>Topic-wise Performance</h3>
+
+          {/* Radar Chart */}
+          {topics.length > 0 && (
+            <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} border rounded-xl p-6 mb-6`}>
+              <h4 className={`font-semibold ${theme('text-white', 'text-gray-900')} mb-4 text-base`}>Performance Overview</h4>
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RadarChart data={topics.map(topic => ({
+                    topic: topic.topic.charAt(0).toUpperCase() + topic.topic.slice(1),
+                    accuracy: topic.accuracy * 100,
+                    theta: ((topic.theta + 3) / 6) * 100, // Normalize theta from [-3, 3] to [0, 100]
+                  }))}>
+                    <PolarGrid stroke={theme('#374151', '#E5E7EB')} />
+                    <PolarAngleAxis
+                      dataKey="topic"
+                      tick={{ fill: theme('#D1D5DB', '#6B7280'), fontSize: 12 }}
+                    />
+                    <PolarRadiusAxis
+                      angle={90}
+                      domain={[0, 100]}
+                      tick={{ fill: theme('#9CA3AF', '#9CA3AF'), fontSize: 10 }}
+                    />
+                    <Radar
+                      name="Accuracy %"
+                      dataKey="accuracy"
+                      stroke="#10B981"
+                      fill="#10B981"
+                      fillOpacity={0.3}
+                      strokeWidth={2}
+                    />
+                    <Radar
+                      name="Proficiency (normalized)"
+                      dataKey="theta"
+                      stroke="#3B82F6"
+                      fill="#3B82F6"
+                      fillOpacity={0.3}
+                      strokeWidth={2}
+                    />
+                    <Legend
+                      wrapperStyle={{
+                        fontSize: '12px',
+                        color: theme('#D1D5DB', '#6B7280')
+                      }}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: theme('#1F2937', '#FFFFFF'),
+                        border: `1px solid ${theme('#374151', '#E5E7EB')}`,
+                        borderRadius: '8px',
+                        fontSize: '11px',
+                        color: theme('#FFFFFF', '#000000')
+                      }}
+                      formatter={(value, name) => {
+                        if (name === 'Proficiency (normalized)') {
+                          // Convert back from normalized [0,100] to original theta [-3, 3]
+                          const originalTheta = (value / 100) * 6 - 3;
+                          return [originalTheta.toFixed(2), 'θ'];
+                        }
+                        return [value.toFixed(1) + '%', name];
+                      }}
+                    />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {topics.map((topic) => {
               const colors = getStrengthColor(topic.strength_level);
@@ -493,6 +564,71 @@ const AdaptiveAssessment = () => {
             })}
           </div>
         </div>
+        {/*End topic wise Performance with Radar chart*/}
+
+
+        {/*/!* Topic-wise Performance *!/*/}
+        {/*<div>*/}
+        {/*  <h3 className={`font-bold ${theme('text-white', 'text-gray-900')} mb-4 text-lg`}>Topic-wise Performance</h3>*/}
+        {/*  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">*/}
+        {/*    {topics.map((topic) => {*/}
+        {/*      const colors = getStrengthColor(topic.strength_level);*/}
+        {/*      return (*/}
+        {/*        <div*/}
+        {/*          key={topic.topic}*/}
+        {/*          className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} border rounded-xl p-4 hover:shadow-md transition`}*/}
+        {/*        >*/}
+        {/*          <div className="flex justify-between items-start mb-3">*/}
+        {/*            <div>*/}
+        {/*              <h4 className={`font-semibold ${theme('text-white', 'text-gray-900')} capitalize text-base`}>*/}
+        {/*                {topic.topic}*/}
+        {/*              </h4>*/}
+        {/*              <div className={`text-xs ${theme('text-gray-400', 'text-gray-600')} mt-1`}>*/}
+        {/*                {topic.questions_answered} question{topic.questions_answered !== 1 ? 's' : ''} answered*/}
+        {/*              </div>*/}
+        {/*            </div>*/}
+        {/*            <span className={`px-3 py-1 ${colors.bg} ${colors.text} ${colors.border} border rounded-full text-xs font-bold`}>*/}
+        {/*              {topic.strength_level}*/}
+        {/*            </span>*/}
+        {/*          </div>*/}
+
+        {/*          <div className="space-y-2">*/}
+        {/*            <div className="flex justify-between items-center">*/}
+        {/*              <span className={`text-sm ${theme('text-gray-400', 'text-gray-600')}`}>Proficiency (θ)</span>*/}
+        {/*              <span className={`font-bold ${theme('text-blue-400', 'text-blue-600')}`}>{topic.theta.toFixed(2)}</span>*/}
+        {/*            </div>*/}
+
+        {/*            <div className="flex justify-between items-center">*/}
+        {/*              <span className={`text-sm ${theme('text-gray-400', 'text-gray-600')}`}>Accuracy</span>*/}
+        {/*              <span className={`font-bold ${theme('text-white', 'text-gray-900')}`}>*/}
+        {/*                {(topic.accuracy * 100).toFixed(0)}%*/}
+        {/*              </span>*/}
+        {/*            </div>*/}
+
+        {/*            <div className="flex justify-between items-center">*/}
+        {/*              <span className={`text-sm ${theme('text-gray-400', 'text-gray-600')}`}>Correct</span>*/}
+        {/*              <span className={`font-semibold ${theme('text-gray-300', 'text-gray-700')}`}>*/}
+        {/*                {topic.correct_count}/{topic.questions_answered}*/}
+        {/*              </span>*/}
+        {/*            </div>*/}
+
+        {/*            <div className={`w-full ${theme('bg-gray-700', 'bg-gray-200')} rounded-full h-2 mt-2`}>*/}
+        {/*              <div*/}
+        {/*                className={`h-2 rounded-full transition-all duration-500 ${*/}
+        {/*                  topic.accuracy >= 0.8 ? 'bg-green-500' :*/}
+        {/*                  topic.accuracy >= 0.6 ? 'bg-blue-500' :*/}
+        {/*                  topic.accuracy >= 0.4 ? 'bg-yellow-500' : 'bg-red-500'*/}
+        {/*                }`}*/}
+        {/*                style={{ width: `${topic.accuracy * 100}%` }}*/}
+        {/*              ></div>*/}
+        {/*            </div>*/}
+        {/*          </div>*/}
+        {/*        </div>*/}
+        {/*      );*/}
+        {/*    })}*/}
+        {/*  </div>*/}
+        {/*</div>*/}
+        {/*/!*End topic wise Performance*!/*/}
       </div>
     );
   };

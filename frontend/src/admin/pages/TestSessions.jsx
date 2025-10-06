@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { theme } from '../../config/theme';
+import { useNavigate } from 'react-router-dom';
+
 
 const TestSessions = () => {
+  const navigate = useNavigate();
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all'); // all, completed, active
@@ -203,14 +206,17 @@ const TestSessions = () => {
                   <td className={`px-6 py-4 whitespace-nowrap text-sm ${theme('text-gray-400', 'text-gray-600')}`}>
                     {formatDate(session.started_at)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button className="text-blue-600 hover:text-blue-900 mr-3">
-                      View
-                    </button>
-                    <button className={theme('text-gray-400 hover:text-gray-200', 'text-gray-600 hover:text-gray-900')}>
-                      Export
-                    </button>
-                  </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <button
+                        onClick={() => navigate(`/admin/sessions/${session.session_id}`)}
+                        className="text-blue-600 hover:text-blue-900 mr-3"
+                      >
+                        View
+                      </button>
+                      <button className={theme('text-gray-400 hover:text-gray-200', 'text-gray-600 hover:text-gray-900')}>
+                        Export
+                      </button>
+                    </td>
                 </tr>
               ))
             )}
