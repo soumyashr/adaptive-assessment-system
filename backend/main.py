@@ -6,6 +6,7 @@ from datetime import datetime
 from fastapi import FastAPI, Depends, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+from sqlalchemy.sql import func
 import pandas as pd
 import io, os
 import logging
@@ -514,6 +515,89 @@ def get_all_sessions(db: Session = Depends(get_db)):
     sessions_list.sort(key=lambda x: x['started_at'] if x['started_at'] else '', reverse=True)
 
     return sessions_list
+
+
+# delete item bank
+@app.delete("/api/item-banks/{item_bank_name}")
+async def delete_item_bank(
+        item_bank_name: str,
+        db: Session = Depends(get_db)
+):
+    """Delete an item bank and all associated data"""
+
+    # Check for active sessions first
+    item_db = None
+    try:
+        item_db = item_bank_db.get_session(item_bank_name)
+
+        active_sessions = item_db.query(models_itembank.AssessmentSession).filter(
+            models_itembank.AssessmentSession.completed == False
+        ).count()
+
+        if active_sessions > 0:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Cannot delete: {active_sessions} active session(s) in progress"
+            )
+    except HTTPException:
+        raise  # Re-raise HTTP exceptions
+    except Exception as e:
+        logger.error(f"Error checking active sessions: {e}")
+    finally:
+        # IMPORTANT: Always close the session
+        if item_db:
+            item_db.close()
+
+    # Proceed with deletion
+    result = item_bank_service.delete_item_bank(db, item_bank_name)
+
+    if not result['success']:
+        raise HTTPException(status_code=400, detail=result['error'])
+
+    return result
+
+
+@app.get("/api/item-banks/{item_bank_name}/stats")
+async def get_item_bank_stats(
+        item_bank_name: str,
+        db: Session = Depends(get_db)
+):
+    """Get detailed statistics for an item bank before deletion"""
+
+    # Verify item bank exists
+    item_bank = db.query(models.ItemBank).filter(
+        models.ItemBank.name == item_bank_name
+    ).first()
+
+    if not item_bank:
+        raise HTTPException(status_code=404, detail="Item bank not found")
+
+    stats = item_bank_service.get_item_bank_stats(item_bank_name)
+
+    # Get additional details
+    item_db = item_bank_db.get_session(item_bank_name)
+    try:
+        # Count active sessions
+        active_sessions = item_db.query(models_itembank.AssessmentSession).filter(
+            models_itembank.AssessmentSession.completed == False
+        ).count()
+
+        # Get topic distribution
+        topics = item_db.query(
+            models_itembank.Question.topic,
+            func.count(models_itembank.Question.id).label('count')
+        ).group_by(models_itembank.Question.topic).all()
+
+        stats['active_sessions'] = active_sessions
+        stats['topics'] = [{'topic': t.topic, 'count': t.count} for t in topics]
+        stats['can_delete'] = active_sessions == 0
+
+    finally:
+        item_db.close()
+
+    return stats
+
+
 
 if __name__ == "__main__":
     import uvicorn

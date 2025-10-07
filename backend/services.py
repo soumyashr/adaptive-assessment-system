@@ -6,15 +6,17 @@ Admin module will continue to work unchanged
 """
 
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, not_
+from sqlalchemy import and_, not_, text
 from typing import List, Optional, Dict
 import pandas as pd
 from datetime import datetime
 import logging
 import sys
 import os
+import time
 import json
 from collections import defaultdict
+import sqlite3
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'scripts'))
 from db_manager import item_bank_db
@@ -768,10 +770,12 @@ class ItemBankService:
         return item_bank
 
     def upload_and_calibrate(self, item_bank_name: str, df: pd.DataFrame) -> Dict:
-        """UNCHANGED"""
+        """Upload questions to item bank - ALWAYS use item_bank_name as subject"""
+
         item_db = item_bank_db.get_session(item_bank_name)
 
         try:
+            # Validate required columns (don't require 'subject' in CSV anymore)
             required = ['question', 'option_a', 'option_b', 'option_c', 'option_d',
                         'answer', 'tier', 'topic']
             missing = [col for col in required if col not in df.columns]
@@ -782,12 +786,15 @@ class ItemBankService:
                     'error': f'Missing required columns: {missing}'
                 }
 
-            if 'subject' not in df.columns:
-                df['subject'] = item_bank_name
+            # CRITICAL: Always override subject with item_bank_name
+            # This ensures questions match what the assessment system expects
+            df['subject'] = item_bank_name
 
+            # Generate question_id if not provided
             if 'question_id' not in df.columns:
                 df['question_id'] = [f"{item_bank_name}_{i + 1}" for i in range(len(df))]
 
+            # Set defaults for IRT parameters if not provided
             if 'content_area' not in df.columns:
                 df['content_area'] = df['topic']
 
@@ -806,6 +813,7 @@ class ItemBankService:
             if 'guessing_c' not in df.columns:
                 df['guessing_c'] = 0.25
 
+            # Import questions
             imported = self.question_service.import_questions_from_df(item_db, df)
 
             logger.info(f"Imported {imported} questions to item bank: {item_bank_name}")
@@ -827,9 +835,10 @@ class ItemBankService:
         finally:
             item_db.close()
 
+
     def get_item_bank_stats(self, item_bank_name: str) -> Dict:
         """UNCHANGED"""
-        import sqlite3
+
 
         db_path = item_bank_db.get_db_path(item_bank_name)
 
@@ -874,3 +883,143 @@ class ItemBankService:
             }
         finally:
             conn.close()
+
+    # delete item bank
+
+
+    def delete_item_bank(self, registry_db: Session, item_bank_name: str) -> Dict:
+        """
+        Delete an item bank and all associated data with proper connection handling
+
+        Args:
+            registry_db: Registry database session
+            item_bank_name: Name of the item bank to delete
+
+        Returns:
+            Dict with success status and details
+        """
+
+
+        # Check if item bank exists
+        item_bank = registry_db.query(models_registry.ItemBank).filter(
+            models_registry.ItemBank.name == item_bank_name
+        ).first()
+
+        if not item_bank:
+            return {
+                'success': False,
+                'error': f'Item bank "{item_bank_name}" not found'
+            }
+
+        # Get stats before deletion
+        stats = self.get_item_bank_stats(item_bank_name)
+
+        # Get item bank session - IMPORTANT: We need to manage this properly
+        item_db = None
+        try:
+            item_db = item_bank_db.get_session(item_bank_name)
+
+            # Start transaction
+            item_db.begin()
+
+            try:
+                # 1. Delete all responses
+                item_db.execute(text("""
+                                     DELETE
+                                     FROM responses
+                                     WHERE session_id IN (SELECT session_id
+                                                          FROM assessment_sessions)
+                                     """))
+
+                # 2. Delete topic performance if table exists
+                try:
+                    item_db.execute(text("DELETE FROM topic_performance"))
+                except:
+                    pass  # Table might not exist
+
+                # 3. Delete all assessment sessions
+                item_db.query(models_itembank.AssessmentSession).delete()
+
+                # 4. Delete all user proficiencies
+                item_db.query(models_itembank.UserProficiency).delete()
+
+                # 5. Delete all questions
+                item_db.query(models_itembank.Question).delete()
+
+                # Commit changes
+                item_db.commit()
+
+            except Exception as e:
+                item_db.rollback()
+                raise e
+
+        except Exception as e:
+            logger.error(f"Error deleting data from item bank {item_bank_name}: {e}")
+            if item_db:
+                item_db.rollback()
+            return {
+                'success': False,
+                'error': f'Failed to delete item bank data: {str(e)}'
+            }
+        finally:
+            # CRITICAL: Close the item bank session
+            if item_db:
+                item_db.close()
+
+            # IMPORTANT: Clean up the connection from the manager
+            if hasattr(item_bank_db, 'cleanup'):
+                item_bank_db.cleanup(item_bank_name)
+
+        # Small delay to ensure connections are fully closed
+        time.sleep(0.1)
+
+        # Now delete from registry
+        try:
+            # Delete from user proficiency summary cache
+            registry_db.query(models_registry.UserProficiencySummary).filter(
+                models_registry.UserProficiencySummary.item_bank_name == item_bank_name
+            ).delete()
+
+            # Delete the item bank registry entry
+            registry_db.delete(item_bank)
+            registry_db.commit()
+
+        except Exception as e:
+            registry_db.rollback()
+            logger.error(f"Error deleting from registry: {e}")
+            return {
+                'success': False,
+                'error': f'Failed to delete from registry: {str(e)}'
+            }
+
+        # Now try to delete the database file and its WAL files
+        db_path = item_bank_db.get_db_path(item_bank_name)
+        deleted_files = []
+
+        # Wait a moment for SQLite to release files
+        time.sleep(0.2)
+
+        # Delete all related files
+        for suffix in ['', '-wal', '-shm', '-journal']:
+            file_path = f"{db_path}{suffix}" if suffix else str(db_path)
+            if os.path.exists(file_path):
+                try:
+                    os.remove(file_path)
+                    deleted_files.append(os.path.basename(file_path))
+                    logger.info(f"Deleted file: {file_path}")
+                except Exception as e:
+                    logger.warning(f"Could not delete {file_path}: {e}")
+
+        logger.info(f"Successfully deleted item bank '{item_bank_name}'")
+
+        return {
+            'success': True,
+            'message': f'Successfully deleted item bank "{item_bank_name}"',
+            'deleted': {
+                'item_bank': item_bank_name,
+                'questions': stats['total_items'],
+                'test_takers': stats['test_takers'],
+                'responses': stats['total_responses'],
+                'files': deleted_files
+            }
+        }
