@@ -1,0 +1,38 @@
+subject,question_id,question,option_a,option_b,option_c,option_d,answer,topic,tier,discrimination_a,difficulty_b,guessing_c
+maths,complex_001,What is the value of i²?,1,-1,0,i,b,Complex Numbers - Basic Definition,C1,1.5,-1,0.25
+maths,complex_002,"If z = 3 + 4i, what is Re(z)?",3,4,7,5,a,Complex Numbers - Real and Imaginary Parts,C1,1.5,-1,0.25
+maths,complex_003,"If z = 2 - 5i, what is Im(z)?",2,-5,5,-2,b,Complex Numbers - Real and Imaginary Parts,C1,1.5,-1,0.25
+maths,complex_006,Simplify: (2 + 3i) + (4 + 5i),6 + 8i,2 + 8i,6 + 2i,4 + 5i,a,Complex Numbers - Addition,C1,1.5,-1,0.25
+maths,complex_007,Simplify: (5 + 2i) - (3 + i),2 + i,8 + 3i,2 + 3i,8 + i,a,Complex Numbers - Subtraction,C1,1.5,-1,0.25
+maths,complex_008,What is the conjugate of 3 + 4i?,3 - 4i,-3 + 4i,-3 - 4i,4 + 3i,a,Complex Numbers - Conjugate,C1,1.5,-1,0.25
+maths,complex_009,What is the conjugate of 5 - 2i?,5 + 2i,-5 - 2i,-5 + 2i,2 - 5i,a,Complex Numbers - Conjugate,C1,1.5,-1,0.25
+maths,complex_010,Multiply: (2 + i)(3 + 2i),4 + 7i,6 + 7i,6 + 3i,4 + 5i,a,Complex Numbers - Multiplication,C2,1.5,-0.5,0.25
+maths,complex_011,Multiply: (1 + i)(1 - i),2,0,1,-2i,a,Complex Numbers - Multiplication,C2,1.5,-0.5,0.25
+maths,complex_012,Divide: (4 + 2i)/(2),2 + i,2,4 + i,4,a,Complex Numbers - Division,C2,1.5,-0.5,0.25
+maths,complex_013,What is |3 + 4i|?,5,7,25,1,a,Complex Numbers - Modulus,C2,1.5,-0.5,0.25
+maths,complex_014,What is |5 - 12i|?,13,17,7,119,a,Complex Numbers - Modulus,C2,1.5,-0.5,0.25
+maths,complex_015,Find the modulus of 6 + 8i,10,14,100,48,a,Complex Numbers - Modulus,C2,1.5,-0.5,0.25
+maths,complex_023,Solve: z² + 4 = 0,z = ±2i,z = ±2,z = ±4i,z = ±4,a,Complex Numbers - Equations,C4,1.5,1,0.25
+maths,complex_024,Find Re(i²),-1,1,0,i,a,Complex Numbers - Real Part,C1,1.5,-1,0.25
+maths,complex_025,Find Im(3 + 5i),5,3,8,15,a,Complex Numbers - Imaginary Part,C1,1.5,-1,0.25
+maths,complex_026,Simplify: 2i × 3i,-6,6,-6i,6i,a,Complex Numbers - Multiplication,C2,1.5,-0.5,0.25
+maths,complex_029,Simplify: (3 + 2i) + (1 - 2i),4,4 + 4i,2,4 - 4i,a,Complex Numbers - Addition,C1,1.5,-1,0.25
+maths,complex_030,Simplify: (7 - 3i) - (2 - i),5 - 2i,5 + 2i,9 - 4i,9 - 2i,a,Complex Numbers - Subtraction,C1,1.5,-1,0.25
+maths,complex_031,What is the conjugate of -2 + 5i?,-2 - 5i,2 + 5i,2 - 5i,-2 + 5i,a,Complex Numbers - Conjugate,C1,1.5,-1,0.25
+maths,complex_032,Multiply: (3 + i)(2 - i),7 - i,6 - i,7 + i,5 - i,a,Complex Numbers - Multiplication,C2,1.5,-0.5,0.25
+maths,complex_033,Multiply: i(2 + 3i),-3 + 2i,2i + 3i²,-3i + 2,2 + 3i,a,Complex Numbers - Multiplication,C2,1.5,-0.5,0.25
+maths,complex_034,What is |7 + 24i|?,25,31,17,49,a,Complex Numbers - Modulus,C2,1.5,-0.5,0.25
+maths,complex_042,Find square roots of -4,±2i,±2,±4i,±i,a,Complex Numbers - Roots,C4,1.5,1,0.25
+maths,complex_043,Solve: z² = -9,z = ±3i,z = ±9i,z = ±3,z = ±9,a,Complex Numbers - Equations,C4,1.5,1,0.25
+maths,complex_044,What is Re(5i)?,0,5,-5,5i,a,Complex Numbers - Real Part,C1,1.5,-1,0.25
+maths,complex_045,What is Im(7)?,0,7,-7,7i,a,Complex Numbers - Imaginary Part,C1,1.5,-1,0.25
+maths,complex_047,What is i⁰?,1,0,i,-1,a,Complex Numbers - Powers of i,C1,1.5,-1,0.25
+maths,complex_048,Simplify: (4 - i) + (2 + 3i),6 + 2i,6 - 2i,2 + 2i,4 + 2i,a,Complex Numbers - Addition,C1,1.5,-1,0.25
+maths,complex_049,Simplify: (8 + 5i) - (3 + 2i),5 + 3i,11 + 7i,5 + 7i,11 + 3i,a,Complex Numbers - Subtraction,C1,1.5,-1,0.25
+maths,complex_050,Conjugate of 6i?,-6i,6i,6,-6,a,Complex Numbers - Conjugate,C1,1.5,-1,0.25
+maths,complex_051,Multiply: (4 + 2i)(1 + i),2 + 6i,4 + 6i,2 + 4i,6 + 2i,a,Complex Numbers - Multiplication,C2,1.5,-0.5,0.25
+maths,complex_052,Multiply: (2 + 3i)(2 - 3i),13,4 - 9i²,13i,5,a,Complex Numbers - Multiplication,C2,1.5,-0.5,0.25
+maths,complex_053,Divide: (6 + 3i)/3,2 + i,3 + 2i,2 + 3i,6 + i,a,Complex Numbers - Division,C2,1.5,-0.5,0.25
+maths,complex_054,What is |8 - 15i|?,17,23,7,1,a,Complex Numbers - Modulus,C2,1.5,-0.5,0.25
+maths,complex_077,Which property does i² = -1 represent?,Definition of imaginary unit,Modulus,Argument,Conjugate,a,Complex Numbers - Basic Definition,C1,1.5,-1,0.25
+maths,complex_078,The modulus of a complex number represents its:,Distance from origin,Angle with x-axis,Real part,Imaginary part,a,Complex Numbers - Modulus,C2,1.5,-0.5,0.25

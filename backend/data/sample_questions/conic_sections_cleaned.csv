@@ -1,0 +1,81 @@
+subject,question_id,question,option_a,option_b,option_c,option_d,answer,topic,tier,discrimination_a,difficulty_b,guessing_c
+maths,conicsections_001,A circle is defined as the set of all points in a plane that are:,At a fixed distance from two points,Equidistant from a fixed point,On a straight line,Equidistant from a fixed line,b,Conic Sections - conic_sections,C1,1.5,-1.0,0.25
+maths,conicsections_002,The standard equation of a circle with centre at origin and radius r is:,x_ + y_ = r,x_ + y_ = r_,(x-r)_ + (y-r)_ = 1,x + y = r_,b,Conic Sections - conic_sections,C1,1.5,-1.0,0.25
+maths,conicsections_003,What conic section is formed when a plane cuts a cone perpendicular to its axis (_ = 90¡)?,Parabola,Ellipse,Circle,Hyperbola,c,Conic Sections - conic_sections,C1,1.5,-1.0,0.25
+maths,conicsections_004,A parabola is the set of all points equidistant from:,Two fixed points,A fixed point and a fixed line,A fixed line only,The origin,b,Conic Sections - conic_sections,C1,1.5,-1.0,0.25
+maths,conicsections_005,The fixed point in the definition of a parabola is called the:,Vertex,Directrix,Focus,Centre,c,Conic Sections - conic_sections,C1,1.5,-1.0,0.25
+maths,conicsections_006,What is the equation of a circle with centre (h k) and radius r?,(x-h)_ + (y-k)_ = r_,x_ + y_ = r_,(x+h)_ + (y+k)_ = r,x_ + y_ = (h+k)_,a,Conic Sections - conic_sections,C1,1.5,-1.0,0.25
+maths,conicsections_007,The line through the focus perpendicular to the directrix of a parabola is called:,Latus rectum,Axis,Tangent,Chord,b,Conic Sections - conic_sections,C1,1.5,-1.0,0.25
+maths,conicsections_008,For the parabola y_ = 4ax the focus is at:,(-a 0),(a 0),(0 a),(0 -a),b,Conic Sections - conic_sections,C2,1.5,-0.5,0.25
+maths,conicsections_009,The length of latus rectum of parabola y_ = 4ax is:,a,2a,4a,8a,c,Conic Sections - conic_sections,C2,1.5,-0.5,0.25
+maths,conicsections_010,An ellipse is defined as the set of points where the sum of distances from two fixed points is:,Variable,Zero,Constant,Infinite,c,Conic Sections - conic_sections,C1,1.5,-1.0,0.25
+maths,conicsections_011,The two fixed points in the definition of an ellipse are called:,Vertices,Centres,Foci,Directrices,c,Conic Sections - conic_sections,C1,1.5,-1.0,0.25
+maths,conicsections_012,For an ellipse the relationship between a b and c is:,c_ = a_ + b_,a_ = b_ + c_,b_ = a_ + c_,a_ = b_ - c_,b,Conic Sections - conic_sections,C2,1.5,-0.5,0.25
+maths,conicsections_013,The eccentricity of an ellipse is defined as:,e = a/c,e = b/c,e = c/a,e = c/b,c,Conic Sections - conic_sections,C2,1.5,-0.5,0.25
+maths,conicsections_014,For an ellipse the eccentricity e satisfies:,e > 1,e = 1,e < 1,e ³ 1,c,Conic Sections - conic_sections,C2,1.5,-0.5,0.25
+maths,conicsections_015,The equation x_ + y_ + 8x + 10y - 8 = 0 represents:,A parabola,An ellipse,A circle,A hyperbola,c,Conic Sections - conic_sections,C2,1.5,-0.5,0.25
+maths,conicsections_016,What conic is formed when _ < _ < 90¡ (where _ is semi-vertical angle of cone)?,Circle,Ellipse,Parabola,Hyperbola,b,Conic Sections - conic_sections,C2,1.5,-0.5,0.25
+maths,conicsections_017,The standard equation of parabola with vertex at origin and focus on positive x-axis is:,y_ = 4ax,x_ = 4ay,y_ = -4ax,x_ = -4ay,a,Conic Sections - conic_sections,C2,1.5,-0.5,0.25
+maths,conicsections_018,For the circle (x-3)_ + (y-2)_ = 16 the centre is at:,(3 2),(2 3),(-3 -2),(16 16),a,Conic Sections - conic_sections,C2,1.5,-0.5,0.25
+maths,conicsections_019,A hyperbola is the set of points where the difference of distances from two foci is:,Variable,Zero,Constant,Maximum,c,Conic Sections - conic_sections,C1,1.5,-1.0,0.25
+maths,conicsections_020,For a hyperbola the relationship between a b and c is:,a_ = b_ + c_,b_ = a_ + c_,c_ = a_ + b_,c_ = a_ - b_,c,Conic Sections - conic_sections,C2,1.5,-0.5,0.25
+maths,conicsections_021,The eccentricity of a hyperbola satisfies:,e < 1,e = 1,e > 1,e ² 1,c,Conic Sections - conic_sections,C2,1.5,-0.5,0.25
+maths,conicsections_022,The length of latus rectum of ellipse x_/a_ + y_/b_ = 1 is:,2a_/b,2b_/a,a_/b,b_/a,b,Conic Sections - conic_sections,C2,1.5,-0.5,0.25
+maths,conicsections_023,For the parabola y_ = 12x the focus is at:,(12 0),(3 0),(0 3),(6 0),b,Conic Sections - conic_sections,C2,1.5,-0.5,0.25
+maths,conicsections_024,The equation of directrix for parabola y_ = 4ax is:,x = a,x = -a,y = a,y = -a,b,Conic Sections - conic_sections,C2,1.5,-0.5,0.25
+maths,conicsections_025,When a plane cuts a cone such that _ = _ the conic section formed is:,Circle,Ellipse,Parabola,Hyperbola,c,Conic Sections - conic_sections,C2,1.5,-0.5,0.25
+maths,conicsections_026,The centre of the circle x_ + y_ - 4x - 8y - 45 = 0 is:,(2 4),(4 8),(-2 -4),(4 2),a,Conic Sections - conic_sections,C2,1.5,-0.5,0.25
+maths,conicsections_027,For ellipse with foci on x-axis the standard equation is:,x_/a_ + y_/b_ = 1 where a > b,x_/b_ + y_/a_ = 1 where a > b,x_/a_ - y_/b_ = 1,y_/a_ - x_/b_ = 1,a,Conic Sections - conic_sections,C2,1.5,-0.5,0.25
+maths,conicsections_028,The point where parabola intersects its axis is called:,Focus,Vertex,Directrix,Centre,b,Conic Sections - conic_sections,C1,1.5,-1.0,0.25
+maths,conicsections_029,For the ellipse x_/36 + y_/16 = 1 the value of a is:,36,16,6,4,c,Conic Sections - conic_sections,C2,1.5,-0.5,0.25
+maths,conicsections_030,A degenerate conic formed when plane passes through vertex with _ = _ is:,A point,A straight line,Two intersecting lines,A circle,b,Conic Sections - conic_sections,C2,1.5,-0.5,0.25
+maths,conicsections_031,The equation x_ = 6y represents a parabola with:,Focus at (0 3/2),Focus at (3/2 0),Vertex at (3 0),Directrix y = 3/2,a,Conic Sections - conic_sections,C3,1.5,0.5,0.25
+maths,conicsections_032,For hyperbola x_/a_ - y_/b_ = 1 the foci lie on:,x-axis,y-axis,Both axes,Origin,a,Conic Sections - conic_sections,C2,1.5,-0.5,0.25
+maths,conicsections_033,The length of major axis of ellipse x_/25 + y_/16 = 1 is:,25,16,10,8,c,Conic Sections - conic_sections,C2,1.5,-0.5,0.25
+maths,conicsections_034,An equilateral hyperbola satisfies:,a = b,a = c,b = c,a = b = c,a,Conic Sections - conic_sections,C2,1.5,-0.5,0.25
+maths,conicsections_035,The equation of parabola with focus (0 2) and directrix y = -2 is:,y_ = 8x,x_ = 8y,y_ = -8x,x_ = -8y,b,Conic Sections - conic_sections,C3,1.5,0.5,0.25
+maths,conicsections_036,For the ellipse x_/9 + y_/16 = 1 the major axis is along:,x-axis,y-axis,Both axes,Neither axis,b,Conic Sections - conic_sections,C3,1.5,0.5,0.25
+maths,conicsections_037,The radius of circle 2x_ + 2y_ - x = 0 is:,1/2,1/4,1,2,b,Conic Sections - conic_sections,C3,1.5,0.5,0.25
+maths,conicsections_038,For parabola x_ = -16y the directrix is:,y = 4,y = -4,x = 4,x = -4,a,Conic Sections - conic_sections,C3,1.5,0.5,0.25
+maths,conicsections_039,The eccentricity of the ellipse x_/25 + y_/9 = 1 is:,3/5,4/5,5/4,9/25,b,Conic Sections - conic_sections,C3,1.5,0.5,0.25
+maths,conicsections_040,When 0 ² _ < _ (cone angle) the conic formed is:,Circle,Ellipse,Parabola,Hyperbola,d,Conic Sections - conic_sections,C2,1.5,-0.5,0.25
+maths,conicsections_041,The equation of circle passing through origin with centre (h k) is:,x_ + y_ = h_ + k_,(x-h)_ + (y-k)_ = h_ + k_,x_ + y_ = 2hx + 2ky,x_ + y_ - 2hx - 2ky = 0,d,Conic Sections - conic_sections,C3,1.5,0.5,0.25
+maths,conicsections_042,For hyperbola y_/9 - x_/27 = 1 the length of transverse axis is:,9,27,6,3Ã3,c,Conic Sections - conic_sections,C3,1.5,0.5,0.25
+maths,conicsections_043,The latus rectum of hyperbola x_/a_ - y_/b_ = 1 is:,2a_/b,2b_/a,a_/b,b_/a,b,Conic Sections - conic_sections,C2,1.5,-0.5,0.25
+maths,conicsections_044,The vertices of ellipse x_/16 + y_/9 = 1 are:,(±4 0),(±3 0),(0 ±4),(0 ±3),a,Conic Sections - conic_sections,C2,1.5,-0.5,0.25
+maths,conicsections_045,A circle with centre at origin passes through (4 3). Its equation is:,x_ + y_ = 25,x_ + y_ = 7,x_ + y_ = 16,x_ + y_ = 9,a,Conic Sections - conic_sections,C2,1.5,-0.5,0.25
+maths,conicsections_046,For the parabola y_ = -8x the focus is at:,(-2 0),(2 0),(0 -2),(0 2),a,Conic Sections - conic_sections,C3,1.5,0.5,0.25
+maths,conicsections_047,The foci of ellipse x_/25 + y_/16 = 1 are:,(±3 0),(±4 0),(0 ±3),(±5 0),a,Conic Sections - conic_sections,C3,1.5,0.5,0.25
+maths,conicsections_048,The equation of hyperbola with vertices (±2 0) and foci (±3 0) is:,x_/4 - y_/9 = 1,x_/4 - y_/5 = 1,x_/9 - y_/4 = 1,y_/4 - x_/5 = 1,b,Conic Sections - conic_sections,C3,1.5,0.5,0.25
+maths,conicsections_049,The centre of ellipse 9x_ + 4y_ = 36 is:,(0 0),(3 2),(9 4),(2 3),a,Conic Sections - conic_sections,C2,1.5,-0.5,0.25
+maths,conicsections_050,For parabola with vertex at origin opening upward the equation is:,y_ = 4ax,x_ = 4ay,y_ = -4ax,x_ = -4ay,b,Conic Sections - conic_sections,C2,1.5,-0.5,0.25
+maths,conicsections_051,The distance between foci of hyperbola x_/16 - y_/9 = 1 is:,5,10,7,14,b,Conic Sections - conic_sections,C3,1.5,0.5,0.25
+maths,conicsections_052,An ellipse with foci (0 ±5) and vertices (0 ±13) has equation:,x_/169 + y_/144 = 1,x_/144 + y_/169 = 1,y_/169 - x_/144 = 1,x_/25 + y_/169 = 1,b,Conic Sections - conic_sections,C3,1.5,0.5,0.25
+maths,conicsections_053,The equation x_ + y_ - 8x + 10y - 12 = 0 represents a circle with radius:,7,Ã65,5,Ã41,d,Conic Sections - conic_sections,C3,1.5,0.5,0.25
+maths,conicsections_054,For the parabola x_ = 4y the latus rectum length is:,1,2,4,8,c,Conic Sections - conic_sections,C2,1.5,-0.5,0.25
+maths,conicsections_055,The eccentricity of hyperbola x_/9 - y_/16 = 1 is:,4/3,5/3,3/5,3/4,b,Conic Sections - conic_sections,C3,1.5,0.5,0.25
+maths,conicsections_056,A parabola with focus (6 0) and directrix x = -6 has equation:,y_ = 12x,y_ = 24x,x_ = 24y,y_ = 6x,b,Conic Sections - conic_sections,C3,1.5,0.5,0.25
+maths,conicsections_057,The minor axis length of ellipse x_/49 + y_/36 = 1 is:,49,36,14,12,d,Conic Sections - conic_sections,C3,1.5,0.5,0.25
+maths,conicsections_058,For circle with centre (-2 3) and radius 4 the equation is:,(x+2)_ + (y-3)_ = 16,(x-2)_ + (y+3)_ = 16,(x+2)_ + (y-3)_ = 4,x_ + y_ = 16,a,Conic Sections - conic_sections,C2,1.5,-0.5,0.25
+maths,conicsections_059,The equation y_ = 10x represents a parabola with focus at:,(5/2 0),(10 0),(0 5/2),(2.5 2.5),a,Conic Sections - conic_sections,C2,1.5,-0.5,0.25
+maths,conicsections_060,Hyperbola 16x_ - 9y_ = 576 in standard form is:,x_/36 - y_/64 = 1,x_/64 - y_/36 = 1,x_/16 - y_/9 = 1,x_/9 - y_/16 = 1,a,Conic Sections - conic_sections,C3,1.5,0.5,0.25
+maths,conicsections_061,The latus rectum of ellipse x_/4 + y_/25 = 1 is:,8/5,25/2,2/5,None of these,a,Conic Sections - conic_sections,C3,1.5,0.5,0.25
+maths,conicsections_062,For hyperbola with foci (±5 0) and transverse axis length 8 the equation is:,x_/16 - y_/9 = 1,x_/25 - y_/16 = 1,x_/64 - y_/25 = 1,None of these,a,Conic Sections - conic_sections,C3,1.5,0.5,0.25
+maths,conicsections_063,A circle passing through (4 1) and (6 5) with centre on line x + y = 2 has centre at:,(0.7 1.3),(1 1),(2 0),(3 -1),a,Conic Sections - conic_sections,C4,1.5,1.0,0.25
+maths,conicsections_064,The parabola y_ = 4ax passes through (4 3). The value of a is:,9/16,16/9,3/4,4/3,a,Conic Sections - conic_sections,C3,1.5,0.5,0.25
+maths,conicsections_065,For ellipse with major axis along y-axis and passing through (3 2) and (1 6) the equation involves:,Complex calculation,Simple substitution,Both a and b,Eccentricity,a,Conic Sections - conic_sections,C4,1.5,1.0,0.25
+maths,conicsections_066,The point (2.5 3.5) lies ___ the circle x_ + y_ = 25:,Inside,Outside,On,Cannot determine,b,Conic Sections - conic_sections,C3,1.5,0.5,0.25
+maths,conicsections_067,Hyperbola with foci (0 ±12) and latus rectum 36 has equation:,3y_ - x_ = 108,y_ - 3x_ = 36,x_ - 3y_ = 108,None of these,a,Conic Sections - conic_sections,C4,1.5,1.0,0.25
+maths,conicsections_068,The circle with radius 5 and centre on x-axis passing through (2 3) has equation:,x_+y_-8x-9=0 or x_+y_+8x-9=0,(x-4)_+y_=25 only,(x+4)_+y_=25 only,Cannot be determined,a,Conic Sections - conic_sections,C4,1.5,1.0,0.25
+maths,conicsections_069,Ellipse with vertices (±13 0) and foci (±5 0) has equation:,x_/169 + y_/144 = 1,x_/144 + y_/169 = 1,x_/25 + y_/144 = 1,x_/169 + y_/25 = 1,a,Conic Sections - conic_sections,C3,1.5,0.5,0.25
+maths,conicsections_070,For parabola symmetric about y-axis passing through (2 -3) the equation is:,3x_ = -4y,x_ = -3y,3x_ = 4y,4x_ = -3y,a,Conic Sections - conic_sections,C3,1.5,0.5,0.25
+maths,conicsections_071,The conjugate axis of hyperbola y_/25 - x_/16 = 1 has length:,25,16,10,8,d,Conic Sections - conic_sections,C2,1.5,-0.5,0.25
+maths,conicsections_072,A rod of length 15 cm with end A at (x 0) and end B at (0 y) satisfies:,x_ + y_ = 225,x_/15 + y_/15 = 1,x + y = 15,x_ + y_ = 15,a,Conic Sections - conic_sections,C3,1.5,0.5,0.25
+maths,conicsections_073,The foci of hyperbola 9y_ - 4x_ = 36 are:,(0 ±Ã13),(±Ã13 0),(0 ±3),(0 ±2),a,Conic Sections - conic_sections,C3,1.5,0.5,0.25
+maths,conicsections_074,Circle x_ + y_ - 4x - 8y - 45 = 0 has radius:,Ã65,9,7,Ã85,d,Conic Sections - conic_sections,C3,1.5,0.5,0.25
+maths,conicsections_075,Parabola with vertex (0 0) and focus (0 -2) has equation:,x_ = -8y,y_ = -8x,x_ = 8y,y_ = 8x,a,Conic Sections - conic_sections,C2,1.5,-0.5,0.25
+maths,conicsections_076,The eccentricity of ellipse 4x_ + 9y_ = 36 is:,Ã5/3,2/3,1/2,Ã5/2,a,Conic Sections - conic_sections,C3,1.5,0.5,0.25
+maths,conicsections_077,Hyperbola with vertices (0 ±3) and foci (0 ±5) has equation:,y_/9 - x_/16 = 1,x_/9 - y_/16 = 1,y_/25 - x_/9 = 1,x_/16 - y_/9 = 1,a,Conic Sections - conic_sections,C3,1.5,0.5,0.25
+maths,conicsections_078,The directrix of parabola x_ = -9y is:,y = 9/4,y = -9/4,x = 9/4,x = -9/4,a,Conic Sections - conic_sections,C3,1.5,0.5,0.25
+maths,conicsections_079,For ellipse with length of major axis 26 and foci (±5 0) the equation is:,x_/169 + y_/144 = 1,x_/26 + y_/25 = 1,x_/676 + y_/651 = 1,None of these,a,Conic Sections - conic_sections,C3,1.5,0.5,0.25
+maths,conicsections_080,A circle making intercepts a and b on coordinate axes passing through origin has equation:,x_ + y_ = ax + by,x_ + y_ - ax - by = 0,2(x_ + y_) = ax + by,x_ + y_ + ax + by = 0,b,Conic Sections - conic_sections,C4,1.5,1.0,0.25

@@ -1,0 +1,79 @@
+subject,question_id,question,option_a,option_b,option_c,option_d,answer,topic,tier,discrimination_a,difficulty_b,guessing_c
+maths,linearinequalities_001,Solve 24x < 100 when x is a natural number. What is the solution set?,{1,2,3},{1,a,Linear Inequalities - 4},C3,1.5,0.5,0.25
+maths,linearinequalities_002,Solve 24x < 100 when x is an integer. The largest integer value of x is:,4,3,5,2,b,Linear Inequalities - linear_inequalities,C1,1.5,-1.0,0.25
+maths,linearinequalities_003,Solve -12x > 30 when x is a natural number. The solution set is:,Empty set,{1,2},{-3,a,Linear Inequalities - ...},C2,1.5,-0.5,0.25
+maths,linearinequalities_004,Solve -12x > 30 when x is an integer. What are the solutions?,x > -5/2,x < -5/2,x ³ -2,x ² -3,b,Linear Inequalities - linear_inequalities,C2,1.5,-0.5,0.25
+maths,linearinequalities_005,Solve 5x - 3 < 7 when x is an integer. The solution set is:,x < 2,{...,-2,-1,a,{-1,C2,1.5,-0.5,0.25
+maths,linearinequalities_006,Solve 5x - 3 < 7 when x is a real number. The solution in interval notation is:,(-°,2),(-°,2],a,Linear Inequalities - [2,C2,1.5,-0.5,0.25
+maths,linearinequalities_007,Solve 3x + 8 > 2 when x is an integer. The smallest integer solution is:,-2,-1,0,1,b,Linear Inequalities - linear_inequalities,C1,1.5,-1.0,0.25
+maths,linearinequalities_008,Solve 3x + 8 > 2 when x is a real number. The solution is:,x > -2,x < -2,x ³ -2,x > 2,a,Linear Inequalities - linear_inequalities,C1,1.5,-1.0,0.25
+maths,linearinequalities_009,Solve 4x + 3 < 5x + 7. The solution set is:,x > -4,x < -4,x ³ -4,x ² -4,a,Linear Inequalities - linear_inequalities,C1,1.5,-1.0,0.25
+maths,linearinequalities_010,Solve 3x - 7 > 5x - 1. The solution is:,x < -3,x > -3,x < 3,x > 3,a,Linear Inequalities - linear_inequalities,C2,1.5,-0.5,0.25
+maths,linearinequalities_011,Solve 3(x - 1) ² 2(x - 3). The solution is:,x ² -3,x ³ -3,x ² 3,x ³ 3,a,Linear Inequalities - linear_inequalities,C2,1.5,-0.5,0.25
+maths,linearinequalities_012,Solve 3(2 - x) ³ 2(1 - x). The solution is:,x ² 4,x ³ 4,x ² -4,x ³ -4,a,Linear Inequalities - linear_inequalities,C2,1.5,-0.5,0.25
+maths,linearinequalities_013,Solve x + x/2 + x/3 < 11. The solution is:,x < 6,x > 6,x ² 6,x ³ 6,a,Linear Inequalities - linear_inequalities,C2,1.5,-0.5,0.25
+maths,linearinequalities_014,Solve x/3 > x/2 + 1. The solution is:,x < -6,x > -6,x < 6,x > 6,a,Linear Inequalities - linear_inequalities,C2,1.5,-0.5,0.25
+maths,linearinequalities_015,Solve 3(x-2)/5 ² 5(2-x)/3. The solution is:,x ² 1,x ³ 1,x ² 19/12,x ³ 19/12,d,Linear Inequalities - linear_inequalities,C3,1.5,0.5,0.25
+maths,linearinequalities_016,Solve (1/2)(3x/5 + 4) ³ (1/3)(x - 6). The solution is:,x ³ -24,x ³ -4,x ² -24,x ² -4,c,Linear Inequalities - linear_inequalities,C3,1.5,0.5,0.25
+maths,linearinequalities_017,Solve 2(2x + 3) - 10 < 6(x - 2). The solution is:,x > 4,x < 4,x ³ 4,x ² 4,a,Linear Inequalities - linear_inequalities,C2,1.5,-0.5,0.25
+maths,linearinequalities_018,Solve 37 - (3x + 5) > 9x - 8(x - 3). The solution is:,x < 4,x > 4,x < 8,x > 8,a,Linear Inequalities - linear_inequalities,C3,1.5,0.5,0.25
+maths,linearinequalities_019,Solve x/4 < (5x-2)/3 - (7x-3)/5. The solution is:,x > 8/9,x < 8/9,x > -8/9,x < -8/9,b,Linear Inequalities - linear_inequalities,C3,1.5,0.5,0.25
+maths,linearinequalities_020,Solve (2x-1)/3 ³ (3x-2)/4 - (2-x)/5. The solution is:,x ² 2,x ³ 2,x ² 0,x ³ 0,a,Linear Inequalities - linear_inequalities,C4,1.5,1.0,0.25
+maths,linearinequalities_021,For the inequality 3x - 2 < 2x + 1,the solution represented on number line shows:,x < 3 with open circle at 3,x > 3 with open circle at 3,x ² 3 with closed circle at 3,a,Linear Inequalities - c2,C2,1.5,-0.5,0.25
+maths,linearinequalities_022,For the inequality 5x - 3 ³ 3x - 5,the solution on number line shows:,x ³ -1 with closed circle at -1,x > -1 with open circle at -1,x ² -1 with closed circle at -1,a,Linear Inequalities - c2,C2,1.5,-0.5,0.25
+maths,linearinequalities_023,Solve 3(1 - x) < 2(x + 4). The graphical representation shows:,x > -1 with shading to the right,x < -1 with shading to the left,x > 1 with shading to the right,x < 1 with shading to the left,a,Linear Inequalities - linear_inequalities,C2,1.5,-0.5,0.25
+maths,linearinequalities_024,Solve x/2 ³ (5x-2)/3 - (7x-3)/5. The solution is:,x ² 2,x ³ 2,x ² 8/9,x ³ 8/9,c,Linear Inequalities - linear_inequalities,C3,1.5,0.5,0.25
+maths,linearinequalities_025,Ravi obtained 70 and 75 marks in first two unit tests. Minimum marks needed in third test for average of at least 60 is:,55,45,60,50,b,Linear Inequalities - linear_inequalities,C2,1.5,-0.5,0.25
+maths,linearinequalities_026,To get grade A (average ³ 90) in five exams,if first four scores are 87,92,94,95,a,Linear Inequalities - 85,C2,1.5,-0.5,0.25
+maths,linearinequalities_027,All pairs of consecutive odd positive integers both smaller than 10 with sum > 11 are:,(3,5),(5,7),a,Linear Inequalities - (5,C2,1.5,-0.5,0.25
+maths,linearinequalities_028,All pairs of consecutive even positive integers both larger than 5 with sum < 23 are:,(6,8),(8,10),a,Linear Inequalities - (8,C2,1.5,-0.5,0.25
+maths,linearinequalities_029,In a triangle,longest side = 3_shortest side,third side = longest - 2cm. If perimeter ³ 61cm,minimum length of shortest side is:,10 cm,a,Linear Inequalities - 12 cm,C2,1.5,-0.5,0.25
+maths,linearinequalities_030,A board of 91cm is cut into three pieces. Second = shortest + 3cm,third = 2_shortest. If third ³ second + 5cm,possible lengths of shortest are:,[22,°),a,Linear Inequalities - [23,C2,1.5,-0.5,0.25
+maths,linearinequalities_031,Solve -8 ² 5x - 3 < 7. The solution is:,[-1,2),(-1,2],a,(-1,C2,1.5,-0.5,0.25
+maths,linearinequalities_032,Solve -5 ² (5-3x)/2 ² 8. The solution is:,[-11/3,5],[-5,11/3],a,[-11/3,C2,1.5,-0.5,0.25
+maths,linearinequalities_033,Solve the system: 3x - 7 < 5 + x and 11 - 5x ² 1. The solution is:,2 ² x < 6,2 < x ² 6,2 < x < 6,2 ² x ² 6,a,Linear Inequalities - linear_inequalities,C3,1.5,0.5,0.25
+maths,linearinequalities_034,If 30 < C < 35 where C = 5/9(F - 32),then the range of F is:,86 < F < 95,30 < F < 35,54 < F < 63,a,Linear Inequalities - c3,C2,1.5,-0.5,0.25
+maths,linearinequalities_035,How many litres of 30% acid solution must be added to 600L of 12% solution so that mixture has acid content between 15% and 18%?,100 < x < 200,120 < x < 300,150 < x < 350,200 < x < 400,b,Linear Inequalities - linear_inequalities,C4,1.5,1.0,0.25
+maths,linearinequalities_036,An inequality is called 'strict' if it contains:,² or ³ symbols,< or > symbols,= symbol,Any of the above,b,Linear Inequalities - linear_inequalities,C1,1.5,-1.0,0.25
+maths,linearinequalities_037,An inequality is called 'slack' if it contains:,< or > symbols,² or ³ symbols,Only < symbol,Only > symbol,b,Linear Inequalities - linear_inequalities,C1,1.5,-1.0,0.25
+maths,linearinequalities_038,Which of the following is a linear inequality in one variable?,ax_ + bx + c < 0,ax + by < c,ax + b ³ 0 (a­0),x_ - 5x + 6 > 0,c,Linear Inequalities - linear_inequalities,C1,1.5,-1.0,0.25
+maths,linearinequalities_039,Which is a linear inequality in two variables?,3x + 4y ² 12,x_ + y_ < 25,x_ > 8,5x - 3 ³ 0,a,Linear Inequalities - linear_inequalities,C1,1.5,-1.0,0.25
+maths,linearinequalities_040,When both sides of an inequality are multiplied by a negative number:,Sign remains unchanged,Sign is reversed,Inequality becomes equation,None of these,b,Linear Inequalities - linear_inequalities,C1,1.5,-1.0,0.25
+maths,linearinequalities_041,When both sides of an inequality are multiplied by a positive number:,Sign is reversed,Sign remains unchanged,Result is undefined,Inequality becomes equation,b,Linear Inequalities - linear_inequalities,C1,1.5,-1.0,0.25
+maths,linearinequalities_042,The solution of 30x < 200 when x is natural number is:,{1,2,3,4,a,Linear Inequalities - {0,C2,1.5,-0.5,0.25
+maths,linearinequalities_043,Solve 2 ² 3x - 4 ² 5. The solution is:,[2,3],(2,3),a,Linear Inequalities - (2,C2,1.5,-0.5,0.25
+maths,linearinequalities_044,Solve 6 ² -3(2x - 4) < 12. The solution is:,(0,1],[0,1),a,Linear Inequalities - [0,C2,1.5,-0.5,0.25
+maths,linearinequalities_045,Solve -3 ² 4 - 7x/2 ² 18. The solution is:,[-4,2],[-2,4],a,[-4,C2,1.5,-0.5,0.25
+maths,linearinequalities_046,Solve -15 < 3(x-2)/5 ² 0. The solution is:,(-23,2],[-23,2),a,[-23,C2,1.5,-0.5,0.25
+maths,linearinequalities_047,Solve -12 < 4 - 3x/-5 ² 2. The solution is:,[-2,24),(-2,24],a,(-2,C2,1.5,-0.5,0.25
+maths,linearinequalities_048,Solve 7 ² (3x+11)/2 ² 11. The solution is:,[1,7/3],[7/3,1],a,Linear Inequalities - [1,C2,1.5,-0.5,0.25
+maths,linearinequalities_049,Solve the system: 5x + 1 > -24 and 5x - 1 < 24. The solution is:,(-5,5),[-5,5],a,[-5,C2,1.5,-0.5,0.25
+maths,linearinequalities_050,Solve: 2(x - 1) < x + 5 and 3(x + 2) > 2 - x. The solution is:,(-1,7),[-1,7],a,[-1,C2,1.5,-0.5,0.25
+maths,linearinequalities_051,Solve: 3x - 7 > 2(x - 6) and 6 - x > 11 - 2x. The solution is:,(-5,5),[-5,5],a,(-°,C2,1.5,-0.5,0.25
+maths,linearinequalities_052,Solve: 5(2x - 7) - 3(2x + 3) ² 0 and 2x + 19 ² 6x + 47. The solution is:,[-7,11],[-11,7],a,Linear Inequalities - [11,C2,1.5,-0.5,0.25
+maths,linearinequalities_053,If 68¡F ² solution temperature ² 77¡F,the range in Celsius (C = 5/9(F-32)) is:,20¡C to 25¡C,15¡C to 20¡C,10¡C to 15¡C,a,Linear Inequalities - c3,C2,1.5,-0.5,0.25
+maths,linearinequalities_054,640L of 8% boric acid diluted with 2% solution to get 4% to 6% mixture. Amount of 2% solution needed is:,Between 213L and 640L,Between 320L and 1280L,Between 160L and 960L,Between 100L and 500L,b,Linear Inequalities - linear_inequalities,C4,1.5,1.0,0.25
+maths,linearinequalities_055,How many litres of water to add to 1125L of 45% acid to get 25% to 30% acid content?,562.5L to 1125L,500L to 1000L,750L to 1500L,600L to 1200L,a,Linear Inequalities - linear_inequalities,C4,1.5,1.0,0.25
+maths,linearinequalities_056,If IQ = MA/CA _ 100 and 80 ² IQ ² 140 for 12-year-olds,the mental age range is:,9.6 to 16.8 years,8 to 14 years,10 to 17 years,a,Linear Inequalities - c3,C2,1.5,-0.5,0.25
+maths,linearinequalities_057,The solution of 4x + 3 < 6x + 7 is:,x > -2,x < -2,x > 2,x < 2,a,Linear Inequalities - linear_inequalities,C1,1.5,-1.0,0.25
+maths,linearinequalities_058,The solution of (5-2x)/3 ² x/6 - 5 is:,x ³ 8,x ² 8,x ³ -8,x ² -8,a,Linear Inequalities - linear_inequalities,C2,1.5,-0.5,0.25
+maths,linearinequalities_059,Which value satisfies x + x/2 + x/3 < 11?,5,6,7,11,a,Linear Inequalities - linear_inequalities,C2,1.5,-0.5,0.25
+maths,linearinequalities_060,If x > 10 and x + (x+2) < 40 for consecutive odd numbers,x can be:,9,11,17,a,Linear Inequalities - c2,C2,1.5,-0.5,0.25
+maths,linearinequalities_061,The number line representation of x < 3 has:,Open circle at 3,shading left,Closed circle at 3,shading left,a,Linear Inequalities - Closed circle at 3,C2,1.5,-0.5,0.25
+maths,linearinequalities_062,The number line representation of x ³ -1 has:,Closed circle at -1,shading right,Open circle at -1,shading right,a,Open circle at -1,C2,1.5,-0.5,0.25
+maths,linearinequalities_063,For inequality 7x + 3 < 5x + 9,which is true?,Solution is x < 3,Solution is x > 3,Solution is x ² 3,a,Linear Inequalities - c2,C2,1.5,-0.5,0.25
+maths,linearinequalities_064,For (3x-4)/2 ³ (x+1)/4 - 1,the solution is:,x ³ 1,x ² 1,x > 1,a,Linear Inequalities - c2,C2,1.5,-0.5,0.25
+maths,linearinequalities_065,If 62,48 are first two test scores and average needs to be ³60,third test minimum score is:,60,65,a,Linear Inequalities - c,C2,1.5,-0.5,0.25
+maths,linearinequalities_066,When solving -2x < 4,the correct next step is:,x > -2,x < -2,x > 2,a,Linear Inequalities - c1,C2,1.5,-0.5,0.25
+maths,linearinequalities_067,The inequality 3 < 5 < 7 is an example of:,Single inequality,Double inequality,Triple inequality,Compound inequality,b,Linear Inequalities - linear_inequalities,C1,1.5,-1.0,0.25
+maths,linearinequalities_068,Which represents a numerical inequality?,x < 5,3 < 5,2x + 3 > 7,y ³ 4,b,Linear Inequalities - linear_inequalities,C1,1.5,-1.0,0.25
+maths,linearinequalities_069,Which represents a literal inequality?,7 > 5,3 < 5,x ³ 3,3 < 5 < 7,c,Linear Inequalities - linear_inequalities,C1,1.5,-1.0,0.25
+maths,linearinequalities_070,In 40x + 20y ² 120,the variables are:,One,Two,Three,a,Linear Inequalities - c1,C2,1.5,-0.5,0.25
+maths,linearinequalities_071,The inequality ax + b < 0 is linear in one variable when:,a = 0,a ­ 0,b = 0,a = b,b,Linear Inequalities - linear_inequalities,C1,1.5,-1.0,0.25
+maths,linearinequalities_072,The inequality ax + by < c is linear in two variables when:,a = 0,b ­ 0,a ­ 0,b = 0,a,Linear Inequalities - a = b = 0,C2,1.5,-0.5,0.25
+maths,linearinequalities_073,Solve x/3 > x/2 + 1. Which value is in solution set?,-10,-5,0,5,a,Linear Inequalities - linear_inequalities,C2,1.5,-0.5,0.25
+maths,linearinequalities_074,For 3(x-1) ² 2(x-3),which is a solution?,-2,-3,-4,a,Linear Inequalities - c2,C2,1.5,-0.5,0.25
+maths,linearinequalities_075,The solution set of 3(2-x) ³ 2(1-x) includes:,x = 5,x = 4,x = 3,x = 0,d,Linear Inequalities - linear_inequalities,C2,1.5,-0.5,0.25
+maths,linearinequalities_076,How many natural number solutions exist for 5x - 3 < 7?,1,2,3,Infinitely many,a,Linear Inequalities - linear_inequalities,C2,1.5,-0.5,0.25
+maths,linearinequalities_077,For 3x - 7 > 5x - 1,the solution in interval notation is:,(-°,-3),(-3,a,Linear Inequalities - 3),C2,1.5,-0.5,0.25
+maths,linearinequalities_078,If both x and x+2 are >10 and their sum <40,how many such odd pairs exist?,2,3,4,a,Linear Inequalities - c3,C2,1.5,-0.5,0.25

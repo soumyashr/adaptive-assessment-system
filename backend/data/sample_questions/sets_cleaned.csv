@@ -1,0 +1,83 @@
+subject,question_id,question,option_a,option_b,option_c,option_d,answer,topic,tier,discrimination_a,difficulty_b,guessing_c
+maths,sets_001,Which of the following is a well-defined collection?,The collection of most talented writers,The collection of beautiful flowers,The collection of vowels in English alphabet,The collection of interesting books,a,Sets - sets,C1,1.5,-1.0,0.25
+maths,sets_002,Which symbol is used to denote 'belongs to' in set theory?,_,_,_,_,a,Sets - sets,C1,1.5,-1.0,0.25
+maths,sets_003,If a _ A,what does this notation mean?,a is a subset of A,a is an element of A,a is equal to A,a,Sets - c1,C2,1.5,-0.5,0.25
+maths,sets_004,Which of the following represents the empty set?,{0},{_},_,{1},a,Sets - sets,C1,1.5,-1.0,0.25
+maths,sets_005,In roster form,the set of odd natural numbers less than 10 is:,{1,3,5,a,Sets - 3,C2,1.5,-0.5,0.25
+maths,sets_006,The set {S,C,H,O,L} represents letters in which word?,a,Sets - CHOOSE,C2,1.5,-0.5,0.25
+maths,sets_007,If A = {1,2,3} and B = {3,1,2},a,Sets - A _ B only,C2,1.5,-0.5,0.25
+maths,sets_008,The set of natural numbers is denoted by:,Z,Q,N,R,a,Sets - sets,C1,1.5,-1.0,0.25
+maths,sets_009,The set of integers is denoted by:,Z,Q,N,R,a,Sets - sets,C1,1.5,-1.0,0.25
+maths,sets_010,Which of the following is the null set?,{x : x _ N and x < 1},{0},{x : x_ = 4},{_},a,Sets - sets,C2,1.5,-0.5,0.25
+maths,sets_011,If A = {a,b,c},how many elements does A have?,2,a,Sets - 5,C4,1.5,1.0,0.25
+maths,sets_012,The set {x : x is an even prime number} equals:,{2},_,{2,4,a,Sets - {2},C2,1.5,-0.5,0.25
+maths,sets_013,If n(A) = 5,what does this mean?,A has 5 subsets,A has 5 elements,A has 5 proper subsets,a,Sets - c1,C2,1.5,-0.5,0.25
+maths,sets_014,A finite set is one that:,Has no elements,Has a definite number of elements or is empty,Is infinite,Has exactly one element,a,Sets - sets,C1,1.5,-1.0,0.25
+maths,sets_015,The set of real numbers is denoted by:,Q,Z,N,R,a,Sets - sets,C1,1.5,-1.0,0.25
+maths,sets_016,If A = {1,2} and B = {2,1},then which is true?,A ­ B,a,Sets - Neither A _ B nor B _ A,C2,1.5,-0.5,0.25
+maths,sets_017,Which of the following is an infinite set?,{x : x is a month of a year},{x : x _ N},{x : x _ N and x < 100},{1,a,Sets - 4,C3,1.5,0.5,0.25
+maths,sets_018,The interval (a,b) represents:,{x : a < x < b},{x : a ² x ² b},{x : a ² x < b},a,Sets - c1,C2,1.5,-0.5,0.25
+maths,sets_019,The interval [a,b] represents:,{x : a < x < b},{x : a ² x ² b},{x : a ² x < b},a,Sets - c1,C2,1.5,-0.5,0.25
+maths,sets_020,If every element of A is also in B,then:,A = B,A _ B,B _ A,a,Sets - c1,C2,1.5,-0.5,0.25
+maths,sets_021,The symbol _ means:,is an element of,is equal to,is a subset of,is the union of,a,Sets - sets,C1,1.5,-1.0,0.25
+maths,sets_022,If A _ B and A ­ B,then A is called:,Equal set,Proper subset,Universal set,a,Sets - c2,C2,1.5,-0.5,0.25
+maths,sets_023,Which set is a subset of every set?,Universal set,Empty set _,Set of natural numbers,Set {0},a,Sets - sets,C2,1.5,-0.5,0.25
+maths,sets_024,If A = {1,2,3,4,5,a,Sets - 6},C4,1.5,1.0,0.25
+maths,sets_025,The set {1,2,3} has how many subsets in total?,6,7,a,Sets - 8,C2,1.5,-0.5,0.25
+maths,sets_026,A singleton set contains:,No elements,Exactly one element,Two elements,Infinite elements,a,Sets - sets,C1,1.5,-1.0,0.25
+maths,sets_027,Which of the following is true for any set A?,_ _ A,A _ _,_ _ A,A = _,a,Sets - sets,C2,1.5,-0.5,0.25
+maths,sets_028,The set Q represents:,Natural numbers,Integers,Rational numbers,Real numbers,a,Sets - sets,C1,1.5,-1.0,0.25
+maths,sets_029,The universal set is usually denoted by:,A,B,U,_,a,Sets - sets,C1,1.5,-1.0,0.25
+maths,sets_030,If A _ B represents the union of sets A and B,it contains:,Only elements in A,Only elements in B,Elements in both A and B only,a,Sets - c1,C2,1.5,-0.5,0.25
+maths,sets_031,If A = {1,2,3} and B = {3,4,5},a,Sets - {1,C2,1.5,-0.5,0.25
+maths,sets_032,The symbol _ represents:,Intersection,Union,Difference,Complement,a,Sets - sets,C1,1.5,-1.0,0.25
+maths,sets_033,If A = {2,4,6} and B = {4,6,8},a,Sets - 4,C2,1.5,-0.5,0.25
+maths,sets_034,The symbol _ represents:,Union,Intersection,Difference,Complement,a,Sets - sets,C1,1.5,-1.0,0.25
+maths,sets_035,If A _ B = _,then A and B are called:,Equal sets,Disjoint sets,Equivalent sets,a,Sets - c1,C2,1.5,-0.5,0.25
+maths,sets_036,If A = {1,2,3,4,5} and B = {4,a,Sets - 7},C2,1.5,-0.5,0.25
+maths,sets_037,For any set A,A _ _ equals:,_,A,U,a,Sets - c1,C2,1.5,-0.5,0.25
+maths,sets_038,For any set A,A _ _ equals:,A,_,U,a,Sets - c1,C2,1.5,-0.5,0.25
+maths,sets_039,If U is the universal set and A _ U,then A' represents:,Elements in A,Elements in U but not in A,Elements in both A and U,a,Sets - c2,C2,1.5,-0.5,0.25
+maths,sets_040,For any set A,A _ A' equals:,A,A',_,a,Sets - c2,C2,1.5,-0.5,0.25
+maths,sets_041,For any set A,A _ A' equals:,A,A',U,a,Sets - c2,C2,1.5,-0.5,0.25
+maths,sets_042,Which law states: (A _ B)' = A' _ B'?,Associative law,Commutative law,De Morgan's law,Distributive law,a,Sets - sets,C2,1.5,-0.5,0.25
+maths,sets_043,For any set A,(A')' equals:,A,A',U,a,Sets - c2,C2,1.5,-0.5,0.25
+maths,sets_044,If A _ B = B,then which is true?,A _ B,B _ A,A = B,a,Sets - c2,C2,1.5,-0.5,0.25
+maths,sets_045,If A _ B = A,then which is true?,A _ B,B _ A,A = _,a,Sets - c2,C2,1.5,-0.5,0.25
+maths,sets_046,The commutative law for union states:,A _ (B _ C) = (A _ B) _ C,A _ B = B _ A,A _ (B _ C) = (A _ B) _ (A _ C),A _ _ = A,a,Sets - sets,C1,1.5,-1.0,0.25
+maths,sets_047,The associative law for intersection states:,(A _ B) _ C = A _ (B _ C),A _ B = B _ A,A _ U = A,A _ _ = _,a,Sets - sets,C2,1.5,-0.5,0.25
+maths,sets_048,If A = {x : x_ _ 5x + 6 = 0},then A in roster form is:,{2,3},{_2,a,Sets - {5,C2,1.5,-0.5,0.25
+maths,sets_049,The set {x : x is a letter in the word MATHEMATICS} has how many elements?,11,8,9,10,a,Sets - sets,C2,1.5,-0.5,0.25
+maths,sets_050,If n(A) = p and n(B) = q,then n(A _ B) equals:,p + q,p _ q,pq,a,Sets - c2,C2,1.5,-0.5,0.25
+maths,sets_051,Which of the following sets are equal: A = {1,2},B = {x : x_ _ 3x + 2 = 0}?,Not equal,Equal,a,Sets - Equal,C2,1.5,-0.5,0.25
+maths,sets_052,The interval [_3,5) in set-builder form is:,{x : _3 < x < 5},{x : _3 ² x ² 5},{x : _3 ² x < 5},a,Sets - c2,C2,1.5,-0.5,0.25
+maths,sets_053,If A = {2,4,6,8} and B = {1,3,a,Sets - then A and B are:,C2,1.5,-0.5,0.25
+maths,sets_054,The set of irrational numbers is denoted by:,Q,T,Z,N,a,Sets - sets,C2,1.5,-0.5,0.25
+maths,sets_055,N _ Z _ Q indicates:,Natural numbers are subset of integers which are subset of rationals,Integers are subset of natural numbers,Rationals are subset of integers,All are equal sets,a,Sets - sets,C2,1.5,-0.5,0.25
+maths,sets_056,If U = {1,2,3,4,5} and A = {1,a,Sets - then A' equals:,C2,1.5,-0.5,0.25
+maths,sets_057,For sets A and B,A _ B equals:,{x : x _ A and x _ B},{x : x _ B and x _ A},{x : x _ A and x _ B},a,Sets - c2,C2,1.5,-0.5,0.25
+maths,sets_058,The distributive law states: A _ (B _ C) equals:,(A _ B) _ C,A _ (B _ C),(A _ B) _ (A _ C),(A _ B) _ C,a,Sets - sets,C2,1.5,-0.5,0.25
+maths,sets_059,If A = {a,e,i,o,u} and B = {a,b,Sets - then A _ B contains how many elements?,C2,1.5,-0.5,0.25
+maths,sets_060,The length of the interval [2,7] is:,5,4,7,a,Sets - c1,C2,1.5,-0.5,0.25
+maths,sets_061,Which of the following is an open interval?,[a,b],(a,b),a,Sets - Both (a,C2,1.5,-0.5,0.25
+maths,sets_062,If A = {1,2,{3,4},5},a,Sets - 4} _ A,C2,1.5,-0.5,0.25
+maths,sets_063,For any set A,A _ A equals:,2A,A,_,a,Sets - c1,C2,1.5,-0.5,0.25
+maths,sets_064,For any set A,A _ A equals:,2A,A,_,a,Sets - c1,C2,1.5,-0.5,0.25
+maths,sets_065,If _' is the complement of empty set,then _' equals:,_,U,{0},a,Sets - c2,C2,1.5,-0.5,0.25
+maths,sets_066,If U' is the complement of universal set U,then U' equals:,U,_,{U},a,Sets - c2,C2,1.5,-0.5,0.25
+maths,sets_067,The set {x : x _ N and x_ = 9} in roster form is:,{3},{_3,3},{9},a,Sets - {3},C2,1.5,-0.5,0.25
+maths,sets_068,Which of the following is true for all sets A and B?,A _ B = B _ A,A _ B = B _ A,A _ B = A _ B,(A _ B) = (B _ A),a,Sets - sets,C2,1.5,-0.5,0.25
+maths,sets_069,If A = {x : x is prime and x < 10},then A in roster form is:,{1,2,3,a,Sets - {2,C2,1.5,-0.5,0.25
+maths,sets_070,The total number of subsets of a set with n elements is:,n,n_,2_,n!,a,Sets - sets,C3,1.5,0.5,0.25
+maths,sets_071,If A has 3 elements,the total number of subsets of A is:,6,7,8,a,Sets - c2,C2,1.5,-0.5,0.25
+maths,sets_072,If A = {1,2,3},then which is NOT a subset of A?,{1},a,Sets - {1,C2,1.5,-0.5,0.25
+maths,sets_073,For disjoint sets A and B,A _ B equals:,A,B,A _ B,a,Sets - c1,C2,1.5,-0.5,0.25
+maths,sets_074,If A _ B,then A _ B equals:,A,B,_,a,Sets - c2,C2,1.5,-0.5,0.25
+maths,sets_075,If A _ B,then A _ B equals:,A,B,_,a,Sets - c2,C2,1.5,-0.5,0.25
+maths,sets_076,De Morgan's second law states: (A _ B)' equals:,A' _ B',A' _ B',A _ B,A _ B,a,Sets - sets,C2,1.5,-0.5,0.25
+maths,sets_077,If A = B,then which is always true?,A _ B and B _ A,A _ B only,B _ A only,a,Sets - c2,C2,1.5,-0.5,0.25
+maths,sets_078,The set {x : x _ R and x_ + 1 = 0} is:,{1},{_1},_,{i,a,Sets - c3,C2,1.5,-0.5,0.25
+maths,sets_079,If A _ B = _,then which is true?,A = B,A _ B,B _ A,a,Sets - c3,C2,1.5,-0.5,0.25
+maths,sets_080,The set R _ Q represents:,Rational numbers,Integers,Irrational numbers,Natural numbers,a,Sets - sets,C2,1.5,-0.5,0.25
+maths,sets_081,If A _ B = A _ B,then which is true?,A = B,A _ B,B _ A,a,Sets - c3,C2,1.5,-0.5,0.25
+maths,sets_082,For any three sets A,B,and C: A _ (B _ C) equals:,(A _ B) _ C,(A _ B) _ (A _ C),a,Sets - (A _ B) _ (A _ C),C2,1.5,-0.5,0.25

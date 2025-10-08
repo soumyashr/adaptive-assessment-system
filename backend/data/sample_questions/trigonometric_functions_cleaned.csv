@@ -1,0 +1,82 @@
+subject,question_id,question,option_a,option_b,option_c,option_d,answer,topic,tier,discrimination_a,difficulty_b,guessing_c
+maths,trigonometricfunctions_001,Convert 25¡ to radian measure.,5¹/36,¹/12,25¹/180,7¹/36,a,Trigonometric Functions - trigonometric_functions,C1,1.5,-1.0,0.25
+maths,trigonometricfunctions_002,Convert -47¡30' to radian measure.,-19¹/36,-95¹/360,-47¹/90,-¹/4,b,Trigonometric Functions - trigonometric_functions,C2,1.5,-0.5,0.25
+maths,trigonometricfunctions_003,Convert 240¡ to radian measure.,4¹/3,2¹/3,5¹/3,7¹/6,a,Trigonometric Functions - trigonometric_functions,C1,1.5,-1.0,0.25
+maths,trigonometricfunctions_004,Convert 520¡ to radian measure.,26¹/9,13¹/9,52¹/9,7¹/3,b,Trigonometric Functions - trigonometric_functions,C2,1.5,-0.5,0.25
+maths,trigonometricfunctions_005,Convert 11/16 radians to degree measure (use ¹ = 22/7).,39¡ 22' 30'',38¡ 45' 00'',40¡ 15' 30'',37¡ 30' 00'',a,Trigonometric Functions - trigonometric_functions,C2,1.5,-0.5,0.25
+maths,trigonometricfunctions_006,Convert -4 radians to degree measure (use ¹ = 22/7).,-229¡ 5' 27'',-230¡ 10' 20'',-228¡ 15' 30'',-225¡ 45' 00'',a,Trigonometric Functions - trigonometric_functions,C2,1.5,-0.5,0.25
+maths,trigonometricfunctions_007,Convert 5¹/3 radians to degree measure.,300¡,150¡,240¡,200¡,a,Trigonometric Functions - trigonometric_functions,C1,1.5,-1.0,0.25
+maths,trigonometricfunctions_008,Convert 7¹/6 radians to degree measure.,210¡,150¡,240¡,180¡,a,Trigonometric Functions - trigonometric_functions,C1,1.5,-1.0,0.25
+maths,trigonometricfunctions_009,A wheel makes 360 revolutions in one minute. Through how many radians does it turn in one second?,12¹,6¹,2¹,4¹,a,Trigonometric Functions - trigonometric_functions,C2,1.5,-0.5,0.25
+maths,trigonometricfunctions_010,Find the degree measure of the angle subtended at the centre of a circle of radius 100 cm by an arc of length 22 cm (use ¹ = 22/7).,12¡ 36',11¡ 30',13¡ 45',10¡ 15',a,Trigonometric Functions - trigonometric_functions,C2,1.5,-0.5,0.25
+maths,trigonometricfunctions_011,In a circle of diameter 40 cm,the length of a chord is 20 cm. Find the length of minor arc of the chord.,20¹/3 cm,10¹/3 cm,40¹/3 cm,a,Trigonometric Functions - c3,C2,1.5,-0.5,0.25
+maths,trigonometricfunctions_012,If in two circles,arcs of the same length subtend angles 60¡ and 75¡ at the centre,the ratio of their radii is:,5:4,4:5,a,Trigonometric Functions - a,C2,1.5,-0.5,0.25
+maths,trigonometricfunctions_013,Find the angle in radian through which a pendulum swings if its length is 75 cm and the tip describes an arc of length 10 cm.,2/15,1/7.5,4/30,1/8,a,Trigonometric Functions - trigonometric_functions,C2,1.5,-0.5,0.25
+maths,trigonometricfunctions_014,If cos x = -1/2 and x lies in third quadrant,then sin x equals:,-Ã3/2,Ã3/2,-1/2,a,Trigonometric Functions - c2,C2,1.5,-0.5,0.25
+maths,trigonometricfunctions_015,If sin x = 3/5 and x lies in second quadrant,then cos x equals:,-4/5,4/5,-3/5,a,Trigonometric Functions - c2,C2,1.5,-0.5,0.25
+maths,trigonometricfunctions_016,If cot x = 3/4 and x lies in third quadrant,then sec x equals:,-5/3,5/3,-5/4,a,Trigonometric Functions - c2,C2,1.5,-0.5,0.25
+maths,trigonometricfunctions_017,If sec x = 13/5 and x lies in fourth quadrant,then tan x equals:,-12/5,12/5,-5/12,a,Trigonometric Functions - c2,C2,1.5,-0.5,0.25
+maths,trigonometricfunctions_018,If tan x = -5/12 and x lies in second quadrant,then sin x equals:,5/13,-5/13,12/13,a,Trigonometric Functions - c2,C2,1.5,-0.5,0.25
+maths,trigonometricfunctions_019,Find the value of sin 765¡.,1/Ã2,-1/Ã2,1,0,a,Trigonometric Functions - trigonometric_functions,C2,1.5,-0.5,0.25
+maths,trigonometricfunctions_020,Find the value of cosec(-1410¡).,-2,2,-Ã2,Ã2,a,Trigonometric Functions - trigonometric_functions,C2,1.5,-0.5,0.25
+maths,trigonometricfunctions_021,Find the value of tan(19¹/3).,Ã3,-Ã3,1/Ã3,-1/Ã3,a,Trigonometric Functions - trigonometric_functions,C2,1.5,-0.5,0.25
+maths,trigonometricfunctions_022,Find the value of sin(-11¹/3).,Ã3/2,-Ã3/2,1/2,-1/2,a,Trigonometric Functions - trigonometric_functions,C2,1.5,-0.5,0.25
+maths,trigonometricfunctions_023,Find the value of cot(-15¹/4).,1,-1,Ã2,-Ã2,a,Trigonometric Functions - trigonometric_functions,C2,1.5,-0.5,0.25
+maths,trigonometricfunctions_024,The value of sin 15¡ is:,(Ã3-1)/(2Ã2),(Ã3+1)/(2Ã2),(Ã2-1)/2,(Ã2+1)/2,a,Trigonometric Functions - trigonometric_functions,C2,1.5,-0.5,0.25
+maths,trigonometricfunctions_025,The value of tan(13¹/12) is:,-(2+Ã3),2+Ã3,-(2-Ã3),2-Ã3,a,Trigonometric Functions - trigonometric_functions,C3,1.5,0.5,0.25
+maths,trigonometricfunctions_026,If tan x = -3/4,where ¹ < x < 3¹/2,then sin(x/2) equals:,3/Ã10,-3/Ã10,a,Trigonometric Functions - a,C2,1.5,-0.5,0.25
+maths,trigonometricfunctions_027,The value of sin(31¹/3) is:,Ã3/2,1/2,-Ã3/2,-1/2,a,Trigonometric Functions - trigonometric_functions,C2,1.5,-0.5,0.25
+maths,trigonometricfunctions_028,The value of cos(-1710¡) is:,0,1,-1,1/2,a,Trigonometric Functions - trigonometric_functions,C2,1.5,-0.5,0.25
+maths,trigonometricfunctions_029,Prove: 3sin(¹/6)sec(¹/3) - 4sin(5¹/6)cot(¹/4) equals:,1,0,2,3,a,Trigonometric Functions - trigonometric_functions,C2,1.5,-0.5,0.25
+maths,trigonometricfunctions_030,The value of tan(¹/8) is:,Ã2 - 1,Ã2 + 1,1 - Ã2,-(Ã2 + 1),a,Trigonometric Functions - trigonometric_functions,C3,1.5,0.5,0.25
+maths,trigonometricfunctions_031,If sin(x+y) = sin x cos y + cos x sin y,then sin 75¡ equals:,(Ã3+1)/(2Ã2),(Ã3-1)/(2Ã2),(Ã2+1)/2,a,Trigonometric Functions - c2,C2,1.5,-0.5,0.25
+maths,trigonometricfunctions_032,cos(¹/2 - x) equals:,sin x,cos x,tan x,cot x,a,Trigonometric Functions - trigonometric_functions,C1,1.5,-1.0,0.25
+maths,trigonometricfunctions_033,sin(¹/2 - x) equals:,cos x,sin x,-cos x,-sin x,a,Trigonometric Functions - trigonometric_functions,C1,1.5,-1.0,0.25
+maths,trigonometricfunctions_034,cos(¹ - x) equals:,-cos x,cos x,-sin x,sin x,a,Trigonometric Functions - trigonometric_functions,C1,1.5,-1.0,0.25
+maths,trigonometricfunctions_035,sin(¹ - x) equals:,sin x,-sin x,cos x,-cos x,a,Trigonometric Functions - trigonometric_functions,C1,1.5,-1.0,0.25
+maths,trigonometricfunctions_036,cos(¹ + x) equals:,-cos x,cos x,sin x,-sin x,a,Trigonometric Functions - trigonometric_functions,C1,1.5,-1.0,0.25
+maths,trigonometricfunctions_037,sin(¹ + x) equals:,-sin x,sin x,-cos x,cos x,a,Trigonometric Functions - trigonometric_functions,C1,1.5,-1.0,0.25
+maths,trigonometricfunctions_038,The value of cos 2x in terms of sin x is:,1 - 2sin_x,2sin_x - 1,1 + 2sin_x,sin_x - 1,a,Trigonometric Functions - trigonometric_functions,C1,1.5,-1.0,0.25
+maths,trigonometricfunctions_039,The value of sin 2x equals:,2sin x cos x,sin_x - cos_x,2tan x/(1+tan_x),Both a and c,d,Trigonometric Functions - trigonometric_functions,C2,1.5,-0.5,0.25
+maths,trigonometricfunctions_040,tan 2x equals:,2tan x/(1-tan_x),2tan x/(1+tan_x),(1-tan_x)/(2tan x),tan_x/(1-tan_x),a,Trigonometric Functions - trigonometric_functions,C1,1.5,-1.0,0.25
+maths,trigonometricfunctions_041,sin 3x equals:,3sin x - 4sin_x,4sin_x - 3sin x,3sin x + 4sin_x,sin_x - 3sin x,a,Trigonometric Functions - trigonometric_functions,C2,1.5,-0.5,0.25
+maths,trigonometricfunctions_042,cos 3x equals:,4cos_x - 3cos x,3cos x - 4cos_x,4cos_x + 3cos x,cos_x - 3cos x,a,Trigonometric Functions - trigonometric_functions,C2,1.5,-0.5,0.25
+maths,trigonometricfunctions_043,tan 3x equals:,(3tan x - tan_x)/(1 - 3tan_x),(tan_x - 3tan x)/(1 + 3tan_x),3tan x/(1 - tan_x),tan x/(1 - 3tan_x),a,Trigonometric Functions - trigonometric_functions,C2,1.5,-0.5,0.25
+maths,trigonometricfunctions_044,cos x + cos y equals:,2cos((x+y)/2)cos((x-y)/2),2sin((x+y)/2)cos((x-y)/2),2cos((x+y)/2)sin((x-y)/2),cos((x+y)/2)cos((x-y)/2),a,Trigonometric Functions - trigonometric_functions,C2,1.5,-0.5,0.25
+maths,trigonometricfunctions_045,sin x + sin y equals:,2sin((x+y)/2)cos((x-y)/2),2cos((x+y)/2)sin((x-y)/2),2cos((x+y)/2)cos((x-y)/2),2sin((x+y)/2)sin((x-y)/2),a,Trigonometric Functions - trigonometric_functions,C2,1.5,-0.5,0.25
+maths,trigonometricfunctions_046,cos x - cos y equals:,-2sin((x+y)/2)sin((x-y)/2),2sin((x+y)/2)sin((x-y)/2),-2cos((x+y)/2)sin((x-y)/2),2cos((x+y)/2)cos((x-y)/2),a,Trigonometric Functions - trigonometric_functions,C2,1.5,-0.5,0.25
+maths,trigonometricfunctions_047,sin x - sin y equals:,2cos((x+y)/2)sin((x-y)/2),2sin((x+y)/2)cos((x-y)/2),2sin((x+y)/2)sin((x-y)/2),-2cos((x+y)/2)sin((x-y)/2),a,Trigonometric Functions - trigonometric_functions,C2,1.5,-0.5,0.25
+maths,trigonometricfunctions_048,2cos x cos y equals:,cos(x+y) + cos(x-y),cos(x+y) - cos(x-y),sin(x+y) + sin(x-y),sin(x+y) - sin(x-y),a,Trigonometric Functions - trigonometric_functions,C2,1.5,-0.5,0.25
+maths,trigonometricfunctions_049,-2sin x sin y equals:,cos(x+y) - cos(x-y),cos(x+y) + cos(x-y),sin(x+y) - sin(x-y),sin(x+y) + sin(x-y),a,Trigonometric Functions - trigonometric_functions,C2,1.5,-0.5,0.25
+maths,trigonometricfunctions_050,2sin x cos y equals:,sin(x+y) + sin(x-y),sin(x+y) - sin(x-y),cos(x+y) + cos(x-y),cos(x+y) - cos(x-y),a,Trigonometric Functions - trigonometric_functions,C2,1.5,-0.5,0.25
+maths,trigonometricfunctions_051,2cos x sin y equals:,sin(x+y) - sin(x-y),sin(x+y) + sin(x-y),cos(x+y) - cos(x-y),cos(x+y) + cos(x-y),a,Trigonometric Functions - trigonometric_functions,C2,1.5,-0.5,0.25
+maths,trigonometricfunctions_052,If the angle between two lines is ¹/4 and slope of one line is 1/2,the slope of other line is:,3 or -1/3,-3 or 1/3,2 or -2,a,Trigonometric Functions - c3,C2,1.5,-0.5,0.25
+maths,trigonometricfunctions_053,The value of sin_(¹/6) + cos_(¹/3) - tan_(¹/4) equals:,-1/2,1/2,0,1,a,Trigonometric Functions - trigonometric_functions,C2,1.5,-0.5,0.25
+maths,trigonometricfunctions_054,2sin_(¹/6) + cosec_(7¹/6)cos_(¹/3) equals:,3/2,2,5/2,1,a,Trigonometric Functions - trigonometric_functions,C2,1.5,-0.5,0.25
+maths,trigonometricfunctions_055,cot_(¹/6) + cosec(5¹/6) + 3tan_(¹/6) equals:,6,5,7,8,a,Trigonometric Functions - trigonometric_functions,C3,1.5,0.5,0.25
+maths,trigonometricfunctions_056,2sin_(3¹/4) + 2cos_(¹/4) + 2sec_(¹/3) equals:,10,8,12,6,a,Trigonometric Functions - trigonometric_functions,C3,1.5,0.5,0.25
+maths,trigonometricfunctions_057,Prove: cos((¹/4)+x)cos((¹/4)-x) - sin((¹/4)-x)sin((¹/4)+x) equals:,sin(x+y),0,cos 2x,sin 2x,b,Trigonometric Functions - trigonometric_functions,C3,1.5,0.5,0.25
+maths,trigonometricfunctions_058,tan((¹/4)+x)/tan((¹/4)-x) equals:,((1+tan x)/(1-tan x))_,((1-tan x)/(1+tan x))_,(1+tan x)/(1-tan x),(1-tan x)/(1+tan x),a,Trigonometric Functions - trigonometric_functions,C3,1.5,0.5,0.25
+maths,trigonometricfunctions_059,cos(¹+x)cos(-x)/(sin(¹-x)cos(¹/2+x)) equals:,cot_x,tan_x,-cot_x,-tan_x,a,Trigonometric Functions - trigonometric_functions,C3,1.5,0.5,0.25
+maths,trigonometricfunctions_060,cos(3¹/2+x)cos(2¹+x)(cot(3¹/2-x)+cot(2¹+x)) equals:,1,0,-1,2,a,Trigonometric Functions - trigonometric_functions,C3,1.5,0.5,0.25
+maths,trigonometricfunctions_061,sin_6x - sin_4x equals:,sin 2x sin 10x,sin 4x sin 8x,cos 2x cos 10x,cos 4x cos 8x,a,Trigonometric Functions - trigonometric_functions,C3,1.5,0.5,0.25
+maths,trigonometricfunctions_062,cos_2x - cos_6x equals:,sin 4x sin 8x,cos 4x cos 8x,sin 2x sin 10x,cos 2x cos 10x,a,Trigonometric Functions - trigonometric_functions,C3,1.5,0.5,0.25
+maths,trigonometricfunctions_063,sin 2x + 2sin 4x + sin 6x equals:,4cos_x sin 4x,4sin_x cos 4x,4cos x sin_4x,4sin x cos_4x,a,Trigonometric Functions - trigonometric_functions,C3,1.5,0.5,0.25
+maths,trigonometricfunctions_064,cot 4x(sin 5x + sin 3x) equals:,cot x(sin 5x - sin 3x),tan x(sin 5x - sin 3x),cot x(sin 5x + sin 3x),tan x(sin 5x + sin 3x),a,Trigonometric Functions - trigonometric_functions,C3,1.5,0.5,0.25
+maths,trigonometricfunctions_065,(cos 9x - cos 5x)/(sin 17x - sin 3x) equals:,-sin 2x/cos 10x,sin 2x/cos 10x,-cos 2x/sin 10x,cos 2x/sin 10x,a,Trigonometric Functions - trigonometric_functions,C3,1.5,0.5,0.25
+maths,trigonometricfunctions_066,(sin 5x + sin 3x)/(cos 5x + cos 3x) equals:,tan 4x,cot 4x,tan 2x,cot 2x,a,Trigonometric Functions - trigonometric_functions,C3,1.5,0.5,0.25
+maths,trigonometricfunctions_067,(sin x - sin y)/(cos x + cos y) equals:,tan((x-y)/2),cot((x-y)/2),tan((x+y)/2),cot((x+y)/2),a,Trigonometric Functions - trigonometric_functions,C3,1.5,0.5,0.25
+maths,trigonometricfunctions_068,(sin x + sin 3x)/(cos x + cos 3x) equals:,tan 2x,cot 2x,tan 3x,cot 3x,a,Trigonometric Functions - trigonometric_functions,C3,1.5,0.5,0.25
+maths,trigonometricfunctions_069,(sin x - sin 3x)/(sin_x - cos_x) equals:,2sin x,sin x,2cos x,cos x,a,Trigonometric Functions - trigonometric_functions,C3,1.5,0.5,0.25
+maths,trigonometricfunctions_070,(cos 4x + cos 3x + cos 2x)/(sin 4x + sin 3x + sin 2x) equals:,cot 3x,tan 3x,cot 2x,tan 2x,a,Trigonometric Functions - trigonometric_functions,C3,1.5,0.5,0.25
+maths,trigonometricfunctions_071,cot x cot 2x - cot 2x cot 3x - cot 3x cot x equals:,1,0,-1,2,a,Trigonometric Functions - trigonometric_functions,C3,1.5,0.5,0.25
+maths,trigonometricfunctions_072,tan 4x equals:,(4tan x(1-tan_x))/(1-6tan_x+tan_x),(2tan x)/(1-tan_x),(4tan x)/(1-tan_x),(tan x(1-tan_x))/(1-6tan_x+tan_x),a,Trigonometric Functions - trigonometric_functions,C3,1.5,0.5,0.25
+maths,trigonometricfunctions_073,cos 4x equals:,1 - 8sin_x cos_x,1 + 8sin_x cos_x,8sin_x cos_x - 1,1 - 4sin_x cos_x,a,Trigonometric Functions - trigonometric_functions,C3,1.5,0.5,0.25
+maths,trigonometricfunctions_074,cos 6x equals:,32cos_x - 48cos_x + 18cos_x - 1,32cos_x + 48cos_x + 18cos_x + 1,16cos_x - 24cos_x + 9cos_x - 1,64cos_x - 48cos_x + 18cos_x - 1,a,Trigonometric Functions - trigonometric_functions,C4,1.5,1.0,0.25
+maths,trigonometricfunctions_075,2cos(¹/13)cos(9¹/13) + cos(3¹/13) + cos(5¹/13) equals:,0,1,2,-1,a,Trigonometric Functions - trigonometric_functions,C4,1.5,1.0,0.25
+maths,trigonometricfunctions_076,(sin 3x + sin x)sin x + (cos 3x - cos x)cos x equals:,0,1,sin 2x,cos 2x,a,Trigonometric Functions - trigonometric_functions,C3,1.5,0.5,0.25
+maths,trigonometricfunctions_077,(cos x + cos y)_ + (sin x - sin y)_ equals:,4cos_((x+y)/2),4sin_((x+y)/2),2cos_((x+y)/2),2sin_((x+y)/2),a,Trigonometric Functions - trigonometric_functions,C3,1.5,0.5,0.25
+maths,trigonometricfunctions_078,(cos x - cos y)_ + (sin x - sin y)_ equals:,4sin_((x-y)/2),4cos_((x-y)/2),2sin_((x-y)/2),2cos_((x-y)/2),a,Trigonometric Functions - trigonometric_functions,C3,1.5,0.5,0.25
+maths,trigonometricfunctions_079,sin x + sin 3x + sin 5x + sin 7x equals:,4cos x cos 2x sin 4x,4sin x sin 2x cos 4x,4cos x sin 2x sin 4x,4sin x cos 2x cos 4x,a,Trigonometric Functions - trigonometric_functions,C3,1.5,0.5,0.25
+maths,trigonometricfunctions_080,sin 3x + sin 2x - sin x equals:,4sin x cos(x/2)cos(3x/2),4cos x sin(x/2)sin(3x/2),4sin x sin(x/2)cos(3x/2),4cos x cos(x/2)sin(3x/2),a,Trigonometric Functions - trigonometric_functions,C4,1.5,1.0,0.25
+maths,trigonometricfunctions_081,If sin x = 3/5,cos y = -12/13,where x and y both lie in second quadrant,then sin(x+y) equals:,-56/65,a,Trigonometric Functions - 16/65,C2,1.5,-0.5,0.25

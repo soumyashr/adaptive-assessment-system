@@ -1,0 +1,76 @@
+subject,question_id,question,option_a,option_b,option_c,option_d,answer,topic,tier,discrimination_a,difficulty_b,guessing_c
+maths,3d_geometry_001,In three dimensional geometry,how many coordinates are needed to locate a point?,One,Two,Three,four,3D Geometry - c1,COPTION_C,1.5,0.0,0.25
+maths,3d_geometry_002,The three coordinate axes in 3D space are:,Mutually perpendicular,Parallel to each other,At 45� to each other,At 60� to each other,a,3D Geometry - 3D Geometry - Coordinate Axes,C1,1.5,-1.0,0.25
+maths,3d_geometry_003,The three coordinate planes are called:,XY-plane only,XY-plane and YZ-plane only,XY-plane,YZ-plane and ZX-plane,xyz-plane,3D Geometry - c1,COPTION_C,1.5,0.0,0.25
+maths,3d_geometry_004,The three coordinate planes divide the space into how many octants?,Four,Six,Eight,Twelve,c,3D Geometry - 3D Geometry - Octants,C1,1.5,-1.0,0.25
+maths,3d_geometry_005,The coordinates of the origin are:,(1,0,0),(0,0,3D Geometry - (0,C0),1.5,0.0,0.25
+maths,3d_geometry_006,A point on the x-axis has coordinates of the form:,(x,0,0),(0,y,3D Geometry - (0,C0),1.5,0.0,0.25
+maths,3d_geometry_007,A point on the y-axis has coordinates of the form:,(x,0,0),(0,y,3D Geometry - (0,C0),1.5,0.0,0.25
+maths,3d_geometry_008,A point on the z-axis has coordinates of the form:,(x,0,0),(0,y,3D Geometry - (0,C0),1.5,0.0,0.25
+maths,3d_geometry_009,If a point is on the x-axis,what are its y-coordinate and z-coordinates?,Both zero,Both non-zero,y=0,z can be any value,3D Geometry - option_a,CBOTH EQUAL TO X,1.5,0.0,0.25
+maths,3d_geometry_010,If a point is in the XZ-plane,what can you say about its y-coordinate?,y = 0,y > 0,y < 0,y can be any value,3D Geometry - c2,COPTION_A,1.5,0.0,0.25
+maths,3d_geometry_011,A point in the YZ-plane has coordinates of the form:,(x,y,0),(0,y,3D Geometry - (x,CZ),1.5,0.0,0.25
+maths,3d_geometry_012,The point (1,2,3) lies in which octant?,I,II,iii,3D Geometry - option_a,CIV,1.5,0.0,0.25
+maths,3d_geometry_013,The point (4,_2,3) lies in which octant?,I,IV,v,3D Geometry - option_b,CVIII,1.5,0.0,0.25
+maths,3d_geometry_014,The point (4,_2,_5) lies in which octant?,III,IV,vii,3D Geometry - option_d,CVIII,1.5,0.0,0.25
+maths,3d_geometry_015,The point (_4,2,_5) lies in which octant?,II,V,vi,3D Geometry - option_c,CVII,1.5,0.0,0.25
+maths,3d_geometry_016,The point (_4,2,5) lies in which octant?,I,II,v,3D Geometry - option_b,CVI,1.5,0.0,0.25
+maths,3d_geometry_017,The point (_3,_1,6) lies in which octant?,II,III,vi,3D Geometry - option_b,CVII,1.5,0.0,0.25
+maths,3d_geometry_018,The point (_2,_4,_7) lies in which octant?,III,VI,vii,3D Geometry - option_c,CVIII,1.5,0.0,0.25
+maths,3d_geometry_019,In octant I,the signs of coordinates (x,y,z) are:,(+,+,3D Geometry - (_,C+),1.5,0.0,0.25
+maths,3d_geometry_020,In octant II,the signs of coordinates (x,y,z) are:,(+,+,3D Geometry - (_,C+),1.5,0.0,0.25
+maths,3d_geometry_021,In octant VII,the signs of coordinates (x,y,z) are:,(_,_,3D Geometry - (_,C_),1.5,0.0,0.25
+maths,3d_geometry_022,In octant VIII,the signs of coordinates (x,y,z) are:,(+,_,3D Geometry - (_,C_),1.5,0.0,0.25
+maths,3d_geometry_023,The x-axis and y-axis together determine a plane known as:,XZ-plane,YZ-plane,XY-plane,XYZ-plane,c,3D Geometry - 3D Geometry - Exercise 11.1 Q4,C2,1.5,-0.5,0.25
+maths,3d_geometry_024,The coordinates of points in the XY-plane are of the form:,(x,y,0),(x,0,3D Geometry - (0,CZ),1.5,0.0,0.25
+maths,3d_geometry_025,Coordinate planes divide the space into _____ octants:,Four,Six,Eight,Twelve,c,3D Geometry - 3D Geometry - Exercise 11.1 Q4,C2,1.5,-0.5,0.25
+maths,3d_geometry_026,Distance between points P(x_,y_,z_) and Q(x_,y_,z_) is:,�[(x__x_)_+(y__y_)_],3D Geometry - �[(x__x_)_+(y__y_)_+(z__z_)_],C(X__X_)+(Y__Y_)+(Z__Z_),1.5,0.0,0.25
+maths,3d_geometry_027,Distance of point P(x,y,z) from origin is:,�(x_+y_),�(x_+y_+z_),x+y+z,3D Geometry - option_b,C�(XYZ),1.5,0.0,0.25
+maths,3d_geometry_028,Distance between (2,3,5) and (4,3,1) is:,2,3D Geometry - 4,C2�5,1.5,0.0,0.25
+maths,3d_geometry_029,Distance between (_3,7,2) and (2,4,_1) is:,�43,3D Geometry - �34,C6,1.5,0.0,0.25
+maths,3d_geometry_030,Distance between (_1,3,_4) and (1,_3,4) is:,2�26,3D Geometry - �104,C4,1.5,1.0,0.25
+maths,3d_geometry_031,Distance between (2,_1,3) and (_2,1,3) is:,2�5,3D Geometry - �20,C4,1.5,1.0,0.25
+maths,3d_geometry_032,If points (_2,3,5),(1,2,3) and (7,3D Geometry - _1) are collinear,C0,1.5,0.0,0.25
+maths,3d_geometry_033,Points (0,7,_10),(1,6,_6) and (4,3D Geometry - _6) form:,C9,1.5,0.0,0.25
+maths,3d_geometry_034,Points (0,7,10),(_1,6,6) and (_4,3D Geometry - 6) form:,C9,1.5,0.0,0.25
+maths,3d_geometry_035,Distance between P(1,_3,4) and Q(_4,1,2) is:,3�5,3D Geometry - 6,C�45,1.5,0.0,0.25
+maths,3d_geometry_036,For collinear points P,Q,R,which condition must hold?,PQ + QR = PR,pq = pr,3D Geometry - PQ_ + QR_ = PR_,CQR = PR,1.5,0.0,0.25
+maths,3d_geometry_037,If P(_2,3,5),Q(1,2,3),3D Geometry - 0,CR(7,1.5,0.0,0.25
+maths,3d_geometry_038,The equation of set of points equidistant from (1,2,3) and (3,2,_1) is:,x _ 2z = 0,3D Geometry - x + z = 2,C2X _ Z = 4,1.5,0.0,0.25
+maths,3d_geometry_039,The centroid of triangle with vertices A(x_,y_,z_),B(x_,y_,z_),3D Geometry - y_,C(X_,1.5,0.0,0.25
+maths,3d_geometry_040,If centroid of triangle ABC is (1,1,1) and A(3,_5,7),b(_1,3D Geometry - _6),C7,1.5,0.0,0.25
+maths,3d_geometry_041,In Fig 11.3,if P is (2,4,5),the coordinates of F are:,(2,3D Geometry - 0),C4,1.5,1.0,0.25
+maths,3d_geometry_042,Points (_3,1,2) and (_3,1,_2) lie in octants:,ii and vi,3D Geometry - II and VII,CI AND V,1.5,0.0,0.25
+maths,3d_geometry_043,For a rectangular parallelepiped with diagonal as distance between two points,PQ_ equals:,PA_ + AQ_,PA_ + AN_,PA_ + AN_ + NQ_,pa + an + nq,3D Geometry - c3,COPTION_C,1.5,0.0,0.25
+maths,3d_geometry_044,If PA_ + PB_ = 2k_ where A(3,4,5) and B(_1,3,_7),the locus equation is:,3D Geometry - x_ + y_ + z_ = k_,C2X_ + 2Y_ + 2Z_ _ 4X _ 14Y + 4Z = 2K_ _ 109,1.5,0.0,0.25
+maths,3d_geometry_045,The midpoint of line segment joining P(x_,y_,z_) and Q(x_,y_,z_) is:,((x_+x_)/2,3D Geometry - (z_+z_)/2),C(Y_+Y_)/2,1.5,0.0,0.25
+maths,3d_geometry_046,Points A(1,2,3),B(_1,_2,_1),3D Geometry - 3,C(2,1.5,0.0,0.25
+maths,3d_geometry_047,For parallelogram ABCD with AB = CD = 6 and BC = AD = �43,diagonals are:,Equal,Unequal,Bisect each other,both b and c,3D Geometry - c3,COPTION_D,1.5,0.0,0.25
+maths,3d_geometry_048,If ABCD is a parallelogram but not a rectangle,then:,AC � BD,AC = BD,All angles are 90�,ab � cd,3D Geometry - c3,COPTION_A,1.5,0.0,0.25
+maths,3d_geometry_049,Equation of set of points P with PA = PB where A(3,4,_5) and B(_2,1,4) is:,10x + 6y _ 18z _ 29 = 0,3D Geometry - x + y + z = 0,C10X + 6Y _ 18Z = 0,1.5,0.0,0.25
+maths,3d_geometry_050,For points (_1,2,1),(1,_2,5),3D Geometry - _7,C(4,1.5,0.0,0.25
+maths,3d_geometry_051,The coordinates of point on y-axis at distance 5�2 from (_3,2,5) is:,(0,_1,0) or (0,3D Geometry - 0),C5,1.5,0.0,0.25
+maths,3d_geometry_052,Three vertices of parallelogram ABCD are A(3,_1,2),B(1,2,_4),3D Geometry - 1,C(_1,1.5,0.0,0.25
+maths,3d_geometry_053,Length of median from A in triangle with vertices A(0,0,6),B(0,4,0),3D Geometry - 0,C(6,1.5,0.0,0.25
+maths,3d_geometry_054,If origin is centroid of triangle PQR with P(2a,2,6),Q(_4,3b,_10),3D Geometry - 14,CR(8,1.5,0.0,0.25
+maths,3d_geometry_055,Distance formula in 3D is an extension of:,Pythagorean theorem,Section formula,Midpoint formula,Area formula,a,3D Geometry - 3D Geometry - Concept,C2,1.5,-0.5,0.25
+maths,3d_geometry_056,If all three coordinates of a point are negative,it lies in octant:,I,III,VII,viii,3D Geometry - c2,COPTION_C,1.5,0.0,0.25
+maths,3d_geometry_057,A point with coordinates (0,0,0) is called:,Origin,Center,pole,3D Geometry - option_a,CVERTEX,1.5,0.0,0.25
+maths,3d_geometry_058,The three axes X,Y,Z form a:,Linear system,Planar system,rectangular coordinate system,3D Geometry - option_c,CPOLAR SYSTEM,1.5,0.0,0.25
+maths,3d_geometry_059,Coordinates (x,y,z) represent perpendicular distances from:,Three axes,Three coordinate planes,origin,3D Geometry - option_b,CALL POINTS,1.5,0.0,0.25
+maths,3d_geometry_060,For point P(2,3,4),distance from YZ-plane is:,2,3,3D Geometry - �29,C4,1.5,1.0,0.25
+maths,3d_geometry_061,For point P(2,3,4),distance from ZX-plane is:,2,3,3D Geometry - �29,C4,1.5,1.0,0.25
+maths,3d_geometry_062,For point P(2,3,4),distance from XY-plane is:,2,3,3D Geometry - �29,C4,1.5,1.0,0.25
+maths,3d_geometry_063,Which coordinates are always positive in octant V?,x and y,y and z,x and z,All three,c,3D Geometry - 3D Geometry - Octant Signs,C2,1.5,-0.5,0.25
+maths,3d_geometry_064,The set of all points in space with z = 0 represents:,x-axis,y-axis,XY-plane,Origin,c,3D Geometry - 3D Geometry - Plane Equation,C2,1.5,-0.5,0.25
+maths,3d_geometry_065,The set of all points with x = 0 and y = 0 represents:,Origin,z-axis,XY-plane,YZ-plane,b,3D Geometry - 3D Geometry - Axis Equation,C2,1.5,-0.5,0.25
+maths,3d_geometry_066,If two points have same x and y coordinates but different z coordinates,they lie on:,A line parallel to z-axis,A line parallel to x-axis,The xy-plane,the origin,3D Geometry - c3,COPTION_A,1.5,0.0,0.25
+maths,3d_geometry_067,Distance between (a,b,c) and (_a,_b,_c) is:,2�(a_+b_+c_),3D Geometry - a+b+c,C�(A_+B_+C_),1.5,0.0,0.25
+maths,3d_geometry_068,The point symmetric to (2,3,4) with respect to origin is:,(_2,_3,_4),3D Geometry - _3,C(2,1.5,0.0,0.25
+maths,3d_geometry_069,If A(3,4,5) and B(_1,3,_7),equation of set p with pa_+pb_=k_ is:,3D Geometry - x_+y_+z_=k_,C2X_+2Y_+2Z__4X_14Y+4Z=K__109,1.5,0.0,0.25
+maths,3d_geometry_070,The coordinates of a point are (3,_2,5). Its distance from x-axis is:,3,�29,5,3D Geometry - option_b,C�34,1.5,0.0,0.25
+maths,3d_geometry_071,Points equidistant from coordinate planes form:,A sphere,Coordinate axes,Eight rays from origin,A cube,c,3D Geometry - 3D Geometry - Spatial Concept,C3,1.5,0.5,0.25
+maths,3d_geometry_072,The perpendicular distance from point (3,4,5) to XY-plane is:,3,4,5,3D Geometry - option_c,C�50,1.5,0.0,0.25
+maths,3d_geometry_073,In 3D geometry,how many numbers are in an ordered triplet?,One,Two,Three,four,3D Geometry - c1,COPTION_C,1.5,0.0,0.25
+maths,3d_geometry_074,Ren� Descartes is known as the father of:,Algebra,Analytical geometry,Calculus,Trigonometry,b,3D Geometry - 3D Geometry - History,C1,1.5,-1.0,0.25
+maths,3d_geometry_075,The development of 3D coordinate geometry was systematically done by:,Descartes,Euler,Fermat,Newton,b,3D Geometry - 3D Geometry - History,C1,1.5,-1.0,0.25

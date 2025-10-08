@@ -1,0 +1,83 @@
+subject,question_id,question,option_a,option_b,option_c,option_d,answer,topic,tier,discrimination_a,difficulty_b,guessing_c
+maths,relationsandfunctions_001,If (x/3 + 1,y - 2/3) = (5/3,1/3),what are the values of x and y?,x = 2 and y = 1,a,Relations And Functions - x = 2 and y = 3,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_002,If set A has 3 elements and set B = {3,4,5},how many elements are in A _ B?,6,a,Relations And Functions - 15,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_003,What is the cardinality of G _ H where G = {7,8} and H = {5,4,2}?,5,a,Relations And Functions - 10,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_004,If P = {m,n} and Q = {n,m},what is P _ Q?,{(m,a,Relations And Functions - m)},C2,1.5,-0.5,0.25
+maths,relationsandfunctions_005,Is the statement 'If A and B are non-empty sets,then A _ B is a non-empty set of ordered pairs (x,y) such that x _ A and y _ B' true or false?,False,True,a,Relations And Functions - True,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_006,If A = {1,2} and B = {3,4},what is A _ (B _ _)?,{(1,a,Relations And Functions - 4),C2,1.5,-0.5,0.25
+maths,relationsandfunctions_007,What is A _ A _ A for A = {-1,1}?,A set with 6 elements,A set with 8 elements,A set with 9 elements,a,Relations And Functions - c2,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_008,If A _ B = {(a,x),(a,y),(b,a,Relations And Functions - y)},C2,1.5,-0.5,0.25
+maths,relationsandfunctions_009,Let A = {1,2},B = {1,2,3,a,Relations And Functions - 6} and D = {5,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_010,If A = {1,2} and B = {3,4},how many subsets does A _ B have?,8,a,Relations And Functions - 4,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_011,If n(A) = 3 and n(B) = 2,and (x,1),(y,2),a,Relations And Functions - y,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_012,If A _ A has 9 elements with (-1,0) and (0,1) among them,what is set A?,{-1,a,Relations And Functions - 0,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_013,For A = {1,2,3,...,14} and R = {(x,a,Relations And Functions - y _ A},C2,1.5,-0.5,0.25
+maths,relationsandfunctions_014,For the relation R = {(x,y): y = x + 5,x is a natural number less than 4; x,y _ N},what is the domain?,a,Relations And Functions - 3},C2,1.5,-0.5,0.25
+maths,relationsandfunctions_015,If A = {1,2,3,5} and B = {4,6,a,Relations And Functions - y): the difference between x and y is odd},C2,1.5,-0.5,0.25
+maths,relationsandfunctions_016,For A = {1,2,3,4,6} and R = {(a,a,Relations And Functions - b is exactly divisible by a},C2,1.5,-0.5,0.25
+maths,relationsandfunctions_017,What is the domain of R = {(x,x + 5): x _ {0,1,2,3,a,Relations And Functions - {0,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_018,What is the range of R = {(x,x + 5): x _ {0,1,2,3,a,Relations And Functions - {0,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_019,What is R = {(x,x_): x is a prime number less than 10} in roster form?,{(2,8),(3,a,Relations And Functions - 125),C2,1.5,-0.5,0.25
+maths,relationsandfunctions_020,If A = {x,y,z} and B = {1,2},how many relations are possible from A to B?,a,Relations And Functions - 32,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_021,For R on Z defined by R = {(a,b): a,b _ Z,a - b is an integer},what is the domain?,a,Relations And Functions - Q,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_022,Which relation is a function? R_ = {(2,1),(3,1),(4,a,Relations And Functions - (2,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_023,Is R = {(1,2),(2,3),(3,a,Relations And Functions - 5),C2,1.5,-0.5,0.25
+maths,relationsandfunctions_024,For f(x) = 2x - 5,what is f(0)?,0,-5,5,a,Relations And Functions - c1,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_025,For f(x) = 2x - 5,what is f(7)?,9,14,19,a,Relations And Functions - c1,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_026,For f(x) = 2x - 5,what is f(-3)?,1,-11,-1,a,Relations And Functions - c1,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_027,If t(C) = 9C/5 + 32 converts Celsius to Fahrenheit,what is t(0)?,0,32,212,a,Relations And Functions - c1,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_028,If t(C) = 9C/5 + 32,what is t(28)?,50.4,82.4,100.4,a,Relations And Functions - c2,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_029,If t(C) = 9C/5 + 32,what value of C gives t(C) = 212?,100,50,150,a,Relations And Functions - c2,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_030,What is the range of f(x) = 2 - 3x for x _ R,x > 0?,(-°,2),(2,a,Relations And Functions - °),C2,1.5,-0.5,0.25
+maths,relationsandfunctions_031,What is the range of f(x) = x_ + 2 where x is a real number?,[2,°),(-°,2],a,Relations And Functions - (2,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_032,For the identity function f: R _ R where f(x) = x,what is the domain?,R - {0},R,N,a,Relations And Functions - c1,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_033,For the identity function f(x) = x,what is the range?,R - {0},R,N,a,Relations And Functions - c1,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_034,For the constant function f(x) = c where c is constant,what is the range?,R,{c},R - {c},a,Relations And Functions - c1,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_035,Is f(x) = x_ - x_ + 2 a polynomial function?,No,Yes,Only for x > 0,Only for integer x,a,Relations And Functions - relations_and_functions,C1,1.5,-1.0,0.25
+maths,relationsandfunctions_036,Is h(x) = x^(2/3) + 2x a polynomial function?,Yes,No,Only for non-negative x,Only for positive x,a,Relations And Functions - relations_and_functions,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_037,For f(x) = x_,what is the domain?,R - {0},R,R_,a,Relations And Functions - c1,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_038,For f(x) = x_,what is the range?,[0,°),(-°,a,Relations And Functions - (0,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_039,What is the domain of f(x) = 1/x where x _ R - {0}?,R,R - {0},R_,R_,a,Relations And Functions - relations_and_functions,C1,1.5,-1.0,0.25
+maths,relationsandfunctions_040,What is the range of f(x) = 1/x where x _ R - {0}?,R,R - {0},R_,R_,a,Relations And Functions - relations_and_functions,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_041,For the modulus function f(x) = |x|,what is f(-5)?,5,-5,0,a,Relations And Functions - c1,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_042,What is the domain of the modulus function f(x) = |x|?,R_,R - {0},R,[0,a,Relations And Functions - c1,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_043,What is the range of the modulus function f(x) = |x|?,R,[0,°),(0,a,Relations And Functions - [0,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_044,For the signum function,what is f(0)?,1,-1,0,a,Relations And Functions - c1,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_045,For the signum function,what is f(5)?,0,1,-1,a,Relations And Functions - c1,C1,1.5,-1.0,0.25
+maths,relationsandfunctions_046,For the signum function,what is f(-3)?,0,1,-1,a,Relations And Functions - c1,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_047,What is the range of the signum function?,R,{-1,0,1},a,Relations And Functions - {0,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_048,For the greatest integer function f(x) = [x],what is f(2.7)?,2,3,2.7,a,Relations And Functions - c1,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_049,For the greatest integer function f(x) = [x],what is f(-1.5)?,_1,_2,_1.5,a,Relations And Functions - c2,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_050,For f(x) = x_ and g(x) = 2x + 1,what is (f + g)(x)?,x_ + 2x + 1,x_ - 2x - 1,2x_ + 1,a,Relations And Functions - c1,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_051,For f(x) = x_ and g(x) = 2x + 1,what is (f - g)(x)?,x_ - 2x - 1,x_ + 2x - 1,x_ - 2x + 1,a,Relations And Functions - c2,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_052,For f(x) = x_ and g(x) = 2x + 1,what is (fg)(x)?,2x_ + x_,x_ + 2x_,2x_ + x,a,Relations And Functions - c2,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_053,For f(x) = x_ and g(x) = 2x + 1,what is the domain of (f/g)(x)?,R - {-1/2},R,R - {0},a,Relations And Functions - c2,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_054,For f(x) = Ãx and g(x) = x,what is (f + g)(x) for non-negative real numbers?,Ãx + x,x + x_,Ãx,a,Relations And Functions - c1,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_055,For f(x) = Ãx and g(x) = x defined on non-negative reals,what is (fg)(x)?,xÃx,x_,x,a,Relations And Functions - c2,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_056,What does the Cartesian product R _ R represent?,Points in 1D space,Points in 2D space,Points in 3D space,A line,a,Relations And Functions - relations_and_functions,C1,1.5,-1.0,0.25
+maths,relationsandfunctions_057,What does R _ R _ R represent?,Points in 2D space,Points in 3D space,Points in 4D space,A plane,a,Relations And Functions - relations_and_functions,C1,1.5,-1.0,0.25
+maths,relationsandfunctions_058,If (x + 1,y - 2) = (3,1),what are x and y?,x = 2,a,Relations And Functions - y = 1,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_059,If n(A) = p and n(B) = q,then n(A _ B) equals:,p + q,pq,p^q,a,Relations And Functions - c1,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_060,Is A _ B generally equal to B _ A?,Yes,No,Only if A = B,Only if A and B are disjoint,a,Relations And Functions - relations_and_functions,C1,1.5,-1.0,0.25
+maths,relationsandfunctions_061,What is A _ _?,A,_,{_},Undefined,a,Relations And Functions - relations_and_functions,C1,1.5,-1.0,0.25
+maths,relationsandfunctions_062,In a relation R from set A to set B,R is a subset of:,A,B,A _ B,a,Relations And Functions - c1,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_063,The total number of relations from set A to set B where n(A) = p and n(B) = q is:,2^p,2^q,2^(p+q),2^(pq),a,Relations And Functions - relations_and_functions,C3,1.5,0.5,0.25
+maths,relationsandfunctions_064,For a function f: A _ B,the domain is:,B,A,Range of f,a,Relations And Functions - c1,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_065,For a function f: A _ B,the codomain is:,A,B,Domain of f,a,Relations And Functions - c1,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_066,Which statement is true for a function?,One element in domain can map to many elements in codomain,Many elements in domain can map to one element in codomain,One element in codomain maps to exactly one in domain,Every element in codomain has a preimage,a,Relations And Functions - relations_and_functions,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_067,What is the domain of f(x) = Ã(9 - x_)?,[-3,3],(-3,3),a,(-°,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_068,What is the domain of f(x) = -|x|?,R - {0},[0,°),R,a,Relations And Functions - R,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_069,What is the range of f(x) = -|x|?,[0,°),(-°,0],a,(-°,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_070,What is the range of f(x) = x for x _ R?,R_,[0,°),R,a,Relations And Functions - c1,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_071,For f(x) = x + 10,what is f(0)?,0,10,-10,a,Relations And Functions - c1,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_072,A linear function has the form:,f(x) = ax_ + b,f(x) = mx + c,f(x) = x_,f(x) = 1/x,a,Relations And Functions - relations_and_functions,C1,1.5,-1.0,0.25
+maths,relationsandfunctions_073,What is the domain of f(x) = (x_ + 2x + 1)/(x_ - 8x + 12)?,R - {2,6},R - {-1},R - {1,a,R - {2,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_074,What is the domain of f(x) = Ã(x - 1)?,[1,°),(1,°),a,Relations And Functions - [0,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_075,What is the range of f(x) = Ã(x - 1)?,[0,°),(0,°),a,Relations And Functions - R,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_076,What is the domain of f(x) = |x - 1|?,R,[1,°),(-°,a,Relations And Functions - R,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_077,What is the range of f(x) = |x - 1|?,[0,°),(0,°),a,Relations And Functions - R,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_078,If f(x) = ax + b and f(1) = 1,f(0) = -1,what are a and b?,a = 1,b = -1,a,a = -1,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_079,Is f = {(1,5),(2,9),(3,a,Relations And Functions - 5),C2,1.5,-0.5,0.25
+maths,relationsandfunctions_080,For R = {(a,b): a,b _ N and a = b_},is (4,2) _ R?,a,Relations And Functions - Only if a and b are swapped,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_081,What is the range of f(x) = x_/(1 + x_) for x _ R?,[0,1),(0,1],a,Relations And Functions - (0,C2,1.5,-0.5,0.25
+maths,relationsandfunctions_082,For f(x) = x + 1 and g(x) = 2x - 3,what is (f/g)(x)?,(x + 1)/(2x - 3),(2x - 3)/(x + 1),x + 1 - 2x + 3,a,Relations And Functions - c2,C2,1.5,-0.5,0.25
