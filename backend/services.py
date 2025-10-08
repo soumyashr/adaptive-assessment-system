@@ -5,9 +5,18 @@ All changes are ADDITIVE with safety mechanisms
 Admin module will continue to work unchanged
 """
 
+
+
+
+
+import matplotlib
+matplotlib.use('Agg')  # Use non-GUI backend - MUST be before pyplot import
+import matplotlib.pyplot as plt
+import numpy as np
+
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, not_, text
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Tuple
 import pandas as pd
 from datetime import datetime
 import logging
@@ -17,6 +26,16 @@ import time
 import json
 from collections import defaultdict
 import sqlite3
+from io import BytesIO
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4, letter
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak, Image
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
+from reportlab.platypus.flowables import HRFlowable
+
+
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'scripts'))
 from db_manager import item_bank_db
@@ -185,6 +204,719 @@ class TopicPerformanceCalculator:
             }
 
 
+# ========== NEW CLASS - PDF Export Service ==========
+
+
+class PDFExportService:
+    """Clean PDF Export Service - Essential Sections Only"""
+
+    def __init__(self):
+        self.styles = getSampleStyleSheet()
+        self._setup_custom_styles()
+        self._register_fonts()
+
+    def _register_fonts(self):
+        """Register Unicode-compatible fonts from bundled font files"""
+        import os
+
+        try:
+            # Get the directory where this services.py file is located
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+
+            # Path to bundled fonts
+            fonts_dir = os.path.join(current_dir, 'fonts', 'dejavu-fonts-ttf-2.37', 'ttf')
+
+            # Font file paths
+            regular_font = os.path.join(fonts_dir, 'DejaVuSans.ttf')
+            bold_font = os.path.join(fonts_dir, 'DejaVuSans-Bold.ttf')
+
+            # Check if fonts exist
+            if os.path.exists(regular_font) and os.path.exists(bold_font):
+                pdfmetrics.registerFont(TTFont('DejaVuSans', regular_font))
+                pdfmetrics.registerFont(TTFont('DejaVuSans-Bold', bold_font))
+                self.unicode_font = 'DejaVuSans'
+                self.unicode_font_bold = 'DejaVuSans-Bold'
+                logger.info(f"Successfully registered DejaVu fonts from: {fonts_dir}")
+            else:
+                raise FileNotFoundError(f"Font files not found at: {fonts_dir}")
+
+        except Exception as e:
+            # Fallback: Use sanitized text with Helvetica
+            logger.warning(f"Could not load DejaVu fonts: {e}. Using Helvetica with text sanitization.")
+            self.unicode_font = 'Helvetica'
+            self.unicode_font_bold = 'Helvetica-Bold'
+
+    def _sanitize_text(self, text: str) -> str:
+        """
+        Convert mathematical Unicode characters to readable ASCII alternatives
+        if proper Unicode fonts are not available
+        """
+        if not text:
+            return text
+
+        # Map common mathematical Unicode to ASCII alternatives
+        replacements = {
+            # Subscripts
+            '₀': '_0', '₁': '_1', '₂': '_2', '₃': '_3', '₄': '_4',
+            '₅': '_5', '₆': '_6', '₇': '_7', '₈': '_8', '₉': '_9',
+            # Superscripts
+            '⁰': '^0', '¹': '^1', '²': '^2', '³': '^3', '⁴': '^4',
+            '⁵': '^5', '⁶': '^6', '⁷': '^7', '⁸': '^8', '⁹': '^9',
+            # Greek letters (common in math)
+            'α': 'alpha', 'β': 'beta', 'γ': 'gamma', 'δ': 'delta',
+            'θ': 'theta', 'λ': 'lambda', 'μ': 'mu', 'π': 'pi',
+            'σ': 'sigma', 'τ': 'tau', 'φ': 'phi', 'ω': 'omega',
+            # Mathematical symbols
+            '√': 'sqrt', '∞': 'infinity', '≈': '~=', '≠': '!=',
+            '≤': '<=', '≥': '>=', '±': '+/-', '×': 'x', '÷': '/',
+        }
+
+        result = text
+        for unicode_char, ascii_replacement in replacements.items():
+            result = result.replace(unicode_char, ascii_replacement)
+
+        return result
+
+    def _setup_custom_styles(self):
+        """Setup custom styles for PDF"""
+        self.styles.add(ParagraphStyle(
+            name='CustomTitle',
+            parent=self.styles['Title'],
+            fontSize=24,
+            textColor=colors.HexColor('#2E86C1'),
+            spaceAfter=30,
+            alignment=TA_CENTER
+        ))
+
+        self.styles.add(ParagraphStyle(
+            name='SectionHeader',
+            parent=self.styles['Heading2'],
+            fontSize=16,
+            textColor=colors.HexColor('#34495E'),
+            spaceBefore=20,
+            spaceAfter=10
+        ))
+
+        self.styles.add(ParagraphStyle(
+            name='Subsection',
+            parent=self.styles['Heading3'],
+            fontSize=12,
+            textColor=colors.HexColor('#5D6D7E'),
+            spaceBefore=12,
+            spaceAfter=6
+        ))
+
+    def _generate_theta_progression_chart(self, responses: list) -> BytesIO:
+        """Generate theta progression line chart"""
+        try:
+            if not responses or len(responses) == 0:
+                logger.warning("No responses provided for theta progression chart")
+                return None
+
+            fig, ax = plt.subplots(figsize=(8, 4))
+
+            questions = [i + 1 for i in range(len(responses))]
+            theta_values = [r.get('theta_after', 0) for r in responses]
+
+            # Plot line
+            ax.plot(questions, theta_values, 'b-', linewidth=2, label='Theta (θ)')
+
+            # Mark correct/incorrect with different colors
+            for i, resp in enumerate(responses):
+                color = 'green' if resp.get('is_correct', False) else 'red'
+                ax.scatter(i + 1, resp.get('theta_after', 0), c=color, s=60, zorder=5)
+
+            ax.set_xlabel('Question Number', fontsize=11)
+            ax.set_ylabel('Theta (θ)', fontsize=11)
+            ax.set_title('Proficiency estimate over time', fontsize=12, fontweight='bold')
+            ax.grid(True, alpha=0.3)
+
+            # Create custom legend
+            from matplotlib.lines import Line2D
+            legend_elements = [
+                Line2D([0], [0], marker='o', color='w', markerfacecolor='green',
+                       markersize=8, label='Correct'),
+                Line2D([0], [0], marker='o', color='w', markerfacecolor='red',
+                       markersize=8, label='Incorrect')
+            ]
+            ax.legend(handles=legend_elements, loc='best')
+
+            plt.tight_layout()
+            buffer = BytesIO()
+            plt.savefig(buffer, format='png', dpi=150, bbox_inches='tight')
+            buffer.seek(0)
+            plt.close(fig)
+
+            return buffer
+
+        except Exception as e:
+            logger.error(f"Error generating theta progression chart: {e}", exc_info=True)
+            plt.close('all')
+            return None
+
+    def _generate_topic_radar(self, topic_performance: dict) -> BytesIO:
+        """Generate radar chart for topic performance"""
+        try:
+            topics = list(topic_performance.keys())
+            if not topics or len(topics) == 0:
+                return None
+
+            accuracies = [topic_performance[t]['accuracy'] * 100 for t in topics]
+
+            # Number of topics
+            num_vars = len(topics)
+
+            # Compute angle for each axis
+            angles = np.linspace(0, 2 * np.pi, num_vars, endpoint=False).tolist()
+            accuracies += accuracies[:1]  # Complete the circle
+            angles += angles[:1]
+
+            fig, ax = plt.subplots(figsize=(7, 7), subplot_kw=dict(projection='polar'))
+
+            # Plot accuracy
+            ax.plot(angles, accuracies, 'o-', linewidth=2, color='#10B981', label='Accuracy %')
+            ax.fill(angles, accuracies, alpha=0.25, color='#10B981')
+
+            # Normalize theta values for plotting (theta ranges from -3 to 3, map to 0-100)
+            theta_normalized = [((topic_performance[t]['theta'] + 3) / 6) * 100 for t in topics]
+            theta_normalized += theta_normalized[:1]
+
+            ax.plot(angles, theta_normalized, 'o-', linewidth=2, color='#3B82F6', label='Proficiency (normalized)')
+            ax.fill(angles, theta_normalized, alpha=0.15, color='#3B82F6')
+
+            ax.set_xticks(angles[:-1])
+            ax.set_xticklabels([t.replace('Complex Numbers - ', '').replace('complex numbers - ', '')
+                                for t in topics], size=9)
+            ax.set_ylim(0, 100)
+            ax.set_yticks([25, 50, 75, 100])
+            ax.set_yticklabels(['25', '50', '75', '100'], size=8)
+            ax.set_title('Performance Overview', size=13, fontweight='bold', pad=20)
+            ax.grid(True)
+            ax.legend(loc='upper right', bbox_to_anchor=(1.3, 1.1))
+
+            plt.tight_layout()
+            buffer = BytesIO()
+            plt.savefig(buffer, format='png', dpi=150, bbox_inches='tight')
+            buffer.seek(0)
+            plt.close(fig)
+
+            return buffer
+
+        except Exception as e:
+            logger.error(f"Error generating radar chart: {e}", exc_info=True)
+            plt.close('all')
+            return None
+
+    def _generate_histogram(self, user_value: float, all_values: list,
+                            title: str, xlabel: str, user_label: str) -> BytesIO:
+        """Generate histogram with user position marked"""
+        try:
+            if not all_values or len(all_values) < 2:
+                return None
+
+            fig, ax = plt.subplots(figsize=(6, 3.5))
+
+            # Create histogram
+            n, bins, patches = ax.hist(all_values, bins=10, color='#3498DB',
+                                       alpha=0.7, edgecolor='black', linewidth=0.5)
+
+            # Mark user position
+            user_bin_idx = np.digitize(user_value, bins) - 1
+            if 0 <= user_bin_idx < len(patches):
+                patches[user_bin_idx].set_facecolor('#F39C12')
+                patches[user_bin_idx].set_edgecolor('black')
+                patches[user_bin_idx].set_linewidth(2)
+
+            ax.axvline(user_value, color='red', linestyle='--', linewidth=2.5,
+                       label=user_label)
+
+            ax.set_xlabel(xlabel, fontsize=11)
+            ax.set_ylabel('Number of Users', fontsize=11)
+            ax.set_title(title, fontsize=12, fontweight='bold')
+            ax.legend(fontsize=9)
+            ax.grid(True, alpha=0.3, axis='y')
+
+            plt.tight_layout()
+            buffer = BytesIO()
+            plt.savefig(buffer, format='png', dpi=150, bbox_inches='tight')
+            buffer.seek(0)
+            plt.close(fig)
+
+            return buffer
+
+        except Exception as e:
+            logger.error(f"Error generating histogram: {e}", exc_info=True)
+            plt.close('all')
+            return None
+
+    def generate_session_pdf(self, session_data: dict, user_data: dict,
+                             response_details: list,
+                             comparative_data: dict = None) -> BytesIO:
+        """Generate clean PDF report with specified sections only"""
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4,
+                                rightMargin=72, leftMargin=72,
+                                topMargin=72, bottomMargin=18)
+
+        elements = []
+
+        # ========== TITLE ==========
+        title = Paragraph(
+            f"Assessment Report - {session_data.get('subject', 'Assessment')}",
+            self.styles['CustomTitle']
+        )
+        elements.append(title)
+        elements.append(Spacer(1, 0.2 * inch))
+
+        # ========== SESSION OVERVIEW ==========
+        elements.append(Paragraph("Assessment Overview", self.styles['SectionHeader']))
+
+        info_data = [
+            ['User:', user_data['username']],
+            ['Session ID:', str(session_data['session_id'])],
+            ['Item Bank:', session_data.get('subject', 'N/A')],
+            ['Date:', session_data.get('completed_at', datetime.now()).strftime('%Y-%m-%d %H:%M')
+            if session_data.get('completed_at') else 'In Progress'],
+            ['Status:', 'Completed' if session_data.get('completed') else 'Active']
+        ]
+
+        info_table = Table(info_data, colWidths=[2 * inch, 4 * inch])
+        info_table.setStyle(TableStyle([
+            ('FONT', (0, 0), (-1, -1), 'Helvetica', 10),
+            ('FONT', (0, 0), (0, -1), 'Helvetica-Bold', 10),
+            ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#34495E')),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ]))
+        elements.append(info_table)
+        elements.append(Spacer(1, 0.3 * inch))
+
+        # ========== PERFORMANCE SUMMARY ==========
+        elements.append(Paragraph("Performance Summary", self.styles['SectionHeader']))
+
+        perf_data = [
+            ['Final Theta (θ):', f"{session_data['theta']:.2f}"],
+            ['Accuracy:', f"{session_data.get('accuracy', 0) * 100:.0f}%"],
+            ['Questions Answered:', str(session_data['questions_asked'])],
+            ['Competence Tier:', session_data.get('tier', 'N/A')],
+        ]
+
+        # Add percentile info if available
+        if comparative_data and comparative_data.get('total_users', 0) > 1:
+            perf_data.append(['Comparison:', f'vs {comparative_data["total_users"]} users'])
+
+        perf_table = Table(perf_data, colWidths=[2.5 * inch, 3.5 * inch])
+        perf_table.setStyle(TableStyle([
+            ('FONT', (0, 0), (-1, -1), 'Helvetica', 11),
+            ('FONT', (0, 0), (0, -1), 'Helvetica-Bold', 11),
+            ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#34495E')),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ]))
+        elements.append(perf_table)
+        elements.append(Spacer(1, 0.3 * inch))
+
+        # ========== THETA PROGRESSION CHART ==========
+        elements.append(PageBreak())
+        elements.append(Paragraph("θ Progression", self.styles['SectionHeader']))
+
+        # Prepare response data
+        responses_with_data = []
+        for resp in response_details:
+            responses_with_data.append({
+                'is_correct': resp.get('is_correct', False),
+                'theta_after': resp.get('theta_after', session_data['theta'])
+            })
+
+        theta_chart = self._generate_theta_progression_chart(responses_with_data)
+        if theta_chart:
+            elements.append(Image(theta_chart, width=6.5 * inch, height=3.5 * inch))
+        else:
+            elements.append(Paragraph("Chart data not available.", self.styles['Normal']))
+
+        elements.append(Spacer(1, 0.3 * inch))
+
+        # ========== TOPIC PERFORMANCE ==========
+        topic_performance = session_data.get('topic_performance')
+        if topic_performance:
+            elements.append(PageBreak())
+            elements.append(Paragraph("Topic-wise Performance", self.styles['SectionHeader']))
+
+            # Radar chart
+            elements.append(Paragraph("Performance Overview", self.styles['Subsection']))
+            radar_chart = self._generate_topic_radar(topic_performance)
+            if radar_chart:
+                elements.append(Image(radar_chart, width=5.5 * inch, height=5.5 * inch))
+
+            elements.append(Spacer(1, 0.3 * inch))
+
+            # Topic table
+            topic_headers = ['Topic', 'Accuracy', 'Questions', 'Theta', 'Strength']
+            topic_data = [topic_headers]
+
+            for topic, perf in topic_performance.items():
+                # Simplify topic names
+                topic_display = topic.replace('Complex Numbers - ', '').replace('complex numbers - ', '')
+                if len(topic_display) > 35:
+                    topic_display = topic_display[:32] + '...'
+
+                topic_data.append([
+                    topic_display.capitalize(),
+                    f"{perf.get('accuracy', 0) * 100:.0f}%",
+                    str(perf.get('questions_answered', 0)),
+                    f"{perf.get('theta', 0):.2f}",
+                    perf.get('strength_level', 'N/A')
+                ])
+
+            topic_table = Table(topic_data,
+                                colWidths=[2.5 * inch, 0.8 * inch, 0.8 * inch, 0.7 * inch, 1.2 * inch])
+            topic_table.setStyle(TableStyle([
+                ('FONT', (0, 0), (-1, 0), 'Helvetica-Bold', 10),
+                ('FONT', (0, 1), (-1, -1), 'Helvetica', 9),
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#3498DB')),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (1, 0), (-1, -1), 'CENTER'),
+                ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1),
+                 [colors.white, colors.HexColor('#F8F9FA')]),
+                ('TOPPADDING', (0, 0), (-1, -1), 8),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ]))
+            elements.append(topic_table)
+
+        # ========== LEARNING ROADMAP ==========
+        learning_roadmap = session_data.get('learning_roadmap')
+        if learning_roadmap:
+            elements.append(PageBreak())
+            elements.append(Paragraph("Personalized Learning Roadmap",
+                                      self.styles['SectionHeader']))
+
+            # Overall message
+            elements.append(Paragraph(
+                learning_roadmap.get('overall_message', ''),
+                self.styles['Normal']
+            ))
+            elements.append(Spacer(1, 0.3 * inch))
+
+            # Recommendations
+            for rec in learning_roadmap.get('recommendations', []):
+                # Recommendation title with icon
+                title_text = rec['title']
+                if rec['type'] == 'immediate_focus':
+                    title_text = "🎯 " + title_text
+                elif rec['type'] == 'practice_more':
+                    title_text = "💡 " + title_text
+                elif rec['type'] == 'maintain':
+                    title_text = "✓ " + title_text
+
+                title_color = {
+                    'immediate_focus': '#E74C3C',
+                    'practice_more': '#F39C12',
+                    'maintain': '#27AE60'
+                }.get(rec['type'], '#34495E')
+
+                rec_title_style = ParagraphStyle(
+                    'RecTitle',
+                    parent=self.styles['Subsection'],
+                    textColor=colors.HexColor(title_color),
+                    fontSize=13
+                )
+
+                elements.append(Paragraph(title_text, rec_title_style))
+                elements.append(Paragraph(
+                    rec['description'],
+                    self.styles['Normal']
+                ))
+                elements.append(Spacer(1, 0.05 * inch))
+
+                # Topics as badges
+                topics_text = "<b>Topics:</b> " + ", ".join(
+                    [t.replace('Complex Numbers - ', '').replace('complex numbers - ', '')
+                     for t in rec['topics']]
+                )
+                elements.append(Paragraph(topics_text, self.styles['Normal']))
+
+                elements.append(Paragraph(
+                    f"<b>💡 {rec['action']}</b>",
+                    self.styles['Normal']
+                ))
+                elements.append(Spacer(1, 0.2 * inch))
+
+        # ========== QUESTION DETAILS ==========
+        if response_details:
+            elements.append(PageBreak())
+            elements.append(Paragraph("Question Response Details",
+                                      self.styles['SectionHeader']))
+            elements.append(Spacer(1, 0.1 * inch))
+
+            resp_headers = ['#', 'Question', 'Your Answer', 'Correct', 'Result']
+            resp_data = [resp_headers]
+
+            for i, resp in enumerate(response_details, 1):
+                # Sanitize question text to preserve mathematical notation
+                question = self._sanitize_text(resp['question'])
+                question = question[:60] + '...' if len(question) > 60 else question
+
+                resp_data.append([
+                    str(i),
+                    question,
+                    resp['selected_option'],
+                    resp['correct_answer'],
+                    '✓' if resp['is_correct'] else '✗'
+                ])
+
+            resp_table = Table(resp_data, colWidths=[0.4 * inch, 3.2 * inch, 0.9 * inch, 0.9 * inch, 0.6 * inch])
+
+            # Try to use Unicode font if available
+            table_font = self.unicode_font if hasattr(self, 'unicode_font') else 'Helvetica'
+            table_font_bold = self.unicode_font_bold if hasattr(self, 'unicode_font_bold') else 'Helvetica-Bold'
+
+            resp_table.setStyle(TableStyle([
+                ('FONT', (0, 0), (-1, 0), table_font_bold, 9),
+                ('FONT', (0, 1), (-1, -1), table_font, 8),
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#34495E')),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (0, -1), 'CENTER'),
+                ('ALIGN', (2, 0), (-1, -1), 'CENTER'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1),
+                 [colors.white, colors.HexColor('#F8F9FA')]),
+                ('TOPPADDING', (0, 0), (-1, -1), 6),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+            ]))
+
+            # Color code results
+            for i, resp in enumerate(response_details, 1):
+                if resp['is_correct']:
+                    resp_table.setStyle(TableStyle([
+                        ('TEXTCOLOR', (4, i), (4, i), colors.green),
+                        ('FONT', (4, i), (4, i), 'Helvetica-Bold', 11),
+                    ]))
+                else:
+                    resp_table.setStyle(TableStyle([
+                        ('TEXTCOLOR', (4, i), (4, i), colors.red),
+                        ('FONT', (4, i), (4, i), 'Helvetica-Bold', 11),
+                    ]))
+
+            elements.append(resp_table)
+
+        # ========== FOOTER ==========
+        elements.append(Spacer(1, 0.4 * inch))
+        elements.append(HRFlowable(width="100%", thickness=1, color=colors.grey))
+        elements.append(Spacer(1, 0.1 * inch))
+        footer = Paragraph(
+            f"Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            self.styles['Normal']
+        )
+        footer.alignment = TA_CENTER
+        elements.append(footer)
+
+        # Build PDF
+        doc.build(elements)
+        buffer.seek(0)
+        return buffer
+
+# ========== NEW CLASS - Session Management Service ==========
+
+class SessionManagementService:
+    """NEW: Service for managing assessment sessions"""
+
+    def __init__(self):
+        self.user_service = UserService()
+        self.irt_engine = IRTEngine()
+
+    def terminate_single_session(self, item_db: Session, registry_db: Session,
+                                 session_id: int, item_bank_name: str) -> Dict:
+        """Terminate a specific assessment session"""
+        try:
+            # Get the session
+            session = item_db.query(models_itembank.AssessmentSession).filter(
+                models_itembank.AssessmentSession.session_id == session_id
+            ).first()
+
+            if not session:
+                return {
+                    'success': False,
+                    'error': f'Session {session_id} not found'
+                }
+
+            if session.completed:
+                return {
+                    'success': False,
+                    'error': f'Session {session_id} is already completed'
+                }
+
+            # Calculate final statistics
+            responses = item_db.query(models_itembank.Response).filter(
+                models_itembank.Response.session_id == session_id
+            ).all()
+
+            # Mark session as completed
+            session.completed = True
+            session.completed_at = datetime.utcnow()
+
+            # Update user proficiency if there are responses
+            if responses:
+                # Calculate topic performance
+                topic_performance = self._calculate_topic_performance(item_db, responses)
+
+                # Update user proficiency
+                self.user_service.update_user_proficiency(
+                    registry_db, item_db,
+                    session.user_id, item_bank_name, session.subject,
+                    session.theta, session.sem, session.tier,
+                    topic_performance
+                )
+
+            item_db.commit()
+
+            return {
+                'success': True,
+                'message': f'Session {session_id} terminated successfully',
+                'session_id': session_id,
+                'questions_answered': session.questions_asked,
+                'final_theta': session.theta,
+                'final_tier': session.tier
+            }
+
+        except Exception as e:
+            item_db.rollback()
+            logger.error(f"Error terminating session {session_id}: {e}")
+            return {
+                'success': False,
+                'error': str(e)
+            }
+
+    def terminate_all_active_sessions(self, registry_db: Session) -> Dict:
+        """Terminate all active sessions across all item banks"""
+        terminated_sessions = []
+        errors = []
+
+        # Get all item banks
+        item_banks = registry_db.query(models_registry.ItemBank).all()
+
+        for item_bank in item_banks:
+            item_db = item_bank_db.get_session(item_bank.name)
+            try:
+                # Find all active sessions in this item bank
+                active_sessions = item_db.query(models_itembank.AssessmentSession).filter(
+                    models_itembank.AssessmentSession.completed == False
+                ).all()
+
+                for session in active_sessions:
+                    result = self.terminate_single_session(
+                        item_db, registry_db,
+                        session.session_id, item_bank.name
+                    )
+
+                    if result['success']:
+                        terminated_sessions.append({
+                            'item_bank': item_bank.name,
+                            'session_id': session.session_id,
+                            'user_id': session.user_id
+                        })
+                    else:
+                        errors.append({
+                            'item_bank': item_bank.name,
+                            'session_id': session.session_id,
+                            'error': result['error']
+                        })
+
+            except Exception as e:
+                logger.error(f"Error processing item bank {item_bank.name}: {e}")
+                errors.append({
+                    'item_bank': item_bank.name,
+                    'error': str(e)
+                })
+            finally:
+                item_db.close()
+
+        return {
+            'success': len(errors) == 0,
+            'terminated_count': len(terminated_sessions),
+            'terminated_sessions': terminated_sessions,
+            'errors': errors if errors else None,
+            'message': f'Terminated {len(terminated_sessions)} active sessions'
+        }
+
+    def terminate_item_bank_sessions(self, item_db: Session, registry_db: Session,
+                                     item_bank_name: str) -> Dict:
+        """Terminate all active sessions for a specific item bank"""
+        try:
+            # Find all active sessions
+            active_sessions = item_db.query(models_itembank.AssessmentSession).filter(
+                models_itembank.AssessmentSession.completed == False
+            ).all()
+
+            terminated_sessions = []
+            errors = []
+
+            for session in active_sessions:
+                result = self.terminate_single_session(
+                    item_db, registry_db,
+                    session.session_id, item_bank_name
+                )
+
+                if result['success']:
+                    terminated_sessions.append({
+                        'session_id': session.session_id,
+                        'user_id': session.user_id,
+                        'questions_answered': result['questions_answered']
+                    })
+                else:
+                    errors.append({
+                        'session_id': session.session_id,
+                        'error': result['error']
+                    })
+
+            return {
+                'success': len(errors) == 0,
+                'item_bank': item_bank_name,
+                'terminated_count': len(terminated_sessions),
+                'terminated_sessions': terminated_sessions,
+                'errors': errors if errors else None,
+                'message': f'Terminated {len(terminated_sessions)} sessions in {item_bank_name}'
+            }
+
+        except Exception as e:
+            logger.error(f"Error terminating sessions for {item_bank_name}: {e}")
+            return {
+                'success': False,
+                'error': str(e)
+            }
+
+    def _calculate_topic_performance(self, db: Session, responses: List) -> Optional[Dict]:
+        """Calculate topic performance for responses"""
+        try:
+            topic_calculator = TopicPerformanceCalculator()
+            question_service = QuestionService()
+
+            topic_data = defaultdict(list)
+
+            for resp in responses:
+                question = question_service.get_question_by_id(db, resp.question_id)
+                if question and question.topic:
+                    topic_data[question.topic].append({
+                        'is_correct': resp.is_correct,
+                        'difficulty': question.difficulty_b,
+                        'discrimination': question.discrimination_a,
+                        'guessing': question.guessing_c,
+                        'topic': question.topic
+                    })
+
+            topic_performance = {}
+            for topic, data in topic_data.items():
+                perf = topic_calculator.calculate_topic_theta(data, topic, self.irt_engine)
+                if perf:
+                    topic_performance[topic] = perf
+
+            return topic_performance if topic_performance else None
+
+        except Exception as e:
+            logger.debug(f"Could not calculate topic performance: {e}")
+            return None
+
 # ========== UNCHANGED CLASSES - All original methods preserved ==========
 
 class UserService:
@@ -300,22 +1032,39 @@ class UserService:
             cache.tier = tier
             cache.assessments_taken = proficiency.assessments_taken
             cache.last_updated = datetime.utcnow()
+
+            # REGISTRY_CACHE_ENHANCEMENT: Cache topic performance in registry for faster dashboard loading
+            if topic_performance:
+                try:
+                    if hasattr(cache, 'topic_performance'):
+                        cache.topic_performance = json.dumps(topic_performance)
+                        logger.debug(f"Cached topic performance in registry for user {user_id}")
+                except Exception as e:
+                    logger.debug(f"Could not cache topic performance in registry: {e}")
         else:
-            cache = models_registry.UserProficiencySummary(
-                user_id=user_id,
-                item_bank_name=item_bank_name,
-                subject=subject,
-                theta=theta,
-                sem=sem,
-                tier=tier,
-                assessments_taken=proficiency.assessments_taken
-            )
+            cache_data = {
+                'user_id': user_id,
+                'item_bank_name': item_bank_name,
+                'subject': subject,
+                'theta': theta,
+                'sem': sem,
+                'tier': tier,
+                'assessments_taken': proficiency.assessments_taken
+            }
+
+            # REGISTRY_CACHE_ENHANCEMENT: Include topic performance in new cache entry
+            if topic_performance:
+                try:
+                    cache_data['topic_performance'] = json.dumps(topic_performance)
+                    logger.debug(f"Created registry cache with topic performance for user {user_id}")
+                except Exception as e:
+                    logger.debug(f"Could not add topic performance to registry cache: {e}")
+
+            cache = models_registry.UserProficiencySummary(**cache_data)
             registry_db.add(cache)
 
         registry_db.commit()
         logger.info(f"Updated proficiency for user {user_id}")
-
-
 class QuestionService:
     """UNCHANGED - All original methods preserved"""
 

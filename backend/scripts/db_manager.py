@@ -3,15 +3,17 @@
 from sqlalchemy import create_engine, event
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, scoped_session
-from sqlalchemy.pool import StaticPool
+from sqlalchemy.pool import NullPool  # Changed from StaticPool
 from pathlib import Path
 import logging
 import os
 import sys
 import stat
 import sqlite3
+import time
 from typing import Optional, List, Dict
 from contextlib import contextmanager
+from datetime import datetime, timedelta
 
 Base = declarative_base()
 logger = logging.getLogger(__name__)
@@ -23,9 +25,10 @@ class ItemBankDBManager:
 
     Features:
     - Automatic permission fixing for SQLite databases
-    - Connection pooling and proper cleanup
+    - Connection pooling with automatic cleanup
     - Thread-safe operations
     - Better error handling and logging
+    - Automatic idle connection cleanup
     """
 
     def __init__(self):
@@ -41,45 +44,18 @@ class ItemBankDBManager:
         self.engines: Dict[str, any] = {}
         self.session_makers: Dict[str, any] = {}
 
+        # Track last access time for each item bank
+        self.last_accessed: Dict[str, float] = {}
+
+        # Configuration
+        self.max_idle_time = 300  # 5 minutes in seconds
+        self.use_wal_mode = True  # Can be configured
+
         # Add backend to path if needed
         if str(backend_dir) not in sys.path:
             sys.path.insert(0, str(backend_dir))
 
         logger.info(f"ItemBankDBManager initialized with base_dir: {self.base_dir}")
-
-    def cleanup(self, item_bank_name: Optional[str] = None) -> None:
-        """
-        Clean up connections and resources
-
-        Args:
-            item_bank_name: Specific item bank to clean up, or None for all
-        """
-        if item_bank_name:
-            # Clean up specific item bank
-            if item_bank_name in self.engines:
-                try:
-                    # Dispose of the engine (closes all connections)
-                    self.engines[item_bank_name].dispose()
-                    del self.engines[item_bank_name]
-                    logger.info(f"Cleaned up engine for {item_bank_name}")
-                except Exception as e:
-                    logger.error(f"Error cleaning up engine: {e}")
-
-            if item_bank_name in self.session_makers:
-                try:
-                    # Remove the scoped session
-                    if hasattr(self.session_makers[item_bank_name], 'remove'):
-                        self.session_makers[item_bank_name].remove()
-                    del self.session_makers[item_bank_name]
-                    logger.info(f"Cleaned up session maker for {item_bank_name}")
-                except Exception as e:
-                    logger.error(f"Error cleaning up session maker: {e}")
-        else:
-            # Clean up all
-            for name in list(self.engines.keys()):
-                self.cleanup(name)
-
-            logger.info("Cleaned up all database connections")
 
     def _ensure_directory_exists(self) -> None:
         """Create data directory with proper permissions"""
@@ -89,7 +65,7 @@ class ItemBankDBManager:
             # Set directory permissions (775 - rwxrwxr-x)
             # This allows SQLite to create journal files
             os.chmod(self.base_dir, 0o775)
-            logger.info(f"Data directory created/verified: {self.base_dir}")
+            logger.debug(f"Data directory created/verified: {self.base_dir}")
 
         except Exception as e:
             logger.error(f"Failed to create data directory: {e}")
@@ -102,18 +78,21 @@ class ItemBankDBManager:
                 # Set file permissions (664 - rw-rw-r--)
                 os.chmod(db_path, 0o664)
 
-                # Verify writability
+                # Verify writability and set journal mode
                 with sqlite3.connect(str(db_path), timeout=5.0) as conn:
                     cursor = conn.cursor()
-                    cursor.execute("PRAGMA journal_mode=WAL")  # Use Write-Ahead Logging for better concurrency
-                    cursor.execute("PRAGMA synchronous=NORMAL")  # Balance safety and speed
+                    if self.use_wal_mode:
+                        cursor.execute("PRAGMA journal_mode=WAL")
+                    else:
+                        cursor.execute("PRAGMA journal_mode=DELETE")
+                    cursor.execute("PRAGMA synchronous=NORMAL")
                     conn.commit()
+                    cursor.close()
 
                 logger.debug(f"Permissions fixed for: {db_path}")
 
         except Exception as e:
             logger.warning(f"Could not fix permissions for {db_path}: {e}")
-            # Don't raise - let it fail later with a more specific error
 
     def get_db_path(self, item_bank_name: str) -> Path:
         """
@@ -143,22 +122,27 @@ class ItemBankDBManager:
         Returns:
             SQLAlchemy engine instance
         """
+        # Update last accessed time
+        self.last_accessed[item_bank_name] = time.time()
+
+        # Clean up idle connections periodically
+        self.cleanup_idle()
+
         if item_bank_name not in self.engines:
             db_path = self.get_db_path(item_bank_name)
 
             # Fix permissions before creating engine
             self._fix_db_permissions(db_path)
 
-            # Create engine with optimized settings
+            # Create engine with NullPool to avoid connection persistence
             engine = create_engine(
                 f"sqlite:///{db_path}",
                 connect_args={
-                    "check_same_thread": False,  # Allow multiple threads
-                    "timeout": 15,  # Increase timeout to handle locks
-                    "isolation_level": None  # Use autocommit mode to reduce locks
+                    "check_same_thread": False,
+                    "timeout": 15,
                 },
-                poolclass=StaticPool,  # Better for SQLite
-                echo=False  # Set to True for SQL debugging
+                poolclass=NullPool,  # No connection pooling - create/close each time
+                echo=False
             )
 
             # Set up event listeners for connection configuration
@@ -166,10 +150,13 @@ class ItemBankDBManager:
             def set_sqlite_pragma(dbapi_conn, connection_record):
                 """Configure SQLite for better performance and concurrency"""
                 cursor = dbapi_conn.cursor()
-                cursor.execute("PRAGMA journal_mode=WAL")  # Write-Ahead Logging
-                cursor.execute("PRAGMA synchronous=NORMAL")  # Balance safety/speed
-                cursor.execute("PRAGMA foreign_keys=ON")  # Enforce foreign keys
-                cursor.execute("PRAGMA busy_timeout=5000")  # 5 second timeout
+                if self.use_wal_mode:
+                    cursor.execute("PRAGMA journal_mode=WAL")
+                else:
+                    cursor.execute("PRAGMA journal_mode=DELETE")  # Cleaner - no WAL files
+                cursor.execute("PRAGMA synchronous=NORMAL")
+                cursor.execute("PRAGMA foreign_keys=ON")
+                cursor.execute("PRAGMA busy_timeout=5000")
                 cursor.close()
 
             # Import and create tables
@@ -199,15 +186,18 @@ class ItemBankDBManager:
         Returns:
             SQLAlchemy session instance
         """
+        # Update last accessed time
+        self.last_accessed[item_bank_name] = time.time()
+
         if item_bank_name not in self.session_makers:
             engine = self.get_engine(item_bank_name)
 
-            # Use scoped_session for thread safety
+            # Create session factory
             session_factory = sessionmaker(
                 autocommit=False,
                 autoflush=False,
                 bind=engine,
-                expire_on_commit=False  # Prevent lazy loading issues
+                expire_on_commit=False
             )
 
             self.session_makers[item_bank_name] = scoped_session(session_factory)
@@ -223,7 +213,7 @@ class ItemBankDBManager:
             with item_bank_db.get_session_context('maths') as session:
                 # Use session
                 pass
-            # Session automatically closed
+            # Session automatically closed and cleaned up
         """
         session = self.get_session(item_bank_name)
         try:
@@ -235,6 +225,122 @@ class ItemBankDBManager:
             raise
         finally:
             session.close()
+            # Remove the scoped session to ensure cleanup
+            if item_bank_name in self.session_makers:
+                self.session_makers[item_bank_name].remove()
+
+    def cleanup_idle(self, max_idle_time: Optional[int] = None) -> int:
+        """
+        Clean up connections that have been idle for too long
+
+        Args:
+            max_idle_time: Maximum idle time in seconds (uses self.max_idle_time if not provided)
+
+        Returns:
+            Number of connections cleaned up
+        """
+        if max_idle_time is None:
+            max_idle_time = self.max_idle_time
+
+        current_time = time.time()
+        cleaned_count = 0
+
+        # Find idle connections
+        idle_banks = []
+        for item_bank_name, last_access in list(self.last_accessed.items()):
+            if current_time - last_access > max_idle_time:
+                idle_banks.append(item_bank_name)
+
+        # Clean up idle connections
+        for item_bank_name in idle_banks:
+            logger.debug(f"Cleaning up idle connection for {item_bank_name}")
+            self.cleanup(item_bank_name)
+            cleaned_count += 1
+
+        if cleaned_count > 0:
+            logger.info(f"Cleaned up {cleaned_count} idle database connections")
+
+        return cleaned_count
+
+    def checkpoint_wal(self, item_bank_name: str) -> bool:
+        """
+        Checkpoint WAL file to merge changes back to main database
+
+        Args:
+            item_bank_name: Name of the item bank
+
+        Returns:
+            True if successful, False otherwise
+        """
+        if not self.use_wal_mode:
+            return True  # Nothing to do if not using WAL
+
+        db_path = self.get_db_path(item_bank_name)
+
+        try:
+            # Close any existing connections first
+            if item_bank_name in self.session_makers:
+                self.session_makers[item_bank_name].remove()
+            if item_bank_name in self.engines:
+                self.engines[item_bank_name].dispose()
+
+            # Checkpoint the WAL
+            conn = sqlite3.connect(str(db_path))
+            conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+            conn.close()
+
+            logger.debug(f"Checkpointed WAL for {item_bank_name}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to checkpoint WAL for {item_bank_name}: {e}")
+            return False
+
+    def cleanup(self, item_bank_name: Optional[str] = None) -> None:
+        """
+        Clean up connections and resources
+
+        Args:
+            item_bank_name: Specific item bank to clean up, or None for all
+        """
+        if item_bank_name:
+            # Clean up specific item bank
+            try:
+                # Remove from tracking
+                if item_bank_name in self.last_accessed:
+                    del self.last_accessed[item_bank_name]
+
+                # Close session maker
+                if item_bank_name in self.session_makers:
+                    try:
+                        self.session_makers[item_bank_name].remove()
+                        del self.session_makers[item_bank_name]
+                        logger.debug(f"Removed session maker for {item_bank_name}")
+                    except Exception as e:
+                        logger.error(f"Error removing session maker: {e}")
+
+                # Dispose engine
+                if item_bank_name in self.engines:
+                    try:
+                        self.engines[item_bank_name].dispose()
+                        del self.engines[item_bank_name]
+                        logger.debug(f"Disposed engine for {item_bank_name}")
+                    except Exception as e:
+                        logger.error(f"Error disposing engine: {e}")
+
+                # Try to checkpoint WAL if in use
+                if self.use_wal_mode:
+                    self.checkpoint_wal(item_bank_name)
+
+            except Exception as e:
+                logger.error(f"Error during cleanup of {item_bank_name}: {e}")
+        else:
+            # Clean up all
+            for name in list(self.engines.keys()):
+                self.cleanup(name)
+
+            self.last_accessed.clear()
+            logger.info("Cleaned up all database connections")
 
     def list_item_banks(self) -> List[str]:
         """
@@ -250,7 +356,10 @@ class ItemBankDBManager:
         try:
             for db_file in self.base_dir.glob('*.db'):
                 # Exclude registry.db and journal files
-                if db_file.stem != 'registry' and not db_file.name.endswith('-journal'):
+                if (db_file.stem != 'registry' and
+                        not db_file.name.endswith('-journal') and
+                        not db_file.name.endswith('-wal') and
+                        not db_file.name.endswith('-shm')):
                     banks.append(db_file.stem)
 
             logger.debug(f"Found {len(banks)} item banks")
@@ -275,6 +384,7 @@ class ItemBankDBManager:
             'readable': False,
             'writable': False,
             'tables': [],
+            'question_count': 0,
             'error': None
         }
 
@@ -287,7 +397,7 @@ class ItemBankDBManager:
                 result['error'] = 'Database file does not exist'
                 return result
 
-            # Check readability
+            # Check readability and content
             with sqlite3.connect(str(db_path), timeout=5.0) as conn:
                 cursor = conn.cursor()
 
@@ -300,6 +410,11 @@ class ItemBankDBManager:
                                """)
                 result['tables'] = [row[0] for row in cursor.fetchall()]
                 result['readable'] = True
+
+                # Count questions if table exists
+                if 'questions' in result['tables']:
+                    cursor.execute("SELECT COUNT(*) FROM questions")
+                    result['question_count'] = cursor.fetchone()[0]
 
                 # Check writability
                 cursor.execute("CREATE TABLE IF NOT EXISTS _test (id INTEGER)")
@@ -319,35 +434,18 @@ class ItemBankDBManager:
 
         return result
 
-    def cleanup(self, item_bank_name: Optional[str] = None) -> None:
+    def set_wal_mode(self, use_wal: bool) -> None:
         """
-        Clean up connections and resources
+        Enable or disable WAL mode for new connections
 
         Args:
-            item_bank_name: Specific item bank to clean up, or None for all
+            use_wal: True for WAL mode, False for DELETE mode
         """
-        if item_bank_name:
-            # Clean up specific item bank
-            if item_bank_name in self.engines:
-                self.engines[item_bank_name].dispose()
-                del self.engines[item_bank_name]
-                logger.info(f"Cleaned up engine for {item_bank_name}")
+        self.use_wal_mode = use_wal
+        logger.info(f"WAL mode set to: {use_wal}")
 
-            if item_bank_name in self.session_makers:
-                self.session_makers[item_bank_name].remove()
-                del self.session_makers[item_bank_name]
-
-        else:
-            # Clean up all
-            for engine in self.engines.values():
-                engine.dispose()
-            self.engines.clear()
-
-            for session_maker in self.session_makers.values():
-                session_maker.remove()
-            self.session_makers.clear()
-
-            logger.info("Cleaned up all database connections")
+        # Clean up existing connections to apply new setting
+        self.cleanup()
 
     def __del__(self):
         """Cleanup on deletion"""
@@ -359,3 +457,7 @@ class ItemBankDBManager:
 
 # Global item bank database manager
 item_bank_db = ItemBankDBManager()
+
+# Optional: Set to DELETE mode if the preference is  WAL files
+# But this will affect performance
+# item_bank_db.set_wal_mode(False)

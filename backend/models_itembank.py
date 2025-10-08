@@ -1,7 +1,8 @@
 # backend/models_itembank.py
 """Models for item bank databases with topic performance tracking"""
 
-from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, Text, ForeignKey, JSON
+from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, Text, ForeignKey
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import sys
 import os
@@ -34,22 +35,28 @@ class Question(Base):
     guessing_c = Column(Float)
     created_at = Column(DateTime, server_default=func.now())
 
+    # RELATIONSHIP_UPDATE: Enable querying responses from question
+    responses = relationship("Response", back_populates="question")
+
 
 class AssessmentSession(Base):
     """Assessment sessions with topic performance"""
     __tablename__ = "assessment_sessions"
 
     session_id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, index=True)
+    user_id = Column(Integer, index=True)  # ARCHITECTURE_NOTE: No FK - user in different database
     subject = Column(String)
     theta = Column(Float)
     sem = Column(Float)
     tier = Column(String)
     questions_asked = Column(Integer, default=0)
-    topic_performance = Column(Text, nullable=True)  # NEW: JSON stored as TEXT
+    topic_performance = Column(Text, nullable=True)  # TOPIC_TRACKING_UPDATE: Store JSON topic performance
     started_at = Column(DateTime, server_default=func.now())
     completed_at = Column(DateTime, nullable=True)
     completed = Column(Boolean, default=False)
+
+    # RELATIONSHIP_UPDATE: Enable querying responses from session
+    responses = relationship("Response", back_populates="session")
 
 
 class Response(Base):
@@ -65,8 +72,12 @@ class Response(Base):
     theta_before = Column(Float)
     theta_after = Column(Float, nullable=True)
     sem_after = Column(Float, nullable=True)
-    topic = Column(String, nullable=True)  # NEW: Track topic
+    topic = Column(String, nullable=True)  # TOPIC_TRACKING_UPDATE: Link response to topic
     created_at = Column(DateTime, server_default=func.now())
+
+    # RELATIONSHIP_UPDATE: Enable bidirectional queries
+    session = relationship("AssessmentSession", back_populates="responses")
+    question = relationship("Question", back_populates="responses")
 
 
 class UserProficiency(Base):
@@ -74,18 +85,18 @@ class UserProficiency(Base):
     __tablename__ = "user_proficiencies"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, index=True)
+    user_id = Column(Integer, index=True)  # ARCHITECTURE_NOTE: No FK - user in different database
     subject = Column(String)
     theta = Column(Float)
     sem = Column(Float)
     tier = Column(String)
     assessments_taken = Column(Integer, default=0)
-    topic_performance = Column(Text, nullable=True)  # NEW: JSON stored as TEXT
+    topic_performance = Column(Text, nullable=True)  # TOPIC_TRACKING_UPDATE: Store JSON topic performance
     last_updated = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
 
 class TopicPerformance(Base):
-    """NEW: Granular topic performance tracking"""
+    """TOPIC_TRACKING_UPDATE: Granular topic performance tracking - NEW TABLE"""
     __tablename__ = "topic_performance"
 
     id = Column(Integer, primary_key=True, index=True)

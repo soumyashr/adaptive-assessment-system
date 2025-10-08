@@ -24,54 +24,56 @@ class Question(Base):
     option_b = Column(Text)
     option_c = Column(Text)
     option_d = Column(Text)
-    answer = Column(String)  # A, B, C, or D
+    answer = Column(String)
     topic = Column(String, index=True)
-    content_area = Column(String, nullable=True)  # Added: for IRT engine
-    tier = Column(String, index=True)  # C1, C2, C3, C4
+    content_area = Column(String, nullable=True)
+    tier = Column(String, index=True)
     discrimination_a = Column(Float)
     difficulty_b = Column(Float)
     guessing_c = Column(Float)
     created_at = Column(DateTime, server_default=func.now())
 
-    # Relationships
+    # RELATIONSHIP_UPDATE: Enable querying responses from question
     responses = relationship("Response", back_populates="question")
 
 
 class AssessmentSession(Base):
     __tablename__ = "assessment_sessions"
 
-    session_id = Column(Integer, primary_key=True, index=True)  # Changed from 'id'
+    session_id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
     subject = Column(String)
-    theta = Column(Float)  # Changed: single column instead of initial_theta/current_theta
-    sem = Column(Float)    # Changed from current_sem
-    tier = Column(String)  # Added: current tier
+    theta = Column(Float)
+    sem = Column(Float)
+    tier = Column(String)
     questions_asked = Column(Integer, default=0)
-    started_at = Column(DateTime, server_default=func.now())  # Changed from created_at
+    topic_performance = Column(Text, nullable=True)  # TOPIC_TRACKING_UPDATE: Store JSON topic performance data
+    started_at = Column(DateTime, server_default=func.now())
     completed_at = Column(DateTime, nullable=True)
-    completed = Column(Boolean, default=False)  # Changed from is_completed
+    completed = Column(Boolean, default=False)
 
     # Relationships
     responses = relationship("Response", back_populates="session")
-
 
 class Response(Base):
     __tablename__ = "responses"
 
     id = Column(Integer, primary_key=True, index=True)
-    session_id = Column(Integer, ForeignKey("assessment_sessions.session_id"))  # Updated FK
+    session_id = Column(Integer, ForeignKey("assessment_sessions.session_id"))
     question_id = Column(Integer, ForeignKey("questions.id"))
-    selected_option = Column(String)  # A, B, C, or D
+    selected_option = Column(String)
     is_correct = Column(Boolean)
-    response_time = Column(Float, nullable=True)  # Changed from response_time_ms
+    response_time = Column(Float, nullable=True)
     theta_before = Column(Float)
-    theta_after = Column(Float, nullable=True)  # Made nullable
-    sem_after = Column(Float, nullable=True)    # Added
+    theta_after = Column(Float, nullable=True)
+    sem_after = Column(Float, nullable=True)
+    topic = Column(String, nullable=True)  # TOPIC_TRACKING_UPDATE: Link response to topic for analysis
     created_at = Column(DateTime, server_default=func.now())
 
     # Relationships
     session = relationship("AssessmentSession", back_populates="responses")
     question = relationship("Question", back_populates="responses")
+
 
 
 class UserProficiency(Base):
@@ -94,11 +96,11 @@ class ItemBank(Base):
     __tablename__ = "item_banks_registry"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, index=True)  # e.g., "MATH10-Algebra"
-    display_name = Column(String)  # e.g., "MATH10 Algebra"
-    subject = Column(String)  # e.g., "Mathematics"
-    model_type = Column(String, default="3PL")  # IRT model type
-    status = Column(String, default="pending")  # pending, calibrated, active
+    name = Column(String, unique=True, index=True)
+    display_name = Column(String)
+    subject = Column(String)
+    model_type = Column(String, default="3PL")  # CONSISTENCY_FIX: Changed from irt_model to match services.py
+    status = Column(String, default="pending")
     total_items = Column(Integer, default=0)
     calibrated_items = Column(Integer, default=0)
     test_takers = Column(Integer, default=0)

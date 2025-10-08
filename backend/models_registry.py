@@ -1,7 +1,7 @@
-# backend/models_registry.py (continued)
+# backend/models_registry.py
 """Models for registry database (backend/data/registry.db)"""
 
-from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime
+from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, Text
 from sqlalchemy.sql import func
 import sys
 import os
@@ -54,4 +54,5 @@ class UserProficiencySummary(Base):
     sem = Column(Float)
     tier = Column(String)
     assessments_taken = Column(Integer, default=0)
+    topic_performance = Column(Text, nullable=True)  # REGISTRY_UPDATE: Cached topic performance JSON
     last_updated = Column(DateTime, server_default=func.now())

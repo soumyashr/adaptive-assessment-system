@@ -154,33 +154,35 @@ const UploadData = () => {
             </div>
 
             <div>
-              <label className={`block text-sm font-medium ${theme('text-gray-300', 'text-gray-700')} mb-2`}>
-                Questions CSV File*
-              </label>
-              <div className={`border-2 border-dashed ${theme('border-gray-600 hover:border-blue-500', 'border-gray-300 hover:border-blue-500')} rounded-lg p-6 text-center transition`}>
-                <input
-                  type="file"
-                  accept=".csv"
-                  onChange={(e) => setSelectedFile(e.target.files[0])}
-                  className="hidden"
-                  id="file-upload"
-                />
-                <label htmlFor="file-upload" className="cursor-pointer">
-                  {selectedFile ? (
-                    <div>
-                      <div className="text-4xl mb-2">📄</div>
-                      <div className={`font-medium ${theme('text-gray-200', 'text-gray-900')}`}>{selectedFile.name}</div>
-                      <div className={`text-sm ${theme('text-gray-400', 'text-gray-500')}`}>{(selectedFile.size / 1024).toFixed(2)} KB</div>
-                    </div>
-                  ) : (
-                    <div>
-                      <div className="text-4xl mb-2">📤</div>
-                      <div className={`font-medium ${theme('text-gray-200', 'text-gray-900')}`}>Click to upload</div>
-                      <div className={`text-sm ${theme('text-gray-400', 'text-gray-500')}`}>CSV files only</div>
-                    </div>
-                  )}
+                <label className={`block text-sm font-medium ${theme('text-gray-300', 'text-gray-700')} mb-2`}>
+                  Questions Excel File*
                 </label>
-              </div>
+                <div className={`border-2 border-dashed ${theme('border-gray-600 hover:border-blue-500', 'border-gray-300 hover:border-blue-500')} rounded-lg p-6 text-center transition`}>
+                  <input
+                    type="file"
+                    accept=".xlsx"
+                    onChange={(e) => setSelectedFile(e.target.files[0])}
+                    className="hidden"
+                    id="file-upload"
+                  />
+                  <label htmlFor="file-upload" className="cursor-pointer">
+                    {selectedFile ? (
+                      <div>
+                        <div className="text-4xl mb-2">📄</div>
+                        <div className={`font-medium ${theme('text-gray-200', 'text-gray-900')}`}>{selectedFile.name}</div>
+                        <div className={`text-sm ${theme('text-gray-400', 'text-gray-500')}`}>{(selectedFile.size / 1024).toFixed(2)} KB</div>
+                      </div>
+                    ) : (
+                      <div>
+                        <div className="text-4xl mb-2">📤</div>
+                        <div className={`font-medium ${theme('text-gray-200', 'text-gray-900')}`}>Click to upload</div>
+                        <div className={`text-sm ${theme('text-gray-400', 'text-gray-500')}`}>Excel (.xlsx) files only</div>
+                      </div>
+                    )}
+                  </label>
+                </div>
+
+
             </div>
 
             <button
@@ -195,7 +197,8 @@ const UploadData = () => {
 
         {/* Instructions */}
         <div className={`${theme('bg-blue-900/30 border-blue-700', 'bg-blue-50')} rounded-lg p-6 ${theme('border', '')}`}>
-          <h3 className={`text-lg font-bold ${theme('text-blue-300', 'text-blue-900')} mb-4`}>📋 CSV Format Requirements</h3>
+          <h3 className={`text-lg font-bold ${theme('text-blue-300', 'text-blue-900')} mb-4`}>📋 Excel File Format Requirements</h3>
+
 
           <div className="space-y-4 text-sm">
             <div>
@@ -222,12 +225,17 @@ const UploadData = () => {
             </div>
 
             <div className={`${theme('bg-blue-800/30 border-blue-700', 'bg-blue-100 border-blue-200')} border p-4 rounded-lg`}>
-              <div className={`font-medium ${theme('text-blue-200', 'text-blue-900')} mb-2`}>💡 Example CSV:</div>
-              <pre className={`text-xs ${theme('text-blue-300', 'text-blue-800')} overflow-x-auto`}>
-{`question,option_a,option_b,option_c,option_d,answer,tier,topic
-"What is 2+2?",3,4,5,6,B,C1,Arithmetic
-"Solve: x² = 16",2,4,-4,"±4",D,C2,Algebra`}
-              </pre>
+              <div className={`font-medium ${theme('text-blue-200', 'text-blue-900')} mb-2`}>💡 Example Structure:</div>
+                <div className={`text-xs ${theme('text-blue-300', 'text-blue-800')}`}>
+                  <p className="mb-2">Create an Excel file (.xlsx) with these columns in the first row:</p>
+                  <pre className="overflow-x-auto">
+                {`question | option_a | option_b | option_c | option_d | answer | tier | topic
+                What is 2+2? | 3 | 4 | 5 | 6 | B | C1 | Arithmetic
+                Solve: x² = 16 | 2 | 4 | -4 | ±4 | D | C2 | Algebra`}
+                  </pre>
+                </div>
+
+
             </div>
           </div>
         </div>

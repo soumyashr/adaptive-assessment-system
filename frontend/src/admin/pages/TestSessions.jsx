@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { theme } from '../../config/theme';
 import { useNavigate } from 'react-router-dom';
 
-
 const TestSessions = () => {
   const navigate = useNavigate();
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('all'); // all, completed, active
+  const [filter, setFilter] = useState('all'); // FILTER_FIX: Default filter state
+  const [terminatingSession, setTerminatingSession] = useState(null);
 
   const API_BASE = 'http://localhost:8000/api';
 
@@ -26,17 +26,114 @@ const TestSessions = () => {
       }
     } catch (error) {
       console.error('Error fetching sessions:', error);
-      setSessions([]); // Set empty array on error
+      setSessions([]);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleTerminateSession = async (sessionId, itemBank) => {
+    if (!window.confirm(`Terminate session #${sessionId}?`)) return;
+
+    setTerminatingSession(sessionId);
+    try {
+      const response = await fetch(
+        `${API_BASE}/sessions/${sessionId}/terminate?item_bank_name=${itemBank}`,
+        { method: 'POST' }
+      );
+
+      if (response.ok) {
+        alert('Session terminated successfully');
+        fetchSessions(); // Refresh the list
+      } else {
+        alert('Failed to terminate session');
+      }
+    } catch (error) {
+      console.error('Error terminating session:', error);
+      alert('Error terminating session');
+    } finally {
+      setTerminatingSession(null);
+    }
+  };
+
+  const handleExportSession = async (sessionId, itemBank, username) => {
+    try {
+      const response = await fetch(
+        `${API_BASE}/sessions/${sessionId}/export-pdf?item_bank_name=${itemBank}`
+      );
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `session_${sessionId}_${username}_report.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        alert('Failed to export session');
+      }
+    } catch (error) {
+      console.error('Error exporting session:', error);
+      alert('Error exporting session');
+    }
+  };
+
+  const handleTerminateAllActive = async () => {
+    const activeSessions = sessions.filter(s => s.status === 'Active');
+    if (activeSessions.length === 0) {
+      alert('No active sessions to terminate');
+      return;
+    }
+
+    if (!window.confirm(`Terminate all ${activeSessions.length} active sessions?`)) return;
+
+    try {
+      const response = await fetch(`${API_BASE}/sessions/terminate-all`, {
+        method: 'POST'
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        alert(`Terminated ${result.terminated_count} sessions successfully`);
+        fetchSessions();
+      } else {
+        alert('Failed to terminate sessions');
+      }
+    } catch (error) {
+      console.error('Error terminating all sessions:', error);
+      alert('Error terminating sessions');
+    }
+  };
+
+  // FILTER_FIX: Enhanced filtering with debug logging
   const filteredSessions = sessions.filter(session => {
-    if (filter === 'completed') return session.status === 'Completed';
-    if (filter === 'active') return session.status === 'Active';
-    return true;
+    if (filter === 'completed') {
+      return session.status === 'Completed';
+    }
+    if (filter === 'active') {
+      return session.status === 'Active';
+    }
+    return true; // 'all' shows everything
   });
+
+  // DEBUG: right after filteredSessions definition
+  //   console.log('=== FILTER DEBUG ===');
+  //   console.log('filter:', filter);
+  //   console.log('sessions.length:', sessions.length);
+  //   console.log('filteredSessions.length:', filteredSessions.length);
+  //   console.log('First 3 filtered:', filteredSessions.slice(0, 3).map(s => ({ id: s.session_id, status: s.status })));
+  //   console.log('===================');
+
+  // debug logging
+  useEffect(() => {
+    // console.log('Current filter:', filter);
+    // console.log('Total sessions:', sessions.length);
+    // console.log('Filtered sessions:', filteredSessions.length);
+    // console.log('Sample session status:', sessions[0]?.status);
+  }, [filter, sessions, filteredSessions]);
 
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
@@ -59,7 +156,6 @@ const TestSessions = () => {
   const completedCount = sessions.filter(s => s.status === 'Completed').length;
   const activeCount = sessions.filter(s => s.status === 'Active').length;
 
-  // Calculate statistics
   const avgTheta = sessions.length > 0
     ? (sessions.reduce((sum, s) => sum + s.theta, 0) / sessions.length).toFixed(2)
     : '0.00';
@@ -76,19 +172,43 @@ const TestSessions = () => {
     ? (completedCount / sessions.length * 100).toFixed(0)
     : '0';
 
+    // Right before: return (
+    // console.log('🔍 RENDER CHECK - About to render table');
+    // console.log('filteredSessions at render time:', filteredSessions.length);
+    // console.log('filter at render time:', filter);
   return (
     <div className={`p-8 ${theme('bg-gray-900', 'bg-gray-50')} min-h-screen`}>
-      <div className="mb-8">
-        <h1 className={`text-3xl font-bold ${theme('text-white', 'text-gray-900')} mb-2`}>Test Sessions</h1>
-        <p className={theme('text-gray-400', 'text-gray-600')}>View and manage assessment sessions across all item banks</p>
+      <div className="mb-8 flex justify-between items-center">
+        <div>
+          <h1 className={`text-3xl font-bold ${theme('text-white', 'text-gray-900')} mb-2`}>Test Sessions</h1>
+          <p className={theme('text-gray-400', 'text-gray-600')}>View and manage assessment sessions across all item banks</p>
+        </div>
+
+        {activeCount > 0 && (
+          <button
+            onClick={handleTerminateAllActive}
+            className={`px-4 py-2 ${theme('bg-red-500 hover:bg-red-600', 'bg-red-500 hover:bg-red-600')} text-white rounded-lg font-medium shadow-md transition-all duration-200 flex items-center gap-2`}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <span>Terminate All Sessions</span>
+            <span className={`ml-1 px-2 py-0.5 bg-white/20 backdrop-blur-sm rounded-full text-xs font-bold`}>
+              {activeCount}
+            </span>
+          </button>
+        )}
       </div>
 
-      {/* Filter Tabs */}
+      {/* FILTER_FIX: Filter Tabs with proper click handlers */}
       <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white')} rounded-lg shadow mb-6 ${theme('border', '')}`}>
         <div className={`border-b ${theme('border-gray-700', 'border-gray-200')}`}>
           <nav className="flex -mb-px">
             <button
-              onClick={() => setFilter('all')}
+              onClick={() => {
+                // console.log('Setting filter to: all'); // FILTER_FIX: Debug log
+                setFilter('all');
+              }}
               className={`px-6 py-4 text-sm font-medium border-b-2 transition ${
                 filter === 'all'
                   ? 'border-blue-500 text-blue-600'
@@ -98,7 +218,10 @@ const TestSessions = () => {
               All Sessions ({sessions.length})
             </button>
             <button
-              onClick={() => setFilter('completed')}
+              onClick={() => {
+                // console.log('Setting filter to: completed'); // FILTER_FIX: Debug log
+                setFilter('completed');
+              }}
               className={`px-6 py-4 text-sm font-medium border-b-2 transition ${
                 filter === 'completed'
                   ? 'border-blue-500 text-blue-600'
@@ -108,7 +231,10 @@ const TestSessions = () => {
               Completed ({completedCount})
             </button>
             <button
-              onClick={() => setFilter('active')}
+              onClick={() => {
+                // console.log('Setting filter to: active'); // FILTER_FIX: Debug log
+                setFilter('active');
+              }}
               className={`px-6 py-4 text-sm font-medium border-b-2 transition ${
                 filter === 'active'
                   ? 'border-blue-500 text-blue-600'
@@ -123,7 +249,12 @@ const TestSessions = () => {
 
       {/* Sessions Table */}
       <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white')} rounded-lg shadow overflow-hidden ${theme('border', '')}`}>
-        <table className="min-w-full divide-y divide-gray-200">
+        {/* FILTER_FIX: Display current filter for debugging */}
+        <div className={`px-6 py-2 text-xs ${theme('text-gray-500', 'text-gray-400')}`}>
+          Showing: {filter} | Filtered: {filteredSessions.length} sessions
+        </div>
+
+        <table key={filter} className="min-w-full divide-y divide-gray-200">
           <thead className={theme('bg-gray-700', 'bg-gray-50')}>
             <tr>
               <th className={`px-6 py-3 text-left text-xs font-medium ${theme('text-gray-300', 'text-gray-500')} uppercase tracking-wider`}>
@@ -168,10 +299,12 @@ const TestSessions = () => {
             ) : filteredSessions.length === 0 ? (
               <tr>
                 <td colSpan="9" className={`px-6 py-12 text-center ${theme('text-gray-400', 'text-gray-500')}`}>
-                  No sessions found
+                  No {filter !== 'all' ? filter : ''} sessions found
                 </td>
               </tr>
             ) : (
+                // console.log('About to map', filteredSessions.length, 'sessions'),
+
               filteredSessions.map((session) => (
                 <tr key={session.session_id} className={theme('hover:bg-gray-700', 'hover:bg-gray-50')}>
                   <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${theme('text-gray-300', 'text-gray-900')}`}>
@@ -206,17 +339,29 @@ const TestSessions = () => {
                   <td className={`px-6 py-4 whitespace-nowrap text-sm ${theme('text-gray-400', 'text-gray-600')}`}>
                     {formatDate(session.started_at)}
                   </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <button
+                      onClick={() => navigate(`/admin/sessions/${session.session_id}`)}
+                      className="text-blue-500 hover:text-blue-800 hover:underline mr-3 transition-all duration-200 hover:font-semibold"
+                    >
+                      View
+                    </button>
+                    <button
+                      onClick={() => handleExportSession(session.session_id, session.item_bank, session.username)}
+                      className="text-green-500 hover:text-green-800 hover:underline mr-3 transition-all duration-200 hover:font-semibold"
+                    >
+                      Export
+                    </button>
+                    {session.status === 'Active' && (
                       <button
-                        onClick={() => navigate(`/admin/sessions/${session.session_id}`)}
-                        className="text-blue-600 hover:text-blue-900 mr-3"
+                        onClick={() => handleTerminateSession(session.session_id, session.item_bank)}
+                        disabled={terminatingSession === session.session_id}
+                        className="text-red-500 hover:text-red-800 hover:underline transition-all duration-200 hover:font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        View
+                        {terminatingSession === session.session_id ? 'Terminating...' : 'Terminate'}
                       </button>
-                      <button className={theme('text-gray-400 hover:text-gray-200', 'text-gray-600 hover:text-gray-900')}>
-                        Export
-                      </button>
-                    </td>
+                    )}
+                  </td>
                 </tr>
               ))
             )}

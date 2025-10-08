@@ -16,6 +16,7 @@ const ItemBanksPage = () => {
   const [error, setError] = useState(null);
   const [calibratingBank, setCalibratingBank] = useState(null);
   const [deletingBank, setDeletingBank] = useState(null);
+  const [terminatingSession, setTerminatingSession] = useState(false);
 
   const API_BASE = 'http://localhost:8000/api';
 
@@ -38,7 +39,6 @@ const ItemBanksPage = () => {
     setSelectedBank(bank);
     setError(null);
 
-    // Fetch detailed stats before showing confirmation
     try {
       const response = await fetch(`${API_BASE}/item-banks/${bank.name}/stats`);
       const stats = await response.json();
@@ -88,16 +88,65 @@ const ItemBanksPage = () => {
     }
   };
 
-  const handleCreateAndUpload = async () => {
+  const handleTerminateSessions = async () => {
+    if (!selectedBank) return;
 
-    // Sanitize item bank name for use in URLs and as subject
+    setTerminatingSession(true);
+    setError(null);
+
+    try {
+      console.log('Terminating sessions for:', selectedBank.name);
+
+      const response = await fetch(
+        `${API_BASE}/item-banks/${selectedBank.name}/sessions/terminate`,
+        {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      console.log('Response status:', response.status);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to terminate sessions');
+      }
+
+      const result = await response.json();
+      console.log('Terminate result:', result);
+
+      alert(`Successfully terminated ${result.terminated_count} session(s)`);
+
+      // Refresh stats to show updated active sessions count
+      const statsResponse = await fetch(`${API_BASE}/item-banks/${selectedBank.name}/stats`);
+
+      if (!statsResponse.ok) {
+        throw new Error('Failed to refresh stats');
+      }
+
+      const newStats = await statsResponse.json();
+      console.log('Updated stats:', newStats);
+      setDeleteStats(newStats);
+
+    } catch (err) {
+      console.error('Error terminating sessions:', err);
+      setError(`Failed to terminate sessions: ${err.message}`);
+      alert(`Failed to terminate sessions: ${err.message}`);
+    } finally {
+      setTerminatingSession(false);
+    }
+  };
+
+  const handleCreateAndUpload = async () => {
     const sanitizedName = uploadConfig.name
         .toLowerCase()
         .trim()
         .replace(/\s+/g, '_')
         .replace(/[^a-z0-9_-]/g, '');
 
-    // Validation
     if (!sanitizedName || sanitizedName.length < 3) {
         alert('Item bank name must be at least 3 characters');
         return;
@@ -132,8 +181,6 @@ const ItemBanksPage = () => {
         const errorData = await createResponse.json();
         throw new Error(errorData.detail || 'Failed to create item bank');
       }
-
-      // Upload CSV - backend will use sanitizedName as subject
 
       const formData = new FormData();
       formData.append('file', selectedFile);
@@ -441,12 +488,29 @@ const ItemBanksPage = () => {
                   </ul>
 
                   {deleteStats.active_sessions > 0 && (
-                    <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
-                      <p className="text-yellow-800 text-sm">
-                        <strong>Warning:</strong> There are {deleteStats.active_sessions} active session(s).
-                        These must be completed before deletion.
-                      </p>
-                    </div>
+                    <>
+                      <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
+                        <p className="text-yellow-800 text-sm">
+                          <strong>Warning:</strong> There are {deleteStats.active_sessions} active session(s).
+                          These must be terminated before deletion.
+                        </p>
+                      </div>
+
+                      <button
+                        onClick={handleTerminateSessions}
+                        disabled={terminatingSession}
+                        className="mt-3 w-full bg-yellow-600 hover:bg-yellow-700 text-white py-2 px-4 rounded font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {terminatingSession ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            Terminating...
+                          </span>
+                        ) : (
+                          'Terminate Active Sessions'
+                        )}
+                      </button>
+                    </>
                   )}
                 </div>
               )}
@@ -525,11 +589,11 @@ const ItemBanksPage = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  CSV File*
+                  Excel File*
                 </label>
                 <input
                   type="file"
-                  accept=".csv"
+                  accept=".xlsx"
                   onChange={(e) => setSelectedFile(e.target.files[0])}
                   className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-4 py-2 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                 />

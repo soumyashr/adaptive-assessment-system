@@ -1,10 +1,10 @@
 # backend/main.py
-# ADDITIVE CHANGES: Modified submit_answer to return topic_performance
+# UPDATED: XLSX format only - CSV support removed
 
 from datetime import datetime
-
 from fastapi import FastAPI, Depends, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
 import pandas as pd
@@ -13,7 +13,7 @@ import logging
 import subprocess
 import sys
 from sqlalchemy import and_
-
+from pathlib import Path
 
 # Registry DB
 from backend.scripts.database import get_db, engine
@@ -27,7 +27,14 @@ import models_itembank
 
 import schemas
 from irt_engine import IRTEngine
-from services import UserService, QuestionService, AssessmentService, ItemBankService
+from services import (
+    UserService,
+    QuestionService,
+    AssessmentService,
+    ItemBankService,
+    SessionManagementService,
+    PDFExportService
+)
 from config import get_config
 
 # Get configuration
@@ -50,7 +57,8 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title=config.API_CONFIG["title"],
-    version=config.API_CONFIG["version"]
+    version=config.API_CONFIG["version"],
+    description="IRT Assessment API - XLSX format only for optimal mathematical symbol preservation"
 )
 
 # CORS middleware
@@ -66,7 +74,10 @@ app.add_middleware(
 user_service = UserService()
 question_service = QuestionService()
 assessment_service = AssessmentService()
+session_management_service = SessionManagementService()
+pdf_export_service = PDFExportService()
 irt_engine = IRTEngine()
+
 
 def get_item_bank_session(item_bank_name: str):
     """Get database session for an item bank"""
@@ -77,12 +88,13 @@ def get_item_bank_session(item_bank_name: str):
         session.close()
 
 
-# ========== EXISTING ENDPOINTS - NO CHANGES ==========
+# ========== USER ENDPOINTS ==========
 
 @app.post("/api/users/", response_model=schemas.User)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     """Create a new user or get existing user"""
     return user_service.get_or_create_user(db, user.username, user.initial_competence_level)
+
 
 @app.get("/api/users/{username}", response_model=schemas.User)
 def get_user(username: str, db: Session = Depends(get_db)):
@@ -92,32 +104,324 @@ def get_user(username: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
+
+@app.get("/api/users/{username}/proficiency")
+def get_user_proficiency(username: str, db: Session = Depends(get_db)):
+    """Get user's proficiency across all item banks"""
+    user = user_service.get_user_by_username(db, username)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    proficiencies = db.query(models.UserProficiencySummary).filter(
+        models.UserProficiencySummary.user_id == user.id
+    ).all()
+
+    proficiency_list = []
+    for prof in proficiencies:
+        proficiency_list.append({
+            "item_bank": prof.item_bank_name,
+            "subject": prof.subject,
+            "theta": prof.theta,
+            "sem": prof.sem,
+            "tier": prof.tier,
+            "assessments_taken": prof.assessments_taken,
+            "last_updated": prof.last_updated
+        })
+
+    return {
+        "username": user.username,
+        "proficiencies": proficiency_list
+    }
+
+
+# ========== QUESTION UPLOAD - XLSX ONLY ==========
+
 @app.post("/api/questions/upload")
-def upload_questions(file: UploadFile = File(...), db: Session = Depends(get_db)):
-    """Upload questions from CSV file"""
-    if not file.filename.endswith('.csv'):
-        raise HTTPException(status_code=400, detail="File must be a CSV")
+async def upload_questions(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    """
+    Upload questions from Excel file (XLSX/XLS only)
 
-    content = file.file.read()
-    df = pd.read_csv(io.StringIO(content.decode('utf-8')))
+    Required format:
+    - Excel file (.xlsx or .xls)
+    - Contains columns: question, option_a-d, answer, topic, tier
+    - Optional: subject, question_id, discrimination_a, difficulty_b, guessing_c
 
+    Mathematical symbols are perfectly preserved in Excel format.
+    """
+    filename = file.filename.lower()
+
+    # Check file extension - XLSX/XLS only
+    if not (filename.endswith('.xlsx') or filename.endswith('.xls')):
+        raise HTTPException(
+            status_code=400,
+            detail="File must be Excel format (.xlsx or .xls). Excel format is required for proper mathematical symbol preservation."
+        )
+
+    content = await file.read()
+
+    try:
+        # Read Excel file
+        excel_file = pd.ExcelFile(io.BytesIO(content))
+
+        # Find the data sheet (skip instruction sheets if present)
+        data_sheet = None
+        for sheet_name in excel_file.sheet_names:
+            if 'instruction' not in sheet_name.lower() and 'template' not in sheet_name.lower():
+                data_sheet = sheet_name
+                break
+
+        if data_sheet is None and excel_file.sheet_names:
+            data_sheet = 0  # Use first sheet if no data sheet found
+
+        df = pd.read_excel(io.BytesIO(content), sheet_name=data_sheet)
+        logger.info(
+            f"Read Excel file with {len(df)} rows from sheet: {excel_file.sheet_names[data_sheet] if isinstance(data_sheet, int) else data_sheet}")
+
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Could not read Excel file: {str(e)}")
+
+    # Validate columns
     required_columns = ['subject', 'question_id', 'question', 'option_a', 'option_b',
-                       'option_c', 'option_d', 'answer', 'topic', 'tier',
-                       'discrimination_a', 'difficulty_b', 'guessing_c']
+                        'option_c', 'option_d', 'answer', 'topic', 'tier',
+                        'discrimination_a', 'difficulty_b', 'guessing_c']
 
-    if not all(col in df.columns for col in required_columns):
-        raise HTTPException(status_code=400, detail="CSV missing required columns")
+    # Normalize column names
+    df.columns = df.columns.str.lower().str.strip()
+
+    missing = [col for col in required_columns if col not in df.columns]
+    if missing:
+        # Check if it's a simplified format (missing IRT parameters)
+        basic_required = ['question', 'option_a', 'option_b', 'option_c', 'option_d',
+                          'answer', 'topic', 'tier']
+        basic_missing = [col for col in basic_required if col not in df.columns]
+
+        if basic_missing:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Missing required columns: {', '.join(basic_missing)}"
+            )
+
+        # Auto-generate missing columns
+        logger.info("Auto-generating missing IRT parameters and metadata")
+        df = question_service.auto_complete_dataframe(df)
 
     imported_count = question_service.import_questions_from_df(db, df)
-    return {"message": f"Successfully imported {imported_count} questions"}
 
+    return {
+        "message": f"Successfully imported {imported_count} questions from Excel file",
+        "format": "Excel",
+        "sheet_used": excel_file.sheet_names[data_sheet] if isinstance(data_sheet, int) else data_sheet,
+        "total_questions": len(df)
+    }
+
+
+# ========== ITEM BANK MANAGEMENT ==========
+
+item_bank_service = ItemBankService()
+
+
+@app.post("/api/item-banks/create")
+async def create_item_bank(
+        name: str,
+        display_name: str,
+        subject: str,
+        db: Session = Depends(get_db)
+):
+    """Create a new item bank"""
+    try:
+        existing = db.query(models.ItemBank).filter(
+            models.ItemBank.name == name
+        ).first()
+
+        if existing:
+            return {
+                "success": True,
+                "message": "Item bank already exists",
+                "item_bank": {
+                    "name": existing.name,
+                    "display_name": existing.display_name,
+                    "subject": existing.subject,
+                    "status": existing.status
+                }
+            }
+
+        item_bank = item_bank_service.create_item_bank(
+            db, name, display_name, subject
+        )
+        return {
+            "success": True,
+            "message": "Item bank created",
+            "item_bank": {
+                "name": item_bank.name,
+                "display_name": item_bank.display_name,
+                "subject": item_bank.subject,
+                "status": item_bank.status
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/api/item-banks/{item_bank_name}/upload")
+async def upload_to_item_bank(
+        item_bank_name: str,
+        file: UploadFile = File(...)
+):
+    """
+    Upload questions to item bank - Excel format only
+
+    Required format:
+    - Excel file (.xlsx or .xls)
+    - Required columns: question, option_a-d, answer, tier, topic
+    - Optional: subject, question_id, discrimination_a, difficulty_b, guessing_c
+
+    IRT parameters will be auto-generated if not provided.
+    """
+    filename = file.filename.lower()
+
+    if not (filename.endswith('.xlsx') or filename.endswith('.xls')):
+        raise HTTPException(
+            status_code=400,
+            detail="File must be Excel format (.xlsx or .xls). This ensures proper preservation of mathematical symbols."
+        )
+
+    content = await file.read()
+
+    try:
+        # Read Excel file
+        excel_file = pd.ExcelFile(io.BytesIO(content))
+
+        # Log available sheets
+        if len(excel_file.sheet_names) > 1:
+            logger.info(f"Multiple sheets found: {excel_file.sheet_names}")
+
+            # Find data sheet (skip instruction/template sheets)
+            data_sheet = None
+            for sheet in excel_file.sheet_names:
+                if 'instruction' not in sheet.lower() and 'template' not in sheet.lower():
+                    data_sheet = sheet
+                    break
+
+            if data_sheet is None:
+                data_sheet = 0  # Default to first sheet
+
+            logger.info(
+                f"Using sheet: {excel_file.sheet_names[data_sheet] if isinstance(data_sheet, int) else data_sheet}")
+        else:
+            data_sheet = 0
+
+        df = pd.read_excel(io.BytesIO(content), sheet_name=data_sheet)
+
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Could not read Excel file: {str(e)}")
+
+    # Upload and calibrate
+    result = item_bank_service.upload_and_calibrate(item_bank_name, df)
+
+    if not result['success']:
+        raise HTTPException(status_code=400, detail=result['error'])
+
+    result['file_format'] = 'Excel'
+    result['sheets_available'] = excel_file.sheet_names
+    return result
+
+
+@app.get("/api/item-banks")
+async def list_item_banks(db: Session = Depends(get_db)):
+    """List all item banks with statistics"""
+    banks = db.query(models.ItemBank).all()
+
+    result = []
+    for bank in banks:
+        stats = item_bank_service.get_item_bank_stats(bank.name)
+        result.append({
+            "name": bank.name,
+            "display_name": bank.display_name,
+            "subject": bank.subject,
+            "status": bank.status,
+            "irt_model": bank.irt_model,
+            "total_items": stats['total_items'],
+            "test_takers": stats['test_takers'],
+            "accuracy": stats['accuracy'],
+            "total_responses": stats['total_responses']
+        })
+
+    return result
+
+
+@app.delete("/api/item-banks/{item_bank_name}")
+async def delete_item_bank(
+        item_bank_name: str,
+        db: Session = Depends(get_db)
+):
+    """Delete an item bank and all associated data"""
+
+    # Check for active sessions first
+    item_db = None
+    try:
+        item_db = item_bank_db.get_session(item_bank_name)
+
+        active_sessions = item_db.query(models_itembank.AssessmentSession).filter(
+            models_itembank.AssessmentSession.completed == False
+        ).count()
+
+        if active_sessions > 0:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Cannot delete: {active_sessions} active session(s) in progress"
+            )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error checking active sessions: {e}")
+    finally:
+        if item_db:
+            item_db.close()
+
+    # Proceed with deletion
+    result = item_bank_service.delete_item_bank(db, item_bank_name)
+
+    if not result['success']:
+        raise HTTPException(status_code=400, detail=result['error'])
+
+    return result
+
+
+# ========== TEMPLATE DOWNLOADS ==========
+
+@app.get("/api/templates/download")
+async def download_template():
+    """
+    Download Excel question template
+
+    The template includes:
+    - Data entry sheet with validation
+    - Instruction sheet with detailed guidelines
+    - Examples sheet with sample questions
+    - Built-in data validation for answers and tiers
+    """
+    from scripts.xlsx_templates import TemplateGenerator
+
+    generator = TemplateGenerator()
+    buffer = generator.create_xlsx_template()
+
+    return StreamingResponse(
+        buffer,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={
+            "Content-Disposition": f"attachment; filename=question_template_{datetime.now().strftime('%Y%m%d')}.xlsx"
+        }
+    )
+
+
+# ========== ASSESSMENT ENDPOINTS ==========
 
 @app.post("/api/assessments/start", response_model=schemas.AssessmentSession)
 def start_assessment(
         assessment_start: schemas.AssessmentStart,
         db: Session = Depends(get_db)
 ):
-    """Start a new assessment session in an item bank"""
+    """Start a new assessment session"""
     user = user_service.get_user_by_username(db, assessment_start.username)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -166,8 +470,6 @@ def start_assessment(
         item_db.close()
 
 
-# ========== MODIFIED ENDPOINT: Returns topic_performance ==========
-
 @app.post("/api/assessments/{session_id}/answer", response_model=schemas.AssessmentSession)
 def submit_answer(
         session_id: int,
@@ -177,12 +479,6 @@ def submit_answer(
 ):
     """Submit an answer and get next question"""
 
-    logger.info(f"=== SUBMIT ANSWER DEBUG ===")
-    logger.info(f"Session ID: {session_id}")
-    logger.info(f"Question ID: {answer.question_id}")
-    logger.info(f"Selected Option: {answer.selected_option}")
-    logger.info(f"Item Bank: {item_bank_name}")
-
     # Verify item bank exists
     item_bank = db.query(models.ItemBank).filter(
         models.ItemBank.name == item_bank_name
@@ -190,11 +486,9 @@ def submit_answer(
     if not item_bank:
         raise HTTPException(status_code=404, detail="Item bank not found")
 
-    # Get item bank database
     item_db = item_bank_db.get_session(item_bank_name)
 
     try:
-        # MODIFIED: Now returns dict with response and topic_performance
         recorded_data = assessment_service.record_response(
             item_db=item_db,
             registry_db=db,
@@ -208,17 +502,14 @@ def submit_answer(
         if not recorded_data:
             raise HTTPException(status_code=400, detail="Failed to record response")
 
-        # NEW: Extract both response and topic_performance
         recorded_response = recorded_data.get('response')
         topic_performance = recorded_data.get('topic_performance')
 
-        # Get updated session
         session = assessment_service.get_session(item_db, session_id)
 
         if not session:
             raise HTTPException(status_code=404, detail="Session not found")
 
-        # Check if assessment is complete
         if session.completed:
             response_data = {
                 "session_id": session.session_id,
@@ -228,12 +519,10 @@ def submit_answer(
                 "questions_asked": session.questions_asked,
                 "completed": True,
                 "last_response_correct": recorded_response.is_correct,
-                "topic_performance": topic_performance  # NEW: Added
+                "topic_performance": topic_performance
             }
-            logger.info(f"Assessment {session_id} completed")
             return response_data
 
-        # Get next question
         next_question = assessment_service.get_next_question(
             item_db, session_id, irt_engine
         )
@@ -246,7 +535,7 @@ def submit_answer(
             "questions_asked": session.questions_asked,
             "completed": session.completed,
             "last_response_correct": recorded_response.is_correct,
-            "topic_performance": topic_performance  # NEW: Added
+            "topic_performance": topic_performance
         }
     except Exception as e:
         logger.error(f"Error in submit_answer: {str(e)}", exc_info=True)
@@ -254,8 +543,6 @@ def submit_answer(
     finally:
         item_db.close()
 
-
-# ========== EXISTING ENDPOINTS - NO CHANGES ==========
 
 @app.get("/api/assessments/{session_id}/results", response_model=schemas.AssessmentResults)
 def get_assessment_results(
@@ -272,207 +559,7 @@ def get_assessment_results(
         item_db.close()
 
 
-@app.get("/api/users/{username}/proficiency")
-def get_user_proficiency(username: str, db: Session = Depends(get_db)):
-    """Get user's proficiency across all item banks (from cache)"""
-    user = user_service.get_user_by_username(db, username)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    proficiencies = db.query(models.UserProficiencySummary).filter(
-        models.UserProficiencySummary.user_id == user.id
-    ).all()
-
-    proficiency_list = []
-    for prof in proficiencies:
-        proficiency_list.append({
-            "item_bank": prof.item_bank_name,
-            "subject": prof.subject,
-            "theta": prof.theta,
-            "sem": prof.sem,
-            "tier": prof.tier,
-            "assessments_taken": prof.assessments_taken,
-            "last_updated": prof.last_updated
-        })
-
-    return {
-        "username": user.username,
-        "proficiencies": proficiency_list
-    }
-
-
-item_bank_service = ItemBankService()
-
-
-@app.post("/api/item-banks/create")
-async def create_item_bank(
-        name: str,
-        display_name: str,
-        subject: str,
-        db: Session = Depends(get_db)
-):
-    """Create a new item bank or return existing"""
-    try:
-        existing = db.query(models.ItemBank).filter(
-            models.ItemBank.name == name
-        ).first()
-
-        if existing:
-            return {
-                "success": True,
-                "message": "Item bank already exists",
-                "item_bank": {
-                    "name": existing.name,
-                    "display_name": existing.display_name,
-                    "subject": existing.subject,
-                    "status": existing.status
-                }
-            }
-
-        item_bank = item_bank_service.create_item_bank(
-            db, name, display_name, subject
-        )
-        return {
-            "success": True,
-            "message": "Item bank created",
-            "item_bank": {
-                "name": item_bank.name,
-                "display_name": item_bank.display_name,
-                "subject": item_bank.subject,
-                "status": item_bank.status
-            }
-        }
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-
-@app.post("/api/item-banks/{item_bank_name}/upload")
-async def upload_to_item_bank(
-        item_bank_name: str,
-        file: UploadFile = File(...)
-):
-    """Upload questions CSV to item bank"""
-    if not file.filename.endswith('.csv'):
-        raise HTTPException(status_code=400, detail="File must be CSV")
-
-    content = await file.read()
-    df = pd.read_csv(io.StringIO(content.decode('utf-8')))
-
-    result = item_bank_service.upload_and_calibrate(item_bank_name, df)
-
-    if not result['success']:
-        raise HTTPException(status_code=400, detail=result['error'])
-
-    return result
-
-
-@app.get("/api/item-banks")
-async def list_item_banks(db: Session = Depends(get_db)):
-    """List all item banks"""
-    banks = db.query(models.ItemBank).all()
-
-    result = []
-    for bank in banks:
-        stats = item_bank_service.get_item_bank_stats(bank.name)
-        result.append({
-            "name": bank.name,
-            "display_name": bank.display_name,
-            "subject": bank.subject,
-            "status": bank.status,
-            "irt_model": bank.irt_model,
-            "total_items": stats['total_items'],
-            "test_takers": stats['test_takers'],
-            "accuracy": stats['accuracy'],
-            "total_responses": stats['total_responses']
-        })
-
-    return result
-
-
-@app.post("/api/item-banks/{item_bank_name}/calibrate")
-async def calibrate_item_bank(
-        item_bank_name: str,
-        n_examinees: int = 200,
-        questions_per: int = 15,
-        db: Session = Depends(get_db)
-):
-    """Run simulation and recalibration on item bank"""
-    item_bank = db.query(models.ItemBank).filter(
-        models.ItemBank.name == item_bank_name
-    ).first()
-
-    if not item_bank:
-        raise HTTPException(status_code=404, detail="Item bank not found")
-
-    db_path = item_bank_db.get_db_path(item_bank_name)
-
-    if not os.path.exists(db_path):
-        raise HTTPException(status_code=404, detail="Item bank database not found")
-
-    backend_dir = os.path.dirname(os.path.abspath(__file__))
-    scripts_dir = os.path.join(backend_dir, 'scripts')
-    simulate_script = os.path.join(scripts_dir, 'simulate_test_takers.py')
-    recalibrate_script = os.path.join(scripts_dir, 'recalibrate_question_bank.py')
-    report_path = os.path.join(backend_dir, 'data', f'{item_bank_name}_calibration_report.txt')
-
-    try:
-        logger.info(f"Starting calibration for {item_bank_name}...")
-
-        logger.info(f"Running simulation: {simulate_script}")
-        sim_result = subprocess.run([
-            sys.executable,
-            simulate_script,
-            "--db", db_path,
-            "--subject", item_bank_name,
-            "-n", str(n_examinees),
-            "--questions-per-examinee", str(questions_per)
-        ], capture_output=True, text=True, check=True, cwd=backend_dir)
-
-        logger.info(f"Simulation output: {sim_result.stdout}")
-
-        logger.info(f"Running recalibration: {recalibrate_script}")
-        calib_result = subprocess.run([
-            sys.executable,
-            recalibrate_script,
-            "--db", db_path,
-            "--subject", item_bank_name,
-            "--min-responses", "30",
-            "--report", report_path
-        ], capture_output=True, text=True, check=True, cwd=backend_dir)
-
-        logger.info(f"Calibration output: {calib_result.stdout}")
-
-        item_bank.status = "calibrated"
-        item_bank.last_calibrated = datetime.utcnow()
-
-        stats = item_bank_service.get_item_bank_stats(item_bank_name)
-        item_bank.total_items = stats['total_items']
-        item_bank.test_takers = stats['test_takers']
-        item_bank.accuracy = stats['accuracy']
-
-        db.commit()
-
-        return {
-            "success": True,
-            "message": f"Calibrated {item_bank_name} with {n_examinees} simulated test-takers",
-            "simulation_output": sim_result.stdout,
-            "calibration_output": calib_result.stdout,
-            "stats": stats
-        }
-
-    except subprocess.CalledProcessError as e:
-        logger.error(f"Calibration failed: {e.stderr}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Calibration failed: {e.stderr}"
-        )
-    except Exception as e:
-        logger.error(f"Unexpected error: {str(e)}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Calibration error: {str(e)}"
-        )
-
+# ========== SESSION MANAGEMENT ==========
 
 @app.get("/api/sessions")
 def get_all_sessions(db: Session = Depends(get_db)):
@@ -517,52 +604,178 @@ def get_all_sessions(db: Session = Depends(get_db)):
     return sessions_list
 
 
-# delete item bank
-@app.delete("/api/item-banks/{item_bank_name}")
-async def delete_item_bank(
+@app.post("/api/sessions/{session_id}/terminate")
+async def terminate_single_session(
+        session_id: int,
         item_bank_name: str,
         db: Session = Depends(get_db)
 ):
-    """Delete an item bank and all associated data"""
+    """Terminate a specific assessment session"""
+    item_db = item_bank_db.get_session(item_bank_name)
 
-    # Check for active sessions first
-    item_db = None
     try:
-        item_db = item_bank_db.get_session(item_bank_name)
+        result = session_management_service.terminate_single_session(
+            item_db, db, session_id, item_bank_name
+        )
 
-        active_sessions = item_db.query(models_itembank.AssessmentSession).filter(
-            models_itembank.AssessmentSession.completed == False
-        ).count()
+        if not result['success']:
+            raise HTTPException(status_code=400, detail=result['error'])
 
-        if active_sessions > 0:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Cannot delete: {active_sessions} active session(s) in progress"
-            )
-    except HTTPException:
-        raise  # Re-raise HTTP exceptions
+        return result
+
     except Exception as e:
-        logger.error(f"Error checking active sessions: {e}")
+        logger.error(f"Error terminating session {session_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
     finally:
-        # IMPORTANT: Always close the session
-        if item_db:
-            item_db.close()
+        item_db.close()
 
-    # Proceed with deletion
-    result = item_bank_service.delete_item_bank(db, item_bank_name)
 
-    if not result['success']:
-        raise HTTPException(status_code=400, detail=result['error'])
+@app.post("/api/sessions/terminate-all")
+async def terminate_all_active_sessions(db: Session = Depends(get_db)):
+    """Terminate all active sessions across all item banks"""
+    try:
+        result = session_management_service.terminate_all_active_sessions(db)
 
-    return result
+        if not result['success'] and result.get('errors'):
+            return {
+                **result,
+                'status': 'partial_success'
+            }
 
+        return result
+
+    except Exception as e:
+        logger.error(f"Error terminating all sessions: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/item-banks/{item_bank_name}/sessions/terminate")
+async def terminate_item_bank_sessions(
+        item_bank_name: str,
+        db: Session = Depends(get_db)
+):
+    """Terminate all active sessions for a specific item bank"""
+
+    # Verify item bank exists
+    item_bank = db.query(models.ItemBank).filter(
+        models.ItemBank.name == item_bank_name
+    ).first()
+
+    if not item_bank:
+        raise HTTPException(status_code=404, detail=f"Item bank '{item_bank_name}' not found")
+
+    item_db = item_bank_db.get_session(item_bank_name)
+
+    try:
+        result = session_management_service.terminate_item_bank_sessions(
+            item_db, db, item_bank_name
+        )
+
+        if not result['success']:
+            raise HTTPException(status_code=400, detail=result['error'])
+
+        return result
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error terminating sessions for {item_bank_name}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        item_db.close()
+
+
+# ========== CALIBRATION ==========
+
+@app.post("/api/item-banks/{item_bank_name}/calibrate")
+async def calibrate_item_bank(
+        item_bank_name: str,
+        n_examinees: int = 200,
+        questions_per: int = 15,
+        db: Session = Depends(get_db)
+):
+    """Run simulation and recalibration on item bank"""
+    item_bank = db.query(models.ItemBank).filter(
+        models.ItemBank.name == item_bank_name
+    ).first()
+
+    if not item_bank:
+        raise HTTPException(status_code=404, detail="Item bank not found")
+
+    db_path = item_bank_db.get_db_path(item_bank_name)
+
+    if not os.path.exists(db_path):
+        raise HTTPException(status_code=404, detail="Item bank database not found")
+
+    backend_dir = os.path.dirname(os.path.abspath(__file__))
+    scripts_dir = os.path.join(backend_dir, 'scripts')
+    simulate_script = os.path.join(scripts_dir, 'simulate_test_takers.py')
+    recalibrate_script = os.path.join(scripts_dir, 'recalibrate_question_bank.py')
+    report_path = os.path.join(backend_dir, 'data', f'{item_bank_name}_calibration_report.txt')
+
+    try:
+        logger.info(f"Starting calibration for {item_bank_name}...")
+
+        # Run simulation
+        sim_result = subprocess.run([
+            sys.executable,
+            simulate_script,
+            "--db", db_path,
+            "--subject", item_bank_name,
+            "-n", str(n_examinees),
+            "--questions-per-examinee", str(questions_per)
+        ], capture_output=True, text=True, check=True, cwd=backend_dir)
+
+        # Run recalibration
+        calib_result = subprocess.run([
+            sys.executable,
+            recalibrate_script,
+            "--db", db_path,
+            "--subject", item_bank_name,
+            "--min-responses", "30",
+            "--report", report_path
+        ], capture_output=True, text=True, check=True, cwd=backend_dir)
+
+        item_bank.status = "calibrated"
+        item_bank.last_calibrated = datetime.utcnow()
+
+        stats = item_bank_service.get_item_bank_stats(item_bank_name)
+        item_bank.total_items = stats['total_items']
+        item_bank.test_takers = stats['test_takers']
+        item_bank.accuracy = stats['accuracy']
+
+        db.commit()
+
+        return {
+            "success": True,
+            "message": f"Calibrated {item_bank_name} with {n_examinees} simulated test-takers",
+            "simulation_output": sim_result.stdout,
+            "calibration_output": calib_result.stdout,
+            "stats": stats
+        }
+
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Calibration failed: {e.stderr}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Calibration failed: {e.stderr}"
+        )
+    except Exception as e:
+        logger.error(f"Unexpected error: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Calibration error: {str(e)}"
+        )
+
+
+# ========== STATISTICS & INFO ==========
 
 @app.get("/api/item-banks/{item_bank_name}/stats")
 async def get_item_bank_stats(
         item_bank_name: str,
         db: Session = Depends(get_db)
 ):
-    """Get detailed statistics for an item bank before deletion"""
+    """Get detailed statistics for an item bank"""
 
     # Verify item bank exists
     item_bank = db.query(models.ItemBank).filter(
@@ -598,9 +811,177 @@ async def get_item_bank_stats(
     return stats
 
 
+# ========== PDF EXPORT ==========
+@app.get("/api/sessions/{session_id}/export-pdf")
+async def export_session_pdf(
+        session_id: int,
+        item_bank_name: str,
+        db: Session = Depends(get_db)
+):
+    """Export session results as a comprehensive PDF report"""
+
+    item_bank = db.query(models.ItemBank).filter(
+        models.ItemBank.name == item_bank_name
+    ).first()
+
+    if not item_bank:
+        raise HTTPException(status_code=404, detail=f"Item bank '{item_bank_name}' not found")
+
+    item_db = item_bank_db.get_session(item_bank_name)
+
+    try:
+        session = item_db.query(models_itembank.AssessmentSession).filter(
+            models_itembank.AssessmentSession.session_id == session_id
+        ).first()
+
+        if not session:
+            raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
+
+        user = db.query(models.User).filter(
+            models.User.id == session.user_id
+        ).first()
+
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        responses = item_db.query(models_itembank.Response).filter(
+            models_itembank.Response.session_id == session_id
+        ).order_by(models_itembank.Response.created_at).all()
+
+        correct_count = sum(1 for r in responses if r.is_correct)
+        accuracy = correct_count / len(responses) if responses else 0
+
+        session_data = {
+            'session_id': session.session_id,
+            'subject': session.subject,
+            'theta': session.theta,
+            'sem': session.sem,
+            'tier': session.tier,
+            'questions_asked': session.questions_asked,
+            'completed': session.completed,
+            'started_at': session.started_at,
+            'completed_at': session.completed_at,
+            'correct_count': correct_count,
+            'accuracy': accuracy
+        }
+
+        # CRITICAL: Get topic performance and learning roadmap
+        topic_perf = None
+        try:
+            # First try to get from session object
+            if hasattr(session, 'topic_performance') and session.topic_performance:
+                import json
+                topic_perf = json.loads(session.topic_performance) if isinstance(
+                    session.topic_performance, str
+                ) else session.topic_performance
+                logger.info(f"Loaded topic performance from session: {len(topic_perf)} topics")
+
+            # If not available, calculate it now from responses
+            if not topic_perf:
+                logger.info("Calculating topic performance from responses...")
+                from services import TopicPerformanceCalculator
+                from irt_engine import IRTEngine
+
+                topic_calculator = TopicPerformanceCalculator()
+                irt_engine_local = IRTEngine()
+
+                # Group responses by topic
+                from collections import defaultdict
+                topic_data = defaultdict(list)
+
+                for resp in responses:
+                    question = item_db.query(models_itembank.Question).filter(
+                        models_itembank.Question.id == resp.question_id
+                    ).first()
+
+                    if question and question.topic:
+                        topic_data[question.topic].append({
+                            'is_correct': resp.is_correct,
+                            'difficulty': question.difficulty_b,
+                            'discrimination': question.discrimination_a,
+                            'guessing': question.guessing_c,
+                            'topic': question.topic
+                        })
+
+                # Calculate performance for each topic
+                topic_perf = {}
+                for topic, data in topic_data.items():
+                    perf = topic_calculator.calculate_topic_theta(
+                        data, topic, irt_engine_local
+                    )
+                    if perf:
+                        topic_perf[topic] = perf
+
+                if topic_perf:
+                    logger.info(f"Calculated topic performance: {len(topic_perf)} topics")
+
+            # Add to session data
+            if topic_perf:
+                session_data['topic_performance'] = topic_perf
+
+                # Generate learning roadmap
+                from services import TopicPerformanceCalculator
+                topic_calculator = TopicPerformanceCalculator()
+                roadmap = topic_calculator.generate_learning_roadmap(
+                    topic_perf, session.theta
+                )
+                if roadmap:
+                    session_data['learning_roadmap'] = roadmap
+                    logger.info(f"Learning roadmap generated for session {session_id}")
+
+        except Exception as e:
+            logger.error(f"Error loading/calculating topic performance: {e}", exc_info=True)
+
+        user_data = {
+            'username': user.username,
+            'id': user.id
+        }
+
+        # Prepare response details with all needed data for charts
+        response_details = []
+        for resp in responses:
+            question = item_db.query(models_itembank.Question).filter(
+                models_itembank.Question.id == resp.question_id
+            ).first()
+
+            if question:
+                response_details.append({
+                    'question': question.question,
+                    'selected_option': resp.selected_option,
+                    'correct_answer': question.answer,
+                    'is_correct': resp.is_correct,
+                    'theta_after': resp.theta_after,
+                    'difficulty': question.difficulty_b,
+                    'topic': question.topic if hasattr(question, 'topic') else None
+                })
+
+        # Generate PDF
+        pdf_buffer = pdf_export_service.generate_session_pdf(
+            session_data, user_data, response_details, comparative_data=None
+        )
+
+        filename = f"assessment_report_{item_bank_name}_{session_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+
+        return StreamingResponse(
+            pdf_buffer,
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}"
+            }
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error exporting PDF for session {session_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to generate PDF: {str(e)}")
+    finally:
+        item_db.close()
+
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(
         app,
         host=config.API_CONFIG["host"],
