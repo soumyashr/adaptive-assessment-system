@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { theme } from '../../config/theme';
+import config from '../../config/config';
+
 
 const Calibration = () => {
   const [itemBanks, setItemBanks] = useState([]);
@@ -8,7 +10,8 @@ const Calibration = () => {
   const [calibratingBank, setCalibratingBank] = useState(null);
   const [error, setError] = useState(null);
 
-  const API_BASE = 'http://localhost:8000/api';
+  const API_BASE = config.API_BASE_URL;
+
 
   useEffect(() => {
     fetchItemBanks();

@@ -16,7 +16,7 @@ from sqlalchemy import and_
 from pathlib import Path
 
 # Registry DB
-from backend.scripts.database import get_db, engine
+from scripts.database import get_db, engine
 # Item bank DB manager
 from scripts.db_manager import item_bank_db
 
@@ -574,9 +574,12 @@ def get_all_sessions(db: Session = Depends(get_db)):
             sessions = item_db.query(models_itembank.AssessmentSession).all()
 
             for session in sessions:
-                user = db.query(models.User).filter(
-                    models.User.id == session.user_id
-                ).first()
+                # Check if session already added (in case of duplicate data)
+                if not any(s['session_id'] == session.session_id and s['item_bank'] == item_bank.name
+                          for s in sessions_list):
+                    user = db.query(models.User).filter(
+                        models.User.id == session.user_id
+                    ).first()
 
                 responses = item_db.query(models_itembank.Response).filter(
                     models_itembank.Response.session_id == session.session_id
@@ -586,6 +589,7 @@ def get_all_sessions(db: Session = Depends(get_db)):
                 accuracy = correct_count / len(responses) if responses else 0
 
                 sessions_list.append({
+                    "global_id": f"{item_bank.name}-{session.session_id}",  # for global unique id
                     "session_id": session.session_id,
                     "username": user.username if user else "Unknown",
                     "item_bank": item_bank.name,
@@ -977,6 +981,35 @@ async def export_session_pdf(
         raise HTTPException(status_code=500, detail=f"Failed to generate PDF: {str(e)}")
     finally:
         item_db.close()
+
+
+#====== Belo is to test the uniqueness of session IDs across item banks.
+#======= Each item bank has its own database, so session ID may exist in multiple item banks.
+
+@app.get("/api/debug/sessions")
+def debug_sessions(db: Session = Depends(get_db)):
+    """Debug endpoint to see session distribution"""
+    debug_info = {}
+
+    item_banks = db.query(models.ItemBank).all()
+
+    for item_bank in item_banks:
+        item_db = item_bank_db.get_session(item_bank.name)
+        try:
+            sessions = item_db.query(models_itembank.AssessmentSession).all()
+            session_ids = [s.session_id for s in sessions]
+
+            debug_info[item_bank.name] = {
+                'count': len(sessions),
+                'session_ids': session_ids,
+                'min_id': min(session_ids) if session_ids else None,
+                'max_id': max(session_ids) if session_ids else None
+            }
+        finally:
+            item_db.close()
+
+    return debug_info
+
 
 
 if __name__ == "__main__":

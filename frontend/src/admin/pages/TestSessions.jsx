@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { theme } from '../../config/theme';
+import config from '../../config/config';
+
 import { useNavigate } from 'react-router-dom';
 
 const TestSessions = () => {
@@ -9,7 +11,7 @@ const TestSessions = () => {
   const [filter, setFilter] = useState('all'); // FILTER_FIX: Default filter state
   const [terminatingSession, setTerminatingSession] = useState(null);
 
-  const API_BASE = 'http://localhost:8000/api';
+  const API_BASE = config.API_BASE_URL;
 
   useEffect(() => {
     fetchSessions();
@@ -306,7 +308,8 @@ const TestSessions = () => {
                 // console.log('About to map', filteredSessions.length, 'sessions'),
 
               filteredSessions.map((session) => (
-                <tr key={session.session_id} className={theme('hover:bg-gray-700', 'hover:bg-gray-50')}>
+                  <tr key={`${session.item_bank}-${session.session_id}`} className={theme('hover:bg-gray-700', 'hover:bg-gray-50')}>
+
                   <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${theme('text-gray-300', 'text-gray-900')}`}>
                     #{session.session_id}
                   </td>

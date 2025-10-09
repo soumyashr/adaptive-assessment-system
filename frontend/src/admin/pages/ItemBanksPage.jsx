@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import config from '../../config/config';
+import { theme } from '../../config/theme';
 
 const ItemBanksPage = () => {
   const [itemBanks, setItemBanks] = useState([]);
@@ -18,7 +20,7 @@ const ItemBanksPage = () => {
   const [deletingBank, setDeletingBank] = useState(null);
   const [terminatingSession, setTerminatingSession] = useState(false);
 
-  const API_BASE = 'http://localhost:8000/api';
+  const API_BASE = config.API_BASE_URL;
 
   useEffect(() => {
     fetchItemBanks();
@@ -120,7 +122,6 @@ const ItemBanksPage = () => {
 
       alert(`Successfully terminated ${result.terminated_count} session(s)`);
 
-      // Refresh stats to show updated active sessions count
       const statsResponse = await fetch(`${API_BASE}/item-banks/${selectedBank.name}/stats`);
 
       if (!statsResponse.ok) {
@@ -249,12 +250,12 @@ const ItemBanksPage = () => {
   const getTotalTestTakers = () => itemBanks.reduce((sum, b) => sum + b.test_takers, 0);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className={`min-h-screen ${theme('bg-gray-900', 'bg-gray-50')} p-6`}>
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Item Banks</h1>
-          <p className="text-gray-600 mt-1">Browse and manage your adaptive testing item banks</p>
+          <h1 className={`text-3xl font-bold ${theme('text-white', 'text-gray-900')}`}>Item Banks</h1>
+          <p className={`${theme('text-gray-400', 'text-gray-600')} mt-1`}>Browse and manage your adaptive testing item banks</p>
         </div>
         <button
           onClick={() => setShowUploadModal(true)}
@@ -267,7 +268,7 @@ const ItemBanksPage = () => {
 
       {/* Error Message */}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
+        <div className={`${theme('bg-red-900/20 border-red-700', 'bg-red-50 border-red-200')} border ${theme('text-red-300', 'text-red-700')} px-4 py-3 rounded mb-6`}>
           {error}
           <button onClick={() => setError(null)} className="float-right font-bold">×</button>
         </div>
@@ -275,58 +276,58 @@ const ItemBanksPage = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-4 gap-4 mb-8">
-        <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
+        <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} p-6 rounded-lg shadow-lg border`}>
           <div className="flex items-center gap-3">
-            <div className="bg-blue-50 p-3 rounded-lg">
-              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className={`${theme('bg-blue-900/30', 'bg-blue-50')} p-3 rounded-lg`}>
+              <svg className={`w-6 h-6 ${theme('text-blue-400', 'text-blue-600')}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
               </svg>
             </div>
             <div>
-              <div className="text-gray-600 text-sm">Total Banks</div>
-              <div className="text-3xl font-bold text-gray-900">{itemBanks.length}</div>
+              <div className={`${theme('text-gray-400', 'text-gray-600')} text-sm`}>Total Banks</div>
+              <div className={`text-3xl font-bold ${theme('text-white', 'text-gray-900')}`}>{itemBanks.length}</div>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
+        <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} p-6 rounded-lg shadow-lg border`}>
           <div className="flex items-center gap-3">
-            <div className="bg-orange-50 p-3 rounded-lg">
-              <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className={`${theme('bg-orange-900/30', 'bg-orange-50')} p-3 rounded-lg`}>
+              <svg className={`w-6 h-6 ${theme('text-orange-400', 'text-orange-600')}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
             <div>
-              <div className="text-gray-600 text-sm">Total Items</div>
-              <div className="text-3xl font-bold text-gray-900">{getTotalItems()}</div>
+              <div className={`${theme('text-gray-400', 'text-gray-600')} text-sm`}>Total Items</div>
+              <div className={`text-3xl font-bold ${theme('text-white', 'text-gray-900')}`}>{getTotalItems()}</div>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
+        <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} p-6 rounded-lg shadow-lg border`}>
           <div className="flex items-center gap-3">
-            <div className="bg-green-50 p-3 rounded-lg">
-              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className={`${theme('bg-green-900/30', 'bg-green-50')} p-3 rounded-lg`}>
+              <svg className={`w-6 h-6 ${theme('text-green-400', 'text-green-600')}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
             </div>
             <div>
-              <div className="text-gray-600 text-sm">Test Takers</div>
-              <div className="text-3xl font-bold text-gray-900">{getTotalTestTakers()}</div>
+              <div className={`${theme('text-gray-400', 'text-gray-600')} text-sm`}>Test Takers</div>
+              <div className={`text-3xl font-bold ${theme('text-white', 'text-gray-900')}`}>{getTotalTestTakers()}</div>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
+        <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} p-6 rounded-lg shadow-lg border`}>
           <div className="flex items-center gap-3">
-            <div className="bg-purple-50 p-3 rounded-lg">
-              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className={`${theme('bg-purple-900/30', 'bg-purple-50')} p-3 rounded-lg`}>
+              <svg className={`w-6 h-6 ${theme('text-purple-400', 'text-purple-600')}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
             </div>
             <div>
-              <div className="text-gray-600 text-sm">Active Jobs</div>
-              <div className="text-3xl font-bold text-gray-900">{calibratingBank ? '1' : '0'}</div>
+              <div className={`${theme('text-gray-400', 'text-gray-600')} text-sm`}>Active Jobs</div>
+              <div className={`text-3xl font-bold ${theme('text-white', 'text-gray-900')}`}>{calibratingBank ? '1' : '0'}</div>
             </div>
           </div>
         </div>
@@ -438,7 +439,7 @@ const ItemBanksPage = () => {
         ))}
 
         {itemBanks.length === 0 && !loading && (
-          <div className="col-span-3 text-center py-12 text-gray-600">
+          <div className={`col-span-3 text-center py-12 ${theme('text-gray-400', 'text-gray-600')}`}>
             <p className="text-lg">No item banks yet. Click "Upload & Create" to create one.</p>
           </div>
         )}
@@ -447,40 +448,40 @@ const ItemBanksPage = () => {
       {/* Delete Confirmation Modal */}
       {showDeleteModal && selectedBank && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 w-full max-w-lg border border-gray-200 shadow-2xl">
+          <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} rounded-lg p-8 w-full max-w-lg border shadow-2xl`}>
             <div className="flex items-center gap-3 mb-6">
-              <div className="bg-red-100 p-3 rounded-full">
-                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className={`${theme('bg-red-900/30', 'bg-red-100')} p-3 rounded-full`}>
+                <svg className={`w-6 h-6 ${theme('text-red-400', 'text-red-600')}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
               </div>
-              <h2 className="text-2xl font-bold text-gray-900">Confirm Deletion</h2>
+              <h2 className={`text-2xl font-bold ${theme('text-white', 'text-gray-900')}`}>Confirm Deletion</h2>
             </div>
 
             <div className="mb-6">
-              <p className="text-gray-700 mb-4">
+              <p className={`${theme('text-gray-300', 'text-gray-700')} mb-4`}>
                 Are you sure you want to delete <strong>{selectedBank.display_name}</strong>?
                 This action cannot be undone.
               </p>
 
               {deleteStats && (
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                  <p className="font-semibold text-gray-900 mb-3">This will permanently delete:</p>
-                  <ul className="space-y-2 text-gray-700">
+                <div className={`${theme('bg-gray-900 border-gray-700', 'bg-gray-50 border-gray-200')} border rounded-lg p-4`}>
+                  <p className={`font-semibold ${theme('text-white', 'text-gray-900')} mb-3`}>This will permanently delete:</p>
+                  <ul className={`space-y-2 ${theme('text-gray-300', 'text-gray-700')}`}>
                     <li className="flex items-center gap-2">
-                      <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className={`w-4 h-4 ${theme('text-red-400', 'text-red-500')}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                       <span><strong>{deleteStats.total_items}</strong> questions</span>
                     </li>
                     <li className="flex items-center gap-2">
-                      <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className={`w-4 h-4 ${theme('text-red-400', 'text-red-500')}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                       <span><strong>{deleteStats.test_takers}</strong> test sessions</span>
                     </li>
                     <li className="flex items-center gap-2">
-                      <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className={`w-4 h-4 ${theme('text-red-400', 'text-red-500')}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                       <span><strong>{deleteStats.total_responses}</strong> student responses</span>
@@ -489,8 +490,8 @@ const ItemBanksPage = () => {
 
                   {deleteStats.active_sessions > 0 && (
                     <>
-                      <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
-                        <p className="text-yellow-800 text-sm">
+                      <div className={`mt-4 p-3 ${theme('bg-yellow-900/20 border-yellow-700', 'bg-yellow-50 border-yellow-200')} border rounded`}>
+                        <p className={`${theme('text-yellow-300', 'text-yellow-800')} text-sm`}>
                           <strong>Warning:</strong> There are {deleteStats.active_sessions} active session(s).
                           These must be terminated before deletion.
                         </p>
@@ -531,7 +532,7 @@ const ItemBanksPage = () => {
                   setDeleteStats(null);
                 }}
                 disabled={deletingBank}
-                className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 py-3 rounded-lg font-medium transition disabled:opacity-50"
+                className={`flex-1 ${theme('bg-gray-700 hover:bg-gray-600', 'bg-gray-200 hover:bg-gray-300')} ${theme('text-gray-200', 'text-gray-700')} py-3 rounded-lg font-medium transition disabled:opacity-50`}
               >
                 Cancel
               </button>
@@ -543,61 +544,61 @@ const ItemBanksPage = () => {
       {/* Upload Modal */}
       {showUploadModal && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 w-full max-w-md border border-gray-200">
-            <h2 className="text-2xl font-bold mb-6 text-gray-900">Upload & Create Item Bank</h2>
+          <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} rounded-lg p-8 w-full max-w-md border`}>
+            <h2 className={`text-2xl font-bold mb-6 ${theme('text-white', 'text-gray-900')}`}>Upload & Create Item Bank</h2>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className={`block text-sm font-medium ${theme('text-gray-300', 'text-gray-700')} mb-1`}>
                   Item Bank Name*
                 </label>
                 <input
                   type="text"
                   placeholder="e.g., maths, vocabulary, physics"
-                  className="w-full bg-white border border-gray-300 text-gray-900 placeholder-gray-500 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className={`w-full ${theme('bg-gray-900 border-gray-700 text-white placeholder-gray-500', 'bg-white border-gray-300 text-gray-900 placeholder-gray-400')} border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
                   value={uploadConfig.name}
                   onChange={(e) => setUploadConfig({...uploadConfig, name: e.target.value})}
                 />
-                <p className="text-xs text-gray-500 mt-1">Used in URLs - no spaces, lowercase</p>
+                <p className={`text-xs ${theme('text-gray-500', 'text-gray-500')} mt-1`}>Used in URLs - no spaces, lowercase</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className={`block text-sm font-medium ${theme('text-gray-300', 'text-gray-700')} mb-1`}>
                   Display Name*
                 </label>
                 <input
                   type="text"
                   placeholder="e.g., Mathematics, Vocabulary Assessment"
-                  className="w-full bg-white border border-gray-300 text-gray-900 placeholder-gray-500 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className={`w-full ${theme('bg-gray-900 border-gray-700 text-white placeholder-gray-500', 'bg-white border-gray-300 text-gray-900 placeholder-gray-400')} border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
                   value={uploadConfig.displayName}
                   onChange={(e) => setUploadConfig({...uploadConfig, displayName: e.target.value})}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className={`block text-sm font-medium ${theme('text-gray-300', 'text-gray-700')} mb-1`}>
                   Subject*
                 </label>
                 <input
                   type="text"
                   placeholder="e.g., Mathematics, Vocabulary"
-                  className="w-full bg-white border border-gray-300 text-gray-900 placeholder-gray-500 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className={`w-full ${theme('bg-gray-900 border-gray-700 text-white placeholder-gray-500', 'bg-white border-gray-300 text-gray-900 placeholder-gray-400')} border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
                   value={uploadConfig.subject}
                   onChange={(e) => setUploadConfig({...uploadConfig, subject: e.target.value})}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className={`block text-sm font-medium ${theme('text-gray-300', 'text-gray-700')} mb-1`}>
                   Excel File*
                 </label>
                 <input
                   type="file"
                   accept=".xlsx"
                   onChange={(e) => setSelectedFile(e.target.files[0])}
-                  className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-4 py-2 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                  className={`w-full ${theme('bg-gray-900 border-gray-700 text-white', 'bg-white border-gray-300 text-gray-900')} border rounded-lg px-4 py-2 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100`}
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className={`text-xs ${theme('text-gray-500', 'text-gray-500')} mt-1`}>
                   Required columns: question, option_a, option_b, option_c, option_d, answer, tier, topic
                 </p>
               </div>
@@ -619,7 +620,7 @@ const ItemBanksPage = () => {
                   setError(null);
                 }}
                 disabled={loading}
-                className="px-6 bg-gray-200 hover:bg-gray-300 text-gray-700 py-3 rounded-lg font-medium transition disabled:opacity-50"
+                className={`px-6 ${theme('bg-gray-700 hover:bg-gray-600', 'bg-gray-200 hover:bg-gray-300')} ${theme('text-gray-200', 'text-gray-700')} py-3 rounded-lg font-medium transition disabled:opacity-50`}
               >
                 Cancel
               </button>
@@ -631,12 +632,12 @@ const ItemBanksPage = () => {
       {/* Loading Overlay */}
       {calibratingBank && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-sm border border-gray-200">
+          <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} rounded-lg p-6 max-w-sm border`}>
             <div className="flex items-center gap-3 mb-4">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-              <span className="font-medium text-gray-900">Calibrating {calibratingBank}...</span>
+              <span className={`font-medium ${theme('text-white', 'text-gray-900')}`}>Calibrating {calibratingBank}...</span>
             </div>
-            <p className="text-sm text-gray-600">
+            <p className={`text-sm ${theme('text-gray-400', 'text-gray-600')}`}>
               This may take 1-2 minutes. Simulating 200 test-takers with 15 questions each...
             </p>
           </div>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { theme } from '../../config/theme';
+import config from '../../config/config';
 
 const UploadData = () => {
   const [uploadConfig, setUploadConfig] = useState({
@@ -12,7 +13,7 @@ const UploadData = () => {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
 
-  const API_BASE = 'http://localhost:8000/api';
+  const API_BASE = config.API_BASE_URL;
 
   const handleUpload = async () => {
     if (!selectedFile || !uploadConfig.name || !uploadConfig.displayName || !uploadConfig.subject) {

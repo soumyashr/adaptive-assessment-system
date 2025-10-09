@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { theme } from '../../config/theme';
+import config from '../../config/config';
+
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -12,7 +14,7 @@ const Dashboard = () => {
   const [recentSessions, setRecentSessions] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const API_BASE = 'http://localhost:8000/api';
+const API_BASE = config.API_BASE_URL;
 
   useEffect(() => {
     fetchDashboardData();
@@ -193,7 +195,8 @@ const Dashboard = () => {
               {recentSessions.map((session) => {
                 const activityType = getActivityType(session);
                 return (
-                  <div key={session.session_id} className={`flex items-start gap-3 pb-4 border-b ${theme('border-gray-700', 'border-gray-100')} last:border-0`}>
+                  <div key={`${session.item_bank}-${session.session_id}`} className={`flex items-start gap-3 pb-4 border-b ${theme('border-gray-700', 'border-gray-100')} last:border-0`}>
+
                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
                       activityType === 'session' 
                         ? theme('bg-green-900/50', 'bg-green-100')

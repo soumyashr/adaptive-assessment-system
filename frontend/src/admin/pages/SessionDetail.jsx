@@ -9,6 +9,8 @@ import {
 
 // Import theme from config
 import { DARK_MODE } from '../../config/theme';
+import config from '../../config/config';
+
 
 const SessionDetail = () => {
   const { sessionId } = useParams();
@@ -17,7 +19,9 @@ const SessionDetail = () => {
   const [sessionData, setSessionData] = useState(null);
   const [comparativeData, setComparativeData] = useState(null);
 
-  const API_BASE = 'http://localhost:8000/api';
+
+  const API_BASE = config.API_BASE_URL;
+
 
   // Theme helper function
   const theme = (darkValue, lightValue) => DARK_MODE ? darkValue : lightValue;
