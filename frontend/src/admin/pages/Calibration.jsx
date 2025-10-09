@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { theme } from '../../config/theme';
 import config from '../../config/config';
 
+import notificationService from '../../services/notificationService';
 
 const Calibration = () => {
   const [itemBanks, setItemBanks] = useState([]);
@@ -50,14 +51,14 @@ const Calibration = () => {
 
       const data = await response.json();
 
-      alert(`Calibration completed!\n\n${data.message}`);
+      notificationService.success(`Calibration completed!\n\n${data.message}`);
 
       // Refresh item banks to show updated calibration status
       await fetchItemBanks();
 
     } catch (err) {
       setError(`Calibration failed for ${itemBankName}: ${err.message}`);
-      alert(`Calibration failed: ${err.message}`);
+      notificationService.error(`Calibration failed: ${err.message}`);
     } finally {
       setCalibratingBank(null);
     }

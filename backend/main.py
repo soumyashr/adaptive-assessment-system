@@ -822,8 +822,12 @@ async def export_session_pdf(
         item_bank_name: str,
         db: Session = Depends(get_db)
 ):
-    """Export session results as a comprehensive PDF report"""
+    """
+    Export session results as a comprehensive PDF report
 
+    ✅ BACKWARD COMPATIBLE - Same API contract, cleaner implementation
+    """
+    # Verify item bank exists
     item_bank = db.query(models.ItemBank).filter(
         models.ItemBank.name == item_bank_name
     ).first()
@@ -834,136 +838,15 @@ async def export_session_pdf(
     item_db = item_bank_db.get_session(item_bank_name)
 
     try:
-        session = item_db.query(models_itembank.AssessmentSession).filter(
-            models_itembank.AssessmentSession.session_id == session_id
-        ).first()
-
-        if not session:
-            raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
-
-        user = db.query(models.User).filter(
-            models.User.id == session.user_id
-        ).first()
-
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
-
-        responses = item_db.query(models_itembank.Response).filter(
-            models_itembank.Response.session_id == session_id
-        ).order_by(models_itembank.Response.created_at).all()
-
-        correct_count = sum(1 for r in responses if r.is_correct)
-        accuracy = correct_count / len(responses) if responses else 0
-
-        session_data = {
-            'session_id': session.session_id,
-            'subject': session.subject,
-            'theta': session.theta,
-            'sem': session.sem,
-            'tier': session.tier,
-            'questions_asked': session.questions_asked,
-            'completed': session.completed,
-            'started_at': session.started_at,
-            'completed_at': session.completed_at,
-            'correct_count': correct_count,
-            'accuracy': accuracy
-        }
-
-        # CRITICAL: Get topic performance and learning roadmap
-        topic_perf = None
-        try:
-            # First try to get from session object
-            if hasattr(session, 'topic_performance') and session.topic_performance:
-                import json
-                topic_perf = json.loads(session.topic_performance) if isinstance(
-                    session.topic_performance, str
-                ) else session.topic_performance
-                logger.info(f"Loaded topic performance from session: {len(topic_perf)} topics")
-
-            # If not available, calculate it now from responses
-            if not topic_perf:
-                logger.info("Calculating topic performance from responses...")
-                from services import TopicPerformanceCalculator
-                from irt_engine import IRTEngine
-
-                topic_calculator = TopicPerformanceCalculator()
-                irt_engine_local = IRTEngine()
-
-                # Group responses by topic
-                from collections import defaultdict
-                topic_data = defaultdict(list)
-
-                for resp in responses:
-                    question = item_db.query(models_itembank.Question).filter(
-                        models_itembank.Question.id == resp.question_id
-                    ).first()
-
-                    if question and question.topic:
-                        topic_data[question.topic].append({
-                            'is_correct': resp.is_correct,
-                            'difficulty': question.difficulty_b,
-                            'discrimination': question.discrimination_a,
-                            'guessing': question.guessing_c,
-                            'topic': question.topic
-                        })
-
-                # Calculate performance for each topic
-                topic_perf = {}
-                for topic, data in topic_data.items():
-                    perf = topic_calculator.calculate_topic_theta(
-                        data, topic, irt_engine_local
-                    )
-                    if perf:
-                        topic_perf[topic] = perf
-
-                if topic_perf:
-                    logger.info(f"Calculated topic performance: {len(topic_perf)} topics")
-
-            # Add to session data
-            if topic_perf:
-                session_data['topic_performance'] = topic_perf
-
-                # Generate learning roadmap
-                from services import TopicPerformanceCalculator
-                topic_calculator = TopicPerformanceCalculator()
-                roadmap = topic_calculator.generate_learning_roadmap(
-                    topic_perf, session.theta
-                )
-                if roadmap:
-                    session_data['learning_roadmap'] = roadmap
-                    logger.info(f"Learning roadmap generated for session {session_id}")
-
-        except Exception as e:
-            logger.error(f"Error loading/calculating topic performance: {e}", exc_info=True)
-
-        user_data = {
-            'username': user.username,
-            'id': user.id
-        }
-
-        # Prepare response details with all needed data for charts
-        response_details = []
-        for resp in responses:
-            question = item_db.query(models_itembank.Question).filter(
-                models_itembank.Question.id == resp.question_id
-            ).first()
-
-            if question:
-                response_details.append({
-                    'question': question.question,
-                    'selected_option': resp.selected_option,
-                    'correct_answer': question.answer,
-                    'is_correct': resp.is_correct,
-                    'theta_after': resp.theta_after,
-                    'difficulty': question.difficulty_b,
-                    'topic': question.topic if hasattr(question, 'topic') else None
-                })
-
-        # Generate PDF
-        pdf_buffer = pdf_export_service.generate_session_pdf(
-            session_data, user_data, response_details, comparative_data=None
+        # ALL business logic moved to service
+        pdf_buffer = pdf_export_service.export_complete_session(
+            registry_db=db,
+            item_db=item_db,
+            session_id=session_id,
+            item_bank_name=item_bank_name
         )
 
+        # Only HTTP response formatting here
         filename = f"assessment_report_{item_bank_name}_{session_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
 
         return StreamingResponse(
@@ -974,8 +857,9 @@ async def export_session_pdf(
             }
         )
 
-    except HTTPException:
-        raise
+    except ValueError as e:
+        # Service raises ValueError for not found
+        raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         logger.error(f"Error exporting PDF for session {session_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to generate PDF: {str(e)}")
@@ -983,7 +867,7 @@ async def export_session_pdf(
         item_db.close()
 
 
-#====== Belo is to test the uniqueness of session IDs across item banks.
+#====== Below is to test the uniqueness of session IDs across item banks.
 #======= Each item bank has its own database, so session ID may exist in multiple item banks.
 
 @app.get("/api/debug/sessions")

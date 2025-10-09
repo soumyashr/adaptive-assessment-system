@@ -3,6 +3,7 @@ import { theme } from '../../config/theme';
 import config from '../../config/config';
 
 import { useNavigate } from 'react-router-dom';
+import notificationService from '../../services/notificationService';
 
 const TestSessions = () => {
   const navigate = useNavigate();
@@ -45,14 +46,15 @@ const TestSessions = () => {
       );
 
       if (response.ok) {
-        alert('Session terminated successfully');
+        notificationService.success('Session terminated successfully');
+
         fetchSessions(); // Refresh the list
       } else {
-        alert('Failed to terminate session');
+        notificationService.error('Failed to terminate session');
       }
     } catch (error) {
       console.error('Error terminating session:', error);
-      alert('Error terminating session');
+      notificationService.error('Error terminating session');
     } finally {
       setTerminatingSession(null);
     }
@@ -75,18 +77,18 @@ const TestSessions = () => {
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
       } else {
-        alert('Failed to export session');
+        notificationService.error('Failed to export session');
       }
     } catch (error) {
       console.error('Error exporting session:', error);
-      alert('Error exporting session');
+      notificationService.error('Error exporting session');
     }
   };
 
   const handleTerminateAllActive = async () => {
     const activeSessions = sessions.filter(s => s.status === 'Active');
     if (activeSessions.length === 0) {
-      alert('No active sessions to terminate');
+      notificationService.success('No active sessions to terminate');
       return;
     }
 
@@ -99,14 +101,14 @@ const TestSessions = () => {
 
       if (response.ok) {
         const result = await response.json();
-        alert(`Terminated ${result.terminated_count} sessions successfully`);
+        notificationService.success(`Terminated ${result.terminated_count} sessions successfully`);
         fetchSessions();
       } else {
-        alert('Failed to terminate sessions');
+        notificationService.error('Failed to terminate sessions');
       }
     } catch (error) {
       console.error('Error terminating all sessions:', error);
-      alert('Error terminating sessions');
+      notificationService.error('Error terminating sessions');
     }
   };
 
@@ -182,7 +184,7 @@ const TestSessions = () => {
     <div className={`p-8 ${theme('bg-gray-900', 'bg-gray-50')} min-h-screen`}>
       <div className="mb-8 flex justify-between items-center">
         <div>
-          <h1 className={`text-3xl font-bold ${theme('text-white', 'text-gray-900')} mb-2`}>Test Sessions</h1>
+          <h1 className={`text-3xl font-bold ${theme('text-white', 'text-gray-900')} mb-2`}>Assessment Sessions</h1>
           <p className={theme('text-gray-400', 'text-gray-600')}>View and manage assessment sessions across all item banks</p>
         </div>
 

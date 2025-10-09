@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { theme } from '../../config/theme';
 import config from '../../config/config';
+import notificationService from '../../services/notificationService';
 
 
 const Dashboard = () => {

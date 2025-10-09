@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import config from '../../config/config';
 import { theme } from '../../config/theme';
+import notificationService from '../../services/notificationService';
 
 const ItemBanksPage = () => {
   const [itemBanks, setItemBanks] = useState([]);
@@ -71,7 +72,7 @@ const ItemBanksPage = () => {
 
       const result = await response.json();
 
-      alert(`Successfully deleted ${selectedBank.display_name}\n\n` +
+      notificationService.success(`Successfully deleted ${selectedBank.display_name}\n\n` +
             `Removed:\n` +
             `• ${result.deleted.questions} questions\n` +
             `• ${result.deleted.test_takers} test sessions\n` +
@@ -120,7 +121,7 @@ const ItemBanksPage = () => {
       const result = await response.json();
       console.log('Terminate result:', result);
 
-      alert(`Successfully terminated ${result.terminated_count} session(s)`);
+      notificationService.success(`Successfully terminated ${result.terminated_count} session(s)`);
 
       const statsResponse = await fetch(`${API_BASE}/item-banks/${selectedBank.name}/stats`);
 
@@ -135,7 +136,7 @@ const ItemBanksPage = () => {
     } catch (err) {
       console.error('Error terminating sessions:', err);
       setError(`Failed to terminate sessions: ${err.message}`);
-      alert(`Failed to terminate sessions: ${err.message}`);
+      notificationService.error(`Failed to terminate sessions: ${err.message}`);
     } finally {
       setTerminatingSession(false);
     }
@@ -149,20 +150,20 @@ const ItemBanksPage = () => {
         .replace(/[^a-z0-9_-]/g, '');
 
     if (!sanitizedName || sanitizedName.length < 3) {
-        alert('Item bank name must be at least 3 characters');
+        notificationService.warning('Item bank name must be at least 3 characters');
         return;
     }
 
     if (!uploadConfig.displayName.trim()) {
-        alert('Display name is required');
+        notificationService.warning('Display name is required');
         return;
     }
     if (!uploadConfig.subject.trim()) {
-        alert('Subject is required');
+        notificationService.warning('Subject is required');
         return;
     }
     if (!selectedFile || !uploadConfig.name) {
-      alert('Please provide all required fields');
+      notificationService.warning('Please provide all required fields');
       return;
     }
 
@@ -200,7 +201,7 @@ const ItemBanksPage = () => {
       }
 
       const uploadData = await uploadResponse.json();
-      alert(`Success! Imported ${uploadData.imported} questions`);
+      notificationService.success(`Success! Imported ${uploadData.imported} questions`);
 
       setShowUploadModal(false);
       setUploadConfig({ name: '', displayName: '', subject: '' });
@@ -235,12 +236,12 @@ const ItemBanksPage = () => {
       }
 
       const data = await response.json();
-      alert(`Calibration completed!\n\n${data.message}\n\nStats updated successfully.`);
+      notificationService.success(`Calibration completed!\n\n${data.message}\n\nStats updated successfully.`);
       await fetchItemBanks();
 
     } catch (err) {
       setError(`Calibration failed: ${err.message}`);
-      alert(`Calibration failed: ${err.message}`);
+      notificationService.error(`Calibration failed: ${err.message}`);
     } finally {
       setCalibratingBank(null);
     }
@@ -403,7 +404,7 @@ const ItemBanksPage = () => {
             <div className="bg-white bg-opacity-10 p-4 flex gap-2">
               <button
                 className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded transition font-medium text-sm"
-                onClick={() => alert(`View details for ${bank.name} - Coming soon!`)}
+                onClick={() => notificationService.notify(`View details for ${bank.name} - Coming soon!`)}
               >
                 View Details
               </button>

@@ -20,6 +20,8 @@ import {
 } from 'recharts';
 import './App.css';
 import { DARK_MODE, theme } from '../config/theme';
+import config from '../config/config';
+import notificationService from '../services/notificationService';
 
 
 const AdaptiveAssessment = () => {
@@ -41,7 +43,7 @@ const AdaptiveAssessment = () => {
   const [currentQuestionDifficulty, setCurrentQuestionDifficulty] = useState(null);
   const [topicPerformance, setTopicPerformance] = useState({});
 
-  const API_BASE = 'http://localhost:8000/api';
+  const API_BASE = config.API_BASE_URL || 'http://localhost:8000/api';
   const DEFAULT_COMPETENCE_LEVEL = 'beginner';
 
   // Professional color palette
@@ -61,6 +63,38 @@ const AdaptiveAssessment = () => {
       bg: theme('#1F2937', '#FFFFFF'),
       border: theme('#374151', '#E5E7EB'),
       text: theme('#FFFFFF', '#000000')
+    }
+  };
+
+  // Export PDF function
+  const handleExportPDF = async () => {
+    if (!currentSession?.session_id || !results) {
+      notificationService.notify('No session data available to export');
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${API_BASE}/sessions/${currentSession.session_id}/export-pdf?item_bank_name=${currentSession.item_bank_name}`
+      );
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `assessment_report_${currentSession.item_bank_name}_${currentSession.session_id}_${currentUser.username}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        notificationService.error('Failed to export session report');
+        console.error('Export failed with status:', response.status);
+      }
+    } catch (error) {
+      console.error('Error exporting session:', error);
+      notificationService.error('Error exporting session report');
     }
   };
 
@@ -271,7 +305,7 @@ const AdaptiveAssessment = () => {
       const response = await fetch(`${API_BASE}/item-banks`);
       if (response.ok) {
         const banks = await response.json();
-        console.log('Available item banks:', banks); // DEBUG: See question returned
+        console.log('Available item banks:', banks);
         setAvailableItemBanks(banks);
       }
     } catch (error) {
@@ -319,7 +353,6 @@ const AdaptiveAssessment = () => {
         )}
 
         {/* Stats Grid */}
-
         <div className="grid grid-cols-3 gap-4">
           <div className={`${theme('bg-green-900/30 border-green-700', 'bg-green-50 border-green-200')} border rounded-xl p-4 text-center`}>
             <div className={`text-2xl font-bold ${theme('text-green-400', 'text-green-700')}`}>
@@ -342,9 +375,6 @@ const AdaptiveAssessment = () => {
             <div className={`text-xs ${theme('text-blue-300', 'text-blue-600')} mt-1`}>Topics Assessed</div>
           </div>
         </div>
-        {/* End Stats Grid */}
-
-
 
         {/* Your Learning Roadmap Section */}
         {roadmap?.recommendations && roadmap.recommendations.length > 0 && (
@@ -384,7 +414,7 @@ const AdaptiveAssessment = () => {
                   </div>
                 </div>
               )}
-              {/* End Next Milestone */}
+
               {roadmap.recommendations.map((rec, index) => {
                 const iconMap = {
                   'immediate_focus': { icon: '🎯', color: 'red' },
@@ -434,9 +464,7 @@ const AdaptiveAssessment = () => {
           </div>
         )}
 
-
-      {/* Topic-wise Performance with Radar chart */}
-        {/* Topic-wise Performance */}
+        {/* Topic-wise Performance with Radar chart */}
         <div>
           <h3 className={`font-bold ${theme('text-white', 'text-gray-900')} mb-4 text-lg`}>Topic-wise Performance</h3>
 
@@ -449,7 +477,7 @@ const AdaptiveAssessment = () => {
                   <RadarChart data={topics.map(topic => ({
                     topic: topic.topic.charAt(0).toUpperCase() + topic.topic.slice(1),
                     accuracy: topic.accuracy * 100,
-                    theta: ((topic.theta + 3) / 6) * 100, // Normalize theta from [-3, 3] to [0, 100]
+                    theta: ((topic.theta + 3) / 6) * 100,
                   }))}>
                     <PolarGrid stroke={theme('#374151', '#E5E7EB')} />
                     <PolarAngleAxis
@@ -493,7 +521,6 @@ const AdaptiveAssessment = () => {
                       }}
                       formatter={(value, name) => {
                         if (name === 'Proficiency (normalized)') {
-                          // Convert back from normalized [0,100] to original theta [-3, 3]
                           const originalTheta = (value / 100) * 6 - 3;
                           return [originalTheta.toFixed(2), 'θ'];
                         }
@@ -564,71 +591,6 @@ const AdaptiveAssessment = () => {
             })}
           </div>
         </div>
-        {/*End topic wise Performance with Radar chart*/}
-
-
-        {/*/!* Topic-wise Performance *!/*/}
-        {/*<div>*/}
-        {/*  <h3 className={`font-bold ${theme('text-white', 'text-gray-900')} mb-4 text-lg`}>Topic-wise Performance</h3>*/}
-        {/*  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">*/}
-        {/*    {topics.map((topic) => {*/}
-        {/*      const colors = getStrengthColor(topic.strength_level);*/}
-        {/*      return (*/}
-        {/*        <div*/}
-        {/*          key={topic.topic}*/}
-        {/*          className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} border rounded-xl p-4 hover:shadow-md transition`}*/}
-        {/*        >*/}
-        {/*          <div className="flex justify-between items-start mb-3">*/}
-        {/*            <div>*/}
-        {/*              <h4 className={`font-semibold ${theme('text-white', 'text-gray-900')} capitalize text-base`}>*/}
-        {/*                {topic.topic}*/}
-        {/*              </h4>*/}
-        {/*              <div className={`text-xs ${theme('text-gray-400', 'text-gray-600')} mt-1`}>*/}
-        {/*                {topic.questions_answered} question{topic.questions_answered !== 1 ? 's' : ''} answered*/}
-        {/*              </div>*/}
-        {/*            </div>*/}
-        {/*            <span className={`px-3 py-1 ${colors.bg} ${colors.text} ${colors.border} border rounded-full text-xs font-bold`}>*/}
-        {/*              {topic.strength_level}*/}
-        {/*            </span>*/}
-        {/*          </div>*/}
-
-        {/*          <div className="space-y-2">*/}
-        {/*            <div className="flex justify-between items-center">*/}
-        {/*              <span className={`text-sm ${theme('text-gray-400', 'text-gray-600')}`}>Proficiency (θ)</span>*/}
-        {/*              <span className={`font-bold ${theme('text-blue-400', 'text-blue-600')}`}>{topic.theta.toFixed(2)}</span>*/}
-        {/*            </div>*/}
-
-        {/*            <div className="flex justify-between items-center">*/}
-        {/*              <span className={`text-sm ${theme('text-gray-400', 'text-gray-600')}`}>Accuracy</span>*/}
-        {/*              <span className={`font-bold ${theme('text-white', 'text-gray-900')}`}>*/}
-        {/*                {(topic.accuracy * 100).toFixed(0)}%*/}
-        {/*              </span>*/}
-        {/*            </div>*/}
-
-        {/*            <div className="flex justify-between items-center">*/}
-        {/*              <span className={`text-sm ${theme('text-gray-400', 'text-gray-600')}`}>Correct</span>*/}
-        {/*              <span className={`font-semibold ${theme('text-gray-300', 'text-gray-700')}`}>*/}
-        {/*                {topic.correct_count}/{topic.questions_answered}*/}
-        {/*              </span>*/}
-        {/*            </div>*/}
-
-        {/*            <div className={`w-full ${theme('bg-gray-700', 'bg-gray-200')} rounded-full h-2 mt-2`}>*/}
-        {/*              <div*/}
-        {/*                className={`h-2 rounded-full transition-all duration-500 ${*/}
-        {/*                  topic.accuracy >= 0.8 ? 'bg-green-500' :*/}
-        {/*                  topic.accuracy >= 0.6 ? 'bg-blue-500' :*/}
-        {/*                  topic.accuracy >= 0.4 ? 'bg-yellow-500' : 'bg-red-500'*/}
-        {/*                }`}*/}
-        {/*                style={{ width: `${topic.accuracy * 100}%` }}*/}
-        {/*              ></div>*/}
-        {/*            </div>*/}
-        {/*          </div>*/}
-        {/*        </div>*/}
-        {/*      );*/}
-        {/*    })}*/}
-        {/*  </div>*/}
-        {/*</div>*/}
-        {/*/!*End topic wise Performance*!/*/}
       </div>
     );
   };
@@ -656,8 +618,7 @@ const AdaptiveAssessment = () => {
         setQuestionDifficulties([]);
         setCurrentQuestionDifficulty(session.current_question?.difficulty_b || 0);
         setTopicPerformance({});
-        console.log('sstart_Assessment() >>ession.current_question:', session.current_question); // Debug
-
+        console.log('start_Assessment() session.current_question:', session.current_question);
       } else {
         throw new Error('Failed to start assessment');
       }
@@ -686,7 +647,6 @@ const AdaptiveAssessment = () => {
       if (response.ok) {
         const updatedSession = await response.json();
 
-        // Update topic performance if available
         if (updatedSession.topic_performance) {
           setTopicPerformance(updatedSession.topic_performance);
         }
@@ -923,15 +883,12 @@ const AdaptiveAssessment = () => {
             )}
 
             <div className="space-y-3">
-
               {availableItemBanks.length > 0 ? (
-
                 availableItemBanks.map((bank) => (
-
-                  <button id={'check_here'}
+                  <button
                     key={bank.name}
                     onClick={() => startAssessment(bank.name)}
-                    disabled={loading || bank.status !== 'calibrated'} // Add status check
+                    disabled={loading || bank.status !== 'calibrated'}
                     className={`w-full ${theme('bg-gray-800 hover:bg-gray-700 border-gray-700 hover:border-blue-600', 'bg-white hover:bg-gray-50 border-gray-200 hover:border-indigo-300')} border-2 rounded-xl px-6 py-4 transition text-left ${(loading || bank.status !== 'calibrated') ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <div className="flex justify-between items-center">
@@ -959,14 +916,26 @@ const AdaptiveAssessment = () => {
           /* RESULTS PAGE */
           <div className="max-w-5xl mx-auto">
             <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} rounded-2xl shadow-sm border p-8 mb-6`}>
-              <div className="text-center mb-8">
-                <div className={`w-16 h-16 ${theme('bg-green-900/50', 'bg-green-100')} rounded-full flex items-center justify-center mx-auto mb-4`}>
-                  <svg className={`w-8 h-8 ${theme('text-green-400', 'text-green-600')}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
+              <div className="flex justify-between items-start mb-6">
+                <div className="text-center flex-1">
+                  <div className={`w-16 h-16 ${theme('bg-green-900/50', 'bg-green-100')} rounded-full flex items-center justify-center mx-auto mb-4`}>
+                    <svg className={`w-8 h-8 ${theme('text-green-400', 'text-green-600')}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <h2 className={`text-2xl font-bold ${theme('text-white', 'text-gray-900')} mb-2`}>Assessment Complete</h2>
+                  <p className={theme('text-gray-400', 'text-gray-600')}>Great job! Here are your results</p>
                 </div>
-                <h2 className={`text-2xl font-bold ${theme('text-white', 'text-gray-900')} mb-2`}>Assessment Complete</h2>
-                <p className={theme('text-gray-400', 'text-gray-600')}>Great job! Here are your results</p>
+                <button
+                  onClick={handleExportPDF}
+                  className={`px-4 py-2 ${theme('bg-blue-600 hover:bg-blue-700', 'bg-indigo-600 hover:bg-indigo-700')} text-white rounded-lg flex items-center gap-2 transition`}
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 10h6m-6 4h10" />
+                  </svg>
+                  Export PDF
+                </button>
               </div>
 
               {results && (
@@ -1046,10 +1015,9 @@ const AdaptiveAssessment = () => {
 
             {/* All Charts Grid */}
             <div className="grid grid-cols-3 gap-6 mb-6">
-              {/* ICC Chart with vertical line and custom tooltip */}
+              {/* ICC Chart */}
               <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} rounded-xl shadow-sm border p-5`}>
                 <h3 className={`font-semibold ${theme('text-white', 'text-gray-900')} mb-1 text-sm`}>Item Characteristic Curve</h3>
-
                 <p className={`text-xs ${theme('text-gray-400', 'text-gray-500')} mb-3`}>Probability of correct response versus Proficiency(θ)</p>
                 <div className="h-56">
                   <ResponsiveContainer width="100%" height="100%">
@@ -1087,7 +1055,7 @@ const AdaptiveAssessment = () => {
                 </div>
               </div>
 
-              {/* Theta Progression with custom tooltip */}
+              {/* Theta Progression */}
               <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} rounded-xl shadow-sm border p-5`}>
                 <h3 className={`font-semibold ${theme('text-white', 'text-gray-900')} mb-1 text-sm`}>Proficiency(θ) Progression</h3>
                 <p className={`text-xs ${theme('text-gray-400', 'text-gray-500')} mb-3`}>Proficiency estimate over time</p>
@@ -1140,7 +1108,7 @@ const AdaptiveAssessment = () => {
                 </div>
               </div>
 
-              {/* Response Pattern with enhanced custom tooltip */}
+              {/* Response Pattern */}
               <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} rounded-xl shadow-sm border p-5`}>
                 <h3 className={`font-semibold ${theme('text-white', 'text-gray-900')} mb-1 text-sm`}>Response Pattern</h3>
                 <p className={`text-xs ${theme('text-gray-400', 'text-gray-500')} mb-3`}>Difficulty vs Proficiency</p>
@@ -1191,16 +1159,15 @@ const AdaptiveAssessment = () => {
               </div>
             </div>
 
-            {/* Learning Roadmap - Now appears after the charts */}
+            {/* Learning Roadmap */}
             <LearningRoadmap results={results} theme={theme} />
           </div>
         ) : currentQuestion ? (
           /* TEST IN PROGRESS */
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left: ICC Chart with vertical line and custom tooltip */}
+            {/* Left: ICC Chart */}
             <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} rounded-xl shadow-sm border p-5`}>
               <h3 className={`font-semibold ${theme('text-white', 'text-gray-900')} mb-1 text-sm`}>Item Characteristic Curve</h3>
-
               <p className={`text-xs ${theme('text-gray-400', 'text-gray-500')} mb-3`}>Probability of correct response versus proficiency(θ)</p>
               <div className="h-48">
                 <ResponsiveContainer width="100%" height="100%">
@@ -1237,7 +1204,7 @@ const AdaptiveAssessment = () => {
                 </ResponsiveContainer>
               </div>
 
-              {/* Topic-wise theta beneath ICC - real-time updates */}
+              {/* Topic-wise theta beneath ICC */}
               {topicPerformance && Object.keys(topicPerformance).length > 0 && (
                 <div className="mt-4 space-y-2">
                   <h4 className={`text-xs font-semibold ${theme('text-gray-400', 'text-gray-700')} uppercase tracking-wide`}>Topic Performance</h4>
@@ -1327,7 +1294,7 @@ const AdaptiveAssessment = () => {
               </div>
 
               <div className={`mt-4 text-xs ${theme('text-gray-500', 'text-gray-500')} text-center`}>
-                Press A, B , C, or D to select • Enter to submit
+                Press A, B, C, or D to select • Enter to submit
               </div>
             </div>
 

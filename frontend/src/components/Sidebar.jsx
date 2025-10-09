@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { theme } from '../../config/theme';
+import { theme } from '../config/theme';
 
 const Sidebar = () => {
   const location = useLocation();
@@ -11,7 +11,7 @@ const Sidebar = () => {
     { path: '/admin/dashboard', icon: '📊', label: 'Dashboard' },
     { path: '/admin/item-banks', icon: '🗂️', label: 'Item Banks' },
     { path: '/admin/upload', icon: '📤', label: 'Upload Data' },
-    { path: '/admin/sessions', icon: '👥', label: 'Test Sessions' },
+    { path: '/admin/sessions', icon: '👥', label: 'Assessment Sessions' },
     { path: '/admin/calibration', icon: '⚙️', label: 'Calibration' },
   ];
 

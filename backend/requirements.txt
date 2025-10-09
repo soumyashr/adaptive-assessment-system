@@ -8,7 +8,7 @@ python-multipart==0.0.6  # Required for file uploads
 
 # Data Processing - XLSX Primary Support
 pandas>=2.1.3,<3.0.0
-numpy==1.24.3
+#numpy==1.24.3
 openpyxl==3.1.2  # Primary Excel engine - REQUIRED
 xlrd==2.0.1      # For reading older .xls files
 xlsxwriter==3.1.9  # Alternative Excel writer with advanced features
@@ -23,9 +23,9 @@ pydantic==2.5.0
 pydantic-settings==2.1.0
 
 # IRT Calibration & Statistics
-scipy==1.11.4
-scikit-learn==1.3.2
-statsmodels==0.14.0  # For advanced statistical analysis
+# scipy==1.11.4
+#scikit-learn==1.3.2
+#statsmodels==0.14.0  # For advanced statistical analysis
 
 # PDF Generation
 reportlab==4.0.7
@@ -71,7 +71,8 @@ cryptography==41.0.7
 prometheus-client==0.19.0  # Metrics
 aiofiles==23.2.1  # Async file operations
 
-# NOTE: Install with: pip install -r requirements.txt
+# NOTE: Install with: pip3 install -r requirements.txt
+# pip install -r requirements.txt
 
 
 # To Do

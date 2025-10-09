@@ -449,111 +449,344 @@ class PDFExportService:
             plt.close('all')
             return None
 
+    def _add_proficiency_legend(self, elements):
+        """Add Proficiency Levels legend box to PDF"""
+
+        # Section header
+        elements.append(Spacer(1, 0.3 * inch))
+        elements.append(Paragraph("Proficiency Levels", self.styles['SectionHeader']))
+        elements.append(Spacer(1, 0.1 * inch))
+
+        # Legend description
+        elements.append(Paragraph(
+            "Understanding your theta (θ) score and proficiency level:",
+            self.styles['Normal']
+        ))
+        elements.append(Spacer(1, 0.15 * inch))
+
+        # Create legend table with color-coded proficiency levels
+        legend_data = [
+            ['Level', 'Theta Range', 'Description'],
+            ['Beginner', 'θ < -1.0', 'Foundation building stage - Focus on core concepts'],
+            ['Intermediate', '-1.0 ≤ θ < 0.0', 'Developing skills - Building competency'],
+            ['Advanced', '0.0 ≤ θ < 1.0', 'Strong proficiency - Mastering concepts'],
+            ['Expert', 'θ ≥ 1.0', 'Exceptional mastery - Advanced application'],
+        ]
+
+        # Define color coding
+        level_colors = {
+            'Beginner': colors.HexColor('#EF4444'),  # Red
+            'Intermediate': colors.HexColor('#F59E0B'),  # Orange
+            'Advanced': colors.HexColor('#10B981'),  # Green
+            'Expert': colors.HexColor('#3B82F6'),  # Blue
+        }
+
+        legend_table = Table(legend_data, colWidths=[1.2 * inch, 1.3 * inch, 3.5 * inch])
+
+        # Base table style
+        table_style = [
+            ('FONT', (0, 0), (-1, 0), 'Helvetica-Bold', 10),
+            ('FONT', (0, 1), (-1, -1), 'Helvetica', 9),
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#34495E')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('GRID', (0, 0), (-1, -1), 1, colors.grey),
+            ('TOPPADDING', (0, 0), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ('LEFTPADDING', (0, 0), (-1, -1), 10),
+        ]
+
+        # Add color-coded backgrounds for each proficiency level
+        for i, level in enumerate(['Beginner', 'Intermediate', 'Advanced', 'Expert'], start=1):
+            bg_color = level_colors[level]
+            light_bg = colors.Color(bg_color.red, bg_color.green, bg_color.blue, alpha=0.2)
+            table_style.append(('BACKGROUND', (0, i), (0, i), light_bg))
+            table_style.append(('TEXTCOLOR', (0, i), (0, i), bg_color))
+            table_style.append(('FONT', (0, i), (0, i), 'Helvetica-Bold', 9))
+
+        legend_table.setStyle(TableStyle(table_style))
+        elements.append(legend_table)
+
+        # Add note
+        elements.append(Spacer(1, 0.15 * inch))
+        elements.append(Paragraph(
+            "<i>Note: The theta (θ) value is derived from Item Response Theory (IRT) and represents "
+            "your ability level on a standardized scale. Higher theta values indicate greater proficiency.</i>",
+            self.styles['Normal']
+        ))
+        elements.append(Spacer(1, 0.2 * inch))
+        elements.append(HRFlowable(width="100%", thickness=1, color=colors.grey, spaceAfter=0.2 * inch))
+
+    # Replace the generate_session_pdf method in your PDFExportService class with this:
+
     def generate_session_pdf(self, session_data: dict, user_data: dict,
-                             response_details: list,
-                             comparative_data: dict = None) -> BytesIO:
-        """Generate clean PDF report with specified sections only"""
+                             response_details: list, comparative_data: dict = None) -> BytesIO:
+        """Generate comprehensive PDF report for assessment session"""
+        from reportlab.platypus import KeepTogether
+
         buffer = BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=A4,
-                                rightMargin=72, leftMargin=72,
-                                topMargin=72, bottomMargin=18)
-
+                                rightMargin=0.75 * inch, leftMargin=0.75 * inch,
+                                topMargin=0.6 * inch, bottomMargin=0.6 * inch)
         elements = []
 
         # ========== TITLE ==========
-        title = Paragraph(
-            f"Assessment Report - {session_data.get('subject', 'Assessment')}",
-            self.styles['CustomTitle']
-        )
-        elements.append(title)
+        elements.append(Paragraph("Assessment Report", self.styles['CustomTitle']))
+        elements.append(Spacer(1, 0.15 * inch))
+
+        # ========== PROFICIENCY LEGEND ==========
+        elements.append(Spacer(1, 0.2 * inch))
+        elements.append(Paragraph("Proficiency Levels", self.styles['SectionHeader']))
+        elements.append(Spacer(1, 0.08 * inch))
+
+        # Legend description
+        elements.append(Paragraph(
+            "Understanding your theta (θ) score and proficiency level:",
+            self.styles['Normal']
+        ))
+        elements.append(Spacer(1, 0.1 * inch))
+
+        # Create legend table
+        legend_data = [
+            ['Level', 'Theta Range', 'Description'],
+            ['Beginner', 'θ < -1.0', 'Foundation building - Focus on core concepts'],
+            ['Intermediate', '-1.0 ≤ θ < 0.0', 'Developing skills - Building competency'],
+            ['Advanced', '0.0 ≤ θ < 1.0', 'Strong proficiency - Mastering concepts'],
+            ['Expert', 'θ ≥ 1.0', 'Exceptional mastery - Advanced application'],
+        ]
+
+        level_colors = {
+            'Beginner': colors.HexColor('#EF4444'),
+            'Intermediate': colors.HexColor('#F59E0B'),
+            'Advanced': colors.HexColor('#10B981'),
+            'Expert': colors.HexColor('#3B82F6'),
+        }
+
+        legend_table = Table(legend_data, colWidths=[1.1 * inch, 1.2 * inch, 3.7 * inch])
+
+        # Standardized table style
+        table_style = [
+            ('FONT', (0, 0), (-1, 0), 'Helvetica-Bold', 10),
+            ('FONT', (0, 1), (-1, -1), 'Helvetica', 9),
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#34495E')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('GRID', (0, 0), (-1, -1), 1, colors.grey),
+            ('TOPPADDING', (0, 0), (-1, -1), 6),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+            ('LEFTPADDING', (0, 0), (-1, -1), 10),
+        ]
+
+        for i, level in enumerate(['Beginner', 'Intermediate', 'Advanced', 'Expert'], start=1):
+            bg_color = level_colors[level]
+            light_bg = colors.Color(bg_color.red, bg_color.green, bg_color.blue, alpha=0.2)
+            table_style.append(('BACKGROUND', (0, i), (0, i), light_bg))
+            table_style.append(('TEXTCOLOR', (0, i), (0, i), bg_color))
+            table_style.append(('FONT', (0, i), (0, i), 'Helvetica-Bold', 9))
+
+        legend_table.setStyle(TableStyle(table_style))
+
+        # Use KeepTogether to prevent page breaks
+        legend_content = [
+            Paragraph("Proficiency Levels", self.styles['SectionHeader']),
+            Spacer(1, 0.08 * inch),
+            Paragraph("Understanding your theta (θ) score and proficiency level:", self.styles['Normal']),
+            Spacer(1, 0.1 * inch),
+            legend_table,
+            Spacer(1, 0.1 * inch),
+            Paragraph(
+                "<i>Note: Theta (θ) from Item Response Theory represents your ability on a standardized scale.</i>",
+                self.styles['Normal']
+            )
+        ]
+        elements.append(KeepTogether(legend_content))
+        elements.append(Spacer(1, 0.15 * inch))
+        elements.append(HRFlowable(width="100%", thickness=1, color=colors.grey))
         elements.append(Spacer(1, 0.2 * inch))
 
-        # ========== SESSION OVERVIEW ==========
-        elements.append(Paragraph("Assessment Overview", self.styles['SectionHeader']))
+        # ========== ASSESSMENT OVERVIEW TABLE ==========
+        # Format date
+        date_str = 'N/A'
+        created_at = session_data.get('created_at') or session_data.get('completed_at')
+        if created_at:
+            try:
+                if isinstance(created_at, str):
+                    if 'T' in created_at:
+                        from datetime import datetime as dt
+                        date_obj = dt.fromisoformat(created_at.replace('Z', '+00:00'))
+                        date_str = date_obj.strftime('%Y-%m-%d %H:%M')
+                    else:
+                        date_str = created_at
+                else:
+                    date_str = created_at.strftime('%Y-%m-%d %H:%M')
+            except Exception as e:
+                logger.warning(f"Error formatting date: {e}")
+                date_str = str(created_at) if created_at else 'N/A'
 
-        info_data = [
-            ['User:', user_data['username']],
-            ['Session ID:', str(session_data['session_id'])],
-            ['Item Bank:', session_data.get('subject', 'N/A')],
-            ['Date:', session_data.get('completed_at', datetime.now()).strftime('%Y-%m-%d %H:%M')
-            if session_data.get('completed_at') else 'In Progress'],
-            ['Status:', 'Completed' if session_data.get('completed') else 'Active']
+        session_id = session_data.get('session_id') or session_data.get('id', 'N/A')
+        item_bank_name = (session_data.get('item_bank_name') or session_data.get('subject', 'N/A'))
+        if item_bank_name != 'N/A':
+            item_bank_name = item_bank_name.replace('_', ' ').title()
+        status = 'Completed' if session_data.get('completed', True) else 'Active'
+
+        overview_data = [
+            ['Field', 'Value'],
+            ['User', user_data.get('username', 'N/A')],
+            ['Session ID', str(session_id)],
+            ['Item Bank', item_bank_name],
+            ['Date', date_str],
+            ['Status', status],
         ]
 
-        info_table = Table(info_data, colWidths=[2 * inch, 4 * inch])
-        info_table.setStyle(TableStyle([
-            ('FONT', (0, 0), (-1, -1), 'Helvetica', 10),
-            ('FONT', (0, 0), (0, -1), 'Helvetica-Bold', 10),
-            ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#34495E')),
+        overview_table = Table(overview_data, colWidths=[2 * inch, 4 * inch])
+        overview_table.setStyle(TableStyle([
+            ('FONT', (0, 0), (-1, 0), 'Helvetica-Bold', 10),
+            ('FONT', (0, 1), (0, -1), 'Helvetica-Bold', 9),
+            ('FONT', (1, 1), (1, -1), 'Helvetica', 9),
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#34495E')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('TEXTCOLOR', (0, 1), (0, -1), colors.HexColor('#34495E')),
+            ('TEXTCOLOR', (1, 1), (1, -1), colors.black),
+            ('ALIGN', (0, 0), (-1, 0), 'LEFT'),
+            ('ALIGN', (0, 1), (-1, -1), 'LEFT'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('GRID', (0, 0), (-1, -1), 1, colors.grey),
+            ('TOPPADDING', (0, 0), (-1, -1), 6),
             ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+            ('LEFTPADDING', (0, 0), (-1, -1), 10),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#F8F9FA')]),
         ]))
-        elements.append(info_table)
-        elements.append(Spacer(1, 0.3 * inch))
 
-        # ========== PERFORMANCE SUMMARY ==========
-        elements.append(Paragraph("Performance Summary", self.styles['SectionHeader']))
+        overview_content = [
+            Paragraph("Assessment Overview", self.styles['SectionHeader']),
+            Spacer(1, 0.08 * inch),
+            overview_table
+        ]
+        elements.append(KeepTogether(overview_content))
+        elements.append(Spacer(1, 0.2 * inch))
 
-        perf_data = [
-            ['Final Theta (θ):', f"{session_data['theta']:.2f}"],
-            ['Accuracy:', f"{session_data.get('accuracy', 0) * 100:.0f}%"],
-            ['Questions Answered:', str(session_data['questions_asked'])],
-            ['Competence Tier:', session_data.get('tier', 'N/A')],
+        # ========== PERFORMANCE SUMMARY TABLE ==========
+        theta = session_data.get('theta', 0) or session_data.get('final_theta', 0)
+
+        if theta < -1.0:
+            proficiency_level = 'Beginner'
+            level_color = colors.HexColor('#EF4444')
+            level_bg = colors.Color(0.937, 0.267, 0.267, alpha=0.15)
+        elif theta < 0.0:
+            proficiency_level = 'Intermediate'
+            level_color = colors.HexColor('#F59E0B')
+            level_bg = colors.Color(0.961, 0.620, 0.043, alpha=0.15)
+        elif theta < 1.0:
+            proficiency_level = 'Advanced'
+            level_color = colors.HexColor('#10B981')
+            level_bg = colors.Color(0.063, 0.725, 0.506, alpha=0.15)
+        else:
+            proficiency_level = 'Expert'
+            level_color = colors.HexColor('#3B82F6')
+            level_bg = colors.Color(0.231, 0.510, 0.965, alpha=0.15)
+
+        competence_tier = (session_data.get('competence_tier') or session_data.get('tier', 'N/A'))
+        questions_answered = (session_data.get('questions_answered') or
+                              session_data.get('questions_asked') or
+                              len(response_details) if response_details else 0)
+
+        accuracy = session_data.get('accuracy', 0)
+        if accuracy == 0 and response_details:
+            correct = sum(1 for r in response_details if r.get('is_correct', False))
+            accuracy = correct / len(response_details) if response_details else 0
+
+        performance_data = [
+            ['Metric', 'Value'],
+            ['Final Theta (θ)', f"{theta:.2f}"],
+            ['Proficiency Level', proficiency_level],
+            ['Accuracy', f"{accuracy * 100:.1f}%"],
+            ['Questions Answered', str(questions_answered)],
+            ['Competence Tier', competence_tier],
         ]
 
-        # Add percentile info if available
-        if comparative_data and comparative_data.get('total_users', 0) > 1:
-            perf_data.append(['Comparison:', f'vs {comparative_data["total_users"]} users'])
+        performance_table = Table(performance_data, colWidths=[2.5 * inch, 3.5 * inch])
 
-        perf_table = Table(perf_data, colWidths=[2.5 * inch, 3.5 * inch])
-        perf_table.setStyle(TableStyle([
-            ('FONT', (0, 0), (-1, -1), 'Helvetica', 11),
-            ('FONT', (0, 0), (0, -1), 'Helvetica-Bold', 11),
-            ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#34495E')),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
-        ]))
-        elements.append(perf_table)
-        elements.append(Spacer(1, 0.3 * inch))
+        perf_style = [
+            ('FONT', (0, 0), (-1, 0), 'Helvetica-Bold', 10),
+            ('FONT', (0, 1), (0, -1), 'Helvetica-Bold', 9),
+            ('FONT', (1, 1), (1, -1), 'Helvetica', 10),
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#34495E')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('TEXTCOLOR', (0, 1), (0, -1), colors.HexColor('#34495E')),
+            ('TEXTCOLOR', (1, 1), (1, -1), colors.black),
+            ('ALIGN', (0, 0), (-1, 0), 'LEFT'),
+            ('ALIGN', (0, 1), (0, -1), 'LEFT'),
+            ('ALIGN', (1, 1), (1, -1), 'CENTER'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('GRID', (0, 0), (-1, -1), 1, colors.grey),
+            ('TOPPADDING', (0, 0), (-1, -1), 6),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+            ('LEFTPADDING', (0, 0), (-1, -1), 10),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#F8F9FA')]),
+        ]
+
+        perf_style.extend([
+            ('BACKGROUND', (1, 3), (1, 3), level_bg),
+            ('TEXTCOLOR', (1, 3), (1, 3), level_color),
+            ('FONT', (1, 3), (1, 3), 'Helvetica-Bold', 10),
+        ])
+
+        if competence_tier != 'N/A':
+            perf_style.extend([
+                ('FONT', (1, 6), (1, 6), 'Helvetica-Bold', 10),
+                ('TEXTCOLOR', (1, 6), (1, 6), colors.HexColor('#8E44AD')),
+            ])
+
+        performance_table.setStyle(TableStyle(perf_style))
+
+        perf_content = [
+            Paragraph("Performance Summary", self.styles['SectionHeader']),
+            Spacer(1, 0.08 * inch),
+            performance_table
+        ]
+        elements.append(KeepTogether(perf_content))
 
         # ========== THETA PROGRESSION CHART ==========
         elements.append(PageBreak())
         elements.append(Paragraph("θ Progression", self.styles['SectionHeader']))
+        elements.append(Spacer(1, 0.1 * inch))
 
-        # Prepare response data
         responses_with_data = []
         for resp in response_details:
             responses_with_data.append({
                 'is_correct': resp.get('is_correct', False),
-                'theta_after': resp.get('theta_after', session_data['theta'])
+                'theta_after': resp.get('theta_after', theta)
             })
 
         theta_chart = self._generate_theta_progression_chart(responses_with_data)
         if theta_chart:
-            elements.append(Image(theta_chart, width=6.5 * inch, height=3.5 * inch))
+            elements.append(Image(theta_chart, width=6.5 * inch, height=3.2 * inch))
         else:
             elements.append(Paragraph("Chart data not available.", self.styles['Normal']))
 
-        elements.append(Spacer(1, 0.3 * inch))
+        elements.append(Spacer(1, 0.2 * inch))
 
         # ========== TOPIC PERFORMANCE ==========
         topic_performance = session_data.get('topic_performance')
         if topic_performance:
             elements.append(PageBreak())
             elements.append(Paragraph("Topic-wise Performance", self.styles['SectionHeader']))
+            elements.append(Spacer(1, 0.1 * inch))
 
             # Radar chart
-            elements.append(Paragraph("Performance Overview", self.styles['Subsection']))
             radar_chart = self._generate_topic_radar(topic_performance)
             if radar_chart:
                 elements.append(Image(radar_chart, width=5.5 * inch, height=5.5 * inch))
 
-            elements.append(Spacer(1, 0.3 * inch))
+            elements.append(Spacer(1, 0.2 * inch))
 
             # Topic table
             topic_headers = ['Topic', 'Accuracy', 'Questions', 'Theta', 'Strength']
             topic_data = [topic_headers]
 
             for topic, perf in topic_performance.items():
-                # Simplify topic names
                 topic_display = topic.replace('Complex Numbers - ', '').replace('complex numbers - ', '')
                 if len(topic_display) > 35:
                     topic_display = topic_display[:32] + '...'
@@ -566,21 +799,19 @@ class PDFExportService:
                     perf.get('strength_level', 'N/A')
                 ])
 
-            topic_table = Table(topic_data,
-                                colWidths=[2.5 * inch, 0.8 * inch, 0.8 * inch, 0.7 * inch, 1.2 * inch])
+            topic_table = Table(topic_data, colWidths=[2.5 * inch, 0.8 * inch, 0.8 * inch, 0.7 * inch, 1.2 * inch])
             topic_table.setStyle(TableStyle([
                 ('FONT', (0, 0), (-1, 0), 'Helvetica-Bold', 10),
                 ('FONT', (0, 1), (-1, -1), 'Helvetica', 9),
-                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#3498DB')),
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#34495E')),
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-                ('ALIGN', (1, 0), (-1, -1), 'CENTER'),
                 ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+                ('ALIGN', (1, 0), (-1, -1), 'CENTER'),
                 ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
                 ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
-                ('ROWBACKGROUNDS', (0, 1), (-1, -1),
-                 [colors.white, colors.HexColor('#F8F9FA')]),
-                ('TOPPADDING', (0, 0), (-1, -1), 8),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#F8F9FA')]),
+                ('TOPPADDING', (0, 0), (-1, -1), 6),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
             ]))
             elements.append(topic_table)
 
@@ -588,19 +819,13 @@ class PDFExportService:
         learning_roadmap = session_data.get('learning_roadmap')
         if learning_roadmap:
             elements.append(PageBreak())
-            elements.append(Paragraph("Personalized Learning Roadmap",
-                                      self.styles['SectionHeader']))
+            elements.append(Paragraph("Personalized Learning Roadmap", self.styles['SectionHeader']))
+            elements.append(Spacer(1, 0.1 * inch))
 
-            # Overall message
-            elements.append(Paragraph(
-                learning_roadmap.get('overall_message', ''),
-                self.styles['Normal']
-            ))
-            elements.append(Spacer(1, 0.3 * inch))
+            elements.append(Paragraph(learning_roadmap.get('overall_message', ''), self.styles['Normal']))
+            elements.append(Spacer(1, 0.2 * inch))
 
-            # Recommendations
             for rec in learning_roadmap.get('recommendations', []):
-                # Recommendation title with icon
                 title_text = rec['title']
                 if rec['type'] == 'immediate_focus':
                     title_text = "🎯 " + title_text
@@ -619,41 +844,32 @@ class PDFExportService:
                     'RecTitle',
                     parent=self.styles['Subsection'],
                     textColor=colors.HexColor(title_color),
-                    fontSize=13
+                    fontSize=12
                 )
 
-                elements.append(Paragraph(title_text, rec_title_style))
-                elements.append(Paragraph(
-                    rec['description'],
-                    self.styles['Normal']
-                ))
-                elements.append(Spacer(1, 0.05 * inch))
-
-                # Topics as badges
-                topics_text = "<b>Topics:</b> " + ", ".join(
-                    [t.replace('Complex Numbers - ', '').replace('complex numbers - ', '')
-                     for t in rec['topics']]
-                )
-                elements.append(Paragraph(topics_text, self.styles['Normal']))
-
-                elements.append(Paragraph(
-                    f"<b>💡 {rec['action']}</b>",
-                    self.styles['Normal']
-                ))
-                elements.append(Spacer(1, 0.2 * inch))
+                rec_content = [
+                    Paragraph(title_text, rec_title_style),
+                    Spacer(1, 0.05 * inch),
+                    Paragraph(rec['description'], self.styles['Normal']),
+                    Spacer(1, 0.05 * inch),
+                    Paragraph("<b>Topics:</b> " + ", ".join(
+                        [t.replace('Complex Numbers - ', '').replace('complex numbers - ', '') for t in rec['topics']]),
+                              self.styles['Normal']),
+                    Paragraph(f"<b>💡 {rec['action']}</b>", self.styles['Normal']),
+                    Spacer(1, 0.15 * inch)
+                ]
+                elements.extend(rec_content)
 
         # ========== QUESTION DETAILS ==========
         if response_details:
             elements.append(PageBreak())
-            elements.append(Paragraph("Question Response Details",
-                                      self.styles['SectionHeader']))
+            elements.append(Paragraph("Question Response Details", self.styles['SectionHeader']))
             elements.append(Spacer(1, 0.1 * inch))
 
             resp_headers = ['#', 'Question', 'Your Answer', 'Correct', 'Result']
             resp_data = [resp_headers]
 
             for i, resp in enumerate(response_details, 1):
-                # Sanitize question text to preserve mathematical notation
                 question = self._sanitize_text(resp['question'])
                 question = question[:60] + '...' if len(question) > 60 else question
 
@@ -667,12 +883,11 @@ class PDFExportService:
 
             resp_table = Table(resp_data, colWidths=[0.4 * inch, 3.2 * inch, 0.9 * inch, 0.9 * inch, 0.6 * inch])
 
-            # Try to use Unicode font if available
             table_font = self.unicode_font if hasattr(self, 'unicode_font') else 'Helvetica'
             table_font_bold = self.unicode_font_bold if hasattr(self, 'unicode_font_bold') else 'Helvetica-Bold'
 
             resp_table.setStyle(TableStyle([
-                ('FONT', (0, 0), (-1, 0), table_font_bold, 9),
+                ('FONT', (0, 0), (-1, 0), table_font_bold, 10),
                 ('FONT', (0, 1), (-1, -1), table_font, 8),
                 ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#34495E')),
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
@@ -680,13 +895,11 @@ class PDFExportService:
                 ('ALIGN', (2, 0), (-1, -1), 'CENTER'),
                 ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
                 ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
-                ('ROWBACKGROUNDS', (0, 1), (-1, -1),
-                 [colors.white, colors.HexColor('#F8F9FA')]),
-                ('TOPPADDING', (0, 0), (-1, -1), 6),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#F8F9FA')]),
+                ('TOPPADDING', (0, 0), (-1, -1), 5),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
             ]))
 
-            # Color code results
             for i, resp in enumerate(response_details, 1):
                 if resp['is_correct']:
                     resp_table.setStyle(TableStyle([
@@ -702,9 +915,9 @@ class PDFExportService:
             elements.append(resp_table)
 
         # ========== FOOTER ==========
-        elements.append(Spacer(1, 0.4 * inch))
+        elements.append(Spacer(1, 0.3 * inch))
         elements.append(HRFlowable(width="100%", thickness=1, color=colors.grey))
-        elements.append(Spacer(1, 0.1 * inch))
+        elements.append(Spacer(1, 0.08 * inch))
         footer = Paragraph(
             f"Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
             self.styles['Normal']
@@ -716,6 +929,148 @@ class PDFExportService:
         doc.build(elements)
         buffer.seek(0)
         return buffer
+
+    # Add these TWO new methods to your PDFExportService class in services.py
+    # Place them AFTER the existing generate_session_pdf() method
+
+    def export_complete_session(self, registry_db: Session, item_db: Session,
+                                session_id: int, item_bank_name: str) -> BytesIO:
+        """
+        Export complete session data as PDF - ALL business logic here
+
+        This method replaces the logic that was in main.py
+        """
+        # 1. Get session
+        session = item_db.query(models_itembank.AssessmentSession).filter(
+            models_itembank.AssessmentSession.session_id == session_id
+        ).first()
+
+        if not session:
+            raise ValueError(f"Session {session_id} not found")
+
+        # 2. Get user
+        user = registry_db.query(models_registry.User).filter(
+            models_registry.User.id == session.user_id
+        ).first()
+
+        if not user:
+            raise ValueError(f"User with ID {session.user_id} not found")
+
+        # 3. Get responses
+        responses = item_db.query(models_itembank.Response).filter(
+            models_itembank.Response.session_id == session_id
+        ).order_by(models_itembank.Response.created_at).all()
+
+        # 4. Calculate stats
+        correct_count = sum(1 for r in responses if r.is_correct)
+        accuracy = correct_count / len(responses) if responses else 0
+
+        # 5. Prepare session data
+        session_data = {
+            'session_id': session.session_id,
+            'subject': session.subject,
+            'item_bank_name': item_bank_name,
+            'theta': session.theta,
+            'sem': session.sem,
+            'tier': session.tier,
+            'competence_tier': session.tier,
+            'questions_asked': session.questions_asked,
+            'questions_answered': session.questions_asked,
+            'completed': session.completed,
+            'created_at': session.started_at,
+            'started_at': session.started_at,
+            'completed_at': session.completed_at,
+            'correct_count': correct_count,
+            'accuracy': accuracy,
+            'status': 'Completed' if session.completed else 'Active'
+        }
+
+        # 6. Get/calculate topic performance
+        topic_perf = None
+        try:
+            if hasattr(session, 'topic_performance') and session.topic_performance:
+                topic_perf = json.loads(session.topic_performance) if isinstance(
+                    session.topic_performance, str
+                ) else session.topic_performance
+                logger.info(f"Loaded topic performance: {len(topic_perf)} topics")
+
+            if not topic_perf:
+                logger.info("Calculating topic performance from responses...")
+                topic_perf = self._calculate_topic_performance_for_export(item_db, responses)
+
+            if topic_perf:
+                session_data['topic_performance'] = topic_perf
+                roadmap = TopicPerformanceCalculator.generate_learning_roadmap(
+                    topic_perf, session.theta
+                )
+                if roadmap:
+                    session_data['learning_roadmap'] = roadmap
+
+        except Exception as e:
+            logger.error(f"Error with topic performance: {e}", exc_info=True)
+
+        # 7. User data
+        user_data = {
+            'username': user.username,
+            'id': user.id
+        }
+
+        # 8. Response details
+        response_details = []
+        for resp in responses:
+            question = item_db.query(models_itembank.Question).filter(
+                models_itembank.Question.id == resp.question_id
+            ).first()
+
+            if question:
+                response_details.append({
+                    'question': question.question,
+                    'selected_option': resp.selected_option,
+                    'correct_answer': question.answer,
+                    'is_correct': resp.is_correct,
+                    'theta_after': resp.theta_after,
+                    'difficulty': question.difficulty_b,
+                    'topic': question.topic if hasattr(question, 'topic') else None
+                })
+
+        # 9. Generate PDF
+        return self.generate_session_pdf(
+            session_data, user_data, response_details, comparative_data=None
+        )
+
+    def _calculate_topic_performance_for_export(self, item_db: Session,
+                                                responses: List) -> Optional[Dict]:
+        """Helper: Calculate topic performance from responses"""
+        try:
+            topic_calculator = TopicPerformanceCalculator()
+            irt_engine = IRTEngine()
+            topic_data = defaultdict(list)
+
+            for resp in responses:
+                question = item_db.query(models_itembank.Question).filter(
+                    models_itembank.Question.id == resp.question_id
+                ).first()
+
+                if question and question.topic:
+                    topic_data[question.topic].append({
+                        'is_correct': resp.is_correct,
+                        'difficulty': question.difficulty_b,
+                        'discrimination': question.discrimination_a,
+                        'guessing': question.guessing_c,
+                        'topic': question.topic
+                    })
+
+            topic_performance = {}
+            for topic, data in topic_data.items():
+                perf = topic_calculator.calculate_topic_theta(data, topic, irt_engine)
+                if perf:
+                    topic_performance[topic] = perf
+
+            return topic_performance if topic_performance else None
+
+        except Exception as e:
+            logger.error(f"Error calculating topic performance: {e}", exc_info=True)
+            return None
 
 # ========== NEW CLASS - Session Management Service ==========
 
