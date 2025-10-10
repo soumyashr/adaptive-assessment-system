@@ -35,3 +35,43 @@ docker-compose.yml
 *.swp
 *.swo
 *~
+
+
+
+# Python virtual environment
+.venv/
+
+# JetBrains IDE settings (e.g., PyCharm)
+.idea/
+
+#/*.zip
+
+# Python cache files
+__pycache__
+
+/backend/__pycache__
+
+/backend/adaptive_assessment.log
+
+# dependencies
+# Node.js dependencies
+/frontend/node_modules
+/frontend/.pnp
+/frontend.pnp.js
+
+# testing
+/frontend/coverage
+
+# production
+/frontend/build
+
+# misc
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+/frontend/npm-debug.log*
+/frontend/yarn-debug.log*
+/frontend/yarn-error.log*

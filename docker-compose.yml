@@ -2,30 +2,32 @@ version: '3.8'
 
 services:
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile_BE
+    container_name: adaptive-backend
     ports:
       - "8000:8000"
-    environment:
-      - DATABASE_URL=${DATABASE_URL}
     volumes:
-      - ./backend:/app  # For development hot reload
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+      # Mount backend code and data directory for persistence
+      - ./backend:/app
+      - ./backend/data:/app/data
+    environment:
+      - DATABASE_URL=sqlite:///./data/adaptive_assessment.db
+      - FRONTEND_URL=http://REPLACE_WITH_EC2_IP
+      - ENV=production
+    restart: unless-stopped
+    command: uvicorn main:app --host 0.0.0.0 --port 8000
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile_FE
+    container_name: adaptive-frontend
     ports:
-      - "3000:80"
+      - "80:80"
+    environment:
+      - REACT_APP_API_URL=http://REPLACE_WITH_EC2_IP:8000
     depends_on:
       - backend
-    environment:
-      - REACT_APP_API_URL=http://localhost:8000/api
-
-  # Optional: Database
-  # db:
-  #   image: postgres:15
-  #   environment:
-  #     POSTGRES_DB: mydb
-  #     POSTGRES_USER: user
-  #     POSTGRES_PASSWORD: password
-  #   ports:
-  #     - "5432:5432"
+    restart: unless-stopped
