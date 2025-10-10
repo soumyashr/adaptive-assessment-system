@@ -1,80 +1,11 @@
-# backend/requirements.txt
-# Updated for XLSX primary format support
-
-# Core Web Framework
-fastapi>=0.104.1,<1.0.0
-uvicorn[standard]==0.24.0
-python-multipart==0.0.6  # Required for file uploads
-
-# Data Processing - XLSX Primary Support
-pandas>=2.1.3,<3.0.0
-#numpy==1.24.3
-openpyxl==3.1.2  # Primary Excel engine - REQUIRED
-xlrd==2.0.1      # For reading older .xls files
-xlsxwriter==3.1.9  # Alternative Excel writer with advanced features
-
-# Database
-sqlalchemy==2.0.23
-pymongo==4.6.0  # If using MongoDB
-# psycopg2-binary==2.9.9  # Uncomment if using PostgreSQL
-
-# Data Validation
-pydantic==2.5.0
-pydantic-settings==2.1.0
-
-# IRT Calibration & Statistics
-# scipy==1.11.4
-#scikit-learn==1.3.2
-#statsmodels==0.14.0  # For advanced statistical analysis
-
-# PDF Generation
-reportlab==4.0.7
-Pillow==10.1.0  # Image support for PDFs
-matplotlib>=3.8.0,<4.0.0
-
-
-# Utilities
-python-dotenv==1.0.0
-loguru==0.7.2  # Enhanced logging
-tqdm==4.66.1  # Progress bars for batch operations
-
-# Testing (optional - for development)
-# These shouldn't be in production deployments
-pytest==7.4.3
-pytest-asyncio==0.21.1
-httpx==0.25.2  # For testing FastAPI
-
-# Code Quality (optional - for development)
-black==23.11.0
-flake8==6.1.0
-mypy==1.7.1
-
-# Additional Excel Processing Tools (optional but recommended)
-et-xmlfile==1.1.0  # Dependency for openpyxl
-defusedxml==0.7.1  # Secure XML processing
-
-# Date/Time handling
-python-dateutil==2.8.2
-pytz==2023.3
-
-# CLI enhancements (for scripts)
-click==8.1.7
-rich==13.7.0  # Beautiful terminal output
-tabulate==0.9.0  # Table formatting
-
-# Security
-python-jose[cryptography]==3.3.0  # If implementing JWT
-passlib[bcrypt]==1.7.4  # If implementing authentication
-cryptography==41.0.7
-
-# Monitoring (optional)
-prometheus-client==0.19.0  # Metrics
-aiofiles==23.2.1  # Async file operations
-
-# NOTE: Install with: pip3 install -r requirements.txt
-# pip install -r requirements.txt
-
-
-# To Do
-# 1. when all questions are presented/asked, then need to restart the server, what is the alternative
-# 2. Role based authorization
+fastapi==0.118.2
+matplotlib==3.10.7
+numpy==2.3.3
+openpyxl==3.1.5
+pandas==2.3.3
+pydantic==2.12.0
+reportlab==4.4.4
+Requests==2.32.5
+scipy==1.16.2
+SQLAlchemy==2.0.43
+uvicorn==0.37.0
