@@ -356,6 +356,17 @@ async def delete_item_bank(
 ):
     """Delete an item bank and all associated data"""
 
+    # Verify item bank exists in registry
+    item_bank = db.query(models.ItemBank).filter(
+        models.ItemBank.name == item_bank_name
+    ).first()
+
+    if not item_bank:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Item bank '{item_bank_name}' not found"
+        )
+
     # Check for active sessions first
     item_db = None
     try:
@@ -368,12 +379,14 @@ async def delete_item_bank(
         if active_sessions > 0:
             raise HTTPException(
                 status_code=400,
-                detail=f"Cannot delete: {active_sessions} active session(s) in progress"
+                detail=f"Cannot delete: {active_sessions} active session(s) in progress. Terminate them first."
             )
+
     except HTTPException:
-        raise
+        raise  # Re-raise HTTP exceptions
     except Exception as e:
-        logger.error(f"Error checking active sessions: {e}")
+        # If database doesn't exist or other errors, log but continue
+        logger.warning(f"Could not check active sessions for {item_bank_name}: {e}")
     finally:
         if item_db:
             item_db.close()
@@ -385,8 +398,6 @@ async def delete_item_bank(
         raise HTTPException(status_code=400, detail=result['error'])
 
     return result
-
-
 # ========== TEMPLATE DOWNLOADS ==========
 
 @app.get("/api/templates/download")

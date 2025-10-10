@@ -2003,7 +2003,6 @@ class ItemBankService:
             Dict with success status and details
         """
 
-
         # Check if item bank exists
         item_bank = registry_db.query(models_registry.ItemBank).filter(
             models_registry.ItemBank.name == item_bank_name
@@ -2031,8 +2030,7 @@ class ItemBankService:
                 item_db.execute(text("""
                                      DELETE
                                      FROM responses
-                                     WHERE session_id IN (SELECT session_id
-                                                          FROM assessment_sessions)
+                                     WHERE session_id IN (SELECT session_id FROM assessment_sessions)
                                      """))
 
                 # 2. Delete topic performance if table exists
@@ -2061,10 +2059,8 @@ class ItemBankService:
             logger.error(f"Error deleting data from item bank {item_bank_name}: {e}")
             if item_db:
                 item_db.rollback()
-            return {
-                'success': False,
-                'error': f'Failed to delete item bank data: {str(e)}'
-            }
+            # Don't return error - continue to registry cleanup
+            logger.warning(f"Continuing with registry cleanup despite database error")
         finally:
             # CRITICAL: Close the item bank session
             if item_db:
