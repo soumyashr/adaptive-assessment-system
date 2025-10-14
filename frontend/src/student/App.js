@@ -43,7 +43,7 @@ const AdaptiveAssessment = () => {
   const [currentQuestionDifficulty, setCurrentQuestionDifficulty] = useState(null);
   const [topicPerformance, setTopicPerformance] = useState({});
 
-  const API_BASE = config.API_BASE_URL || 'http://localhost:8000/api';
+  const API_BASE = config.API_BASE_URL ;
   const DEFAULT_COMPETENCE_LEVEL = 'beginner';
 
   // Professional color palette

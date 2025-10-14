@@ -327,7 +327,7 @@ const ItemBanksPage = () => {
               </svg>
             </div>
             <div>
-              <div className={`${theme('text-gray-400', 'text-gray-600')} text-sm`}>Active Jobs</div>
+              <div className={`${theme('text-gray-400', 'text-gray-600')} text-sm`}>Running/Active Jobs</div>
               <div className={`text-3xl font-bold ${theme('text-white', 'text-gray-900')}`}>{calibratingBank ? '1' : '0'}</div>
             </div>
           </div>

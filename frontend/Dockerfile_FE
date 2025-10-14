@@ -1,6 +1,5 @@
 # Frontend Dockerfile
 FROM node:18-alpine as build
-
 WORKDIR /app
 
 # Copy package files
@@ -12,7 +11,16 @@ RUN npm install
 # Copy application code
 COPY . .
 
+# CRITICAL: Accept build argument and set as environment variable
+ARG REACT_APP_API_URL
+ENV REACT_APP_API_URL=$REACT_APP_API_URL
+
+# Debug: Show what the API URL is during build
+RUN echo "Building with API URL: $REACT_APP_API_URL"
+
 # Build the React app
+# npm run build ( not npm start ) so React considers it a Production environment
+# and hence uses .env file and ignores .env.development file
 RUN npm run build
 
 # Production stage
@@ -21,11 +29,9 @@ FROM nginx:alpine
 # Copy built files to nginx
 COPY --from=build /app/build /usr/share/nginx/html
 
-# Copy nginx configuration (optional, for API proxy)
+# Copy nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Expose port 80
 EXPOSE 80
 
-# Start nginx
 CMD ["nginx", "-g", "daemon off;"]

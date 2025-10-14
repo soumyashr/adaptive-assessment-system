@@ -16,13 +16,16 @@ pip-delete-this-directory.txt
 
 # Backend specific
 backend/__pycache__/
+backend/**/__pycache__/
 backend/adaptive_assessment.log
 backend/data/*.db
 backend/data/*.sqlite
 backend/data/*.sqlite3
+*.pyc
 
 # Node.js / React
 node_modules/
+build/
 frontend/node_modules/
 frontend/.pnp
 frontend/.pnp.js

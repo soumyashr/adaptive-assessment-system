@@ -6,16 +6,17 @@ services:
       context: ./backend
       dockerfile: Dockerfile_BE
     container_name: adaptive-backend
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
+    # Don't expose port 8000 externally - only internal to Docker network
     volumes:
-      # Mount backend code and data directory for persistence
       - ./backend:/app
       - ./backend/data:/app/data
     environment:
       - DATABASE_URL=sqlite:///./data/adaptive_assessment.db
-      - FRONTEND_URL=http://REPLACE_WITH_EC2_IP
+      - FRONTEND_URL=http://108.0.7.193
       - ENV=production
+      - CORS_ORIGINS=http://108.0.7.193,http://localhost
     restart: unless-stopped
     command: uvicorn main:app --host 0.0.0.0 --port 8000
 
@@ -23,11 +24,13 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile_FE
+      args:
+        REACT_APP_API_URL: http://108.0.7.193/api
     container_name: adaptive-frontend
     ports:
       - "80:80"
     environment:
-      - REACT_APP_API_URL=http://REPLACE_WITH_EC2_IP:8000
+      - REACT_APP_API_URL=http://108.0.7.193/api # override
     depends_on:
       - backend
     restart: unless-stopped
