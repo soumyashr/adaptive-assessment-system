@@ -17,62 +17,70 @@ const UploadData = () => {
 
   const handleUpload = async () => {
     if (!selectedFile || !uploadConfig.name || !uploadConfig.displayName || !uploadConfig.subject) {
-      setError('Please fill all required fields');
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-    setResult(null);
-
-    try {
-      // Create item bank
-      const createResponse = await fetch(
-        `${API_BASE}/item-banks/create?name=${encodeURIComponent(uploadConfig.name)}&display_name=${encodeURIComponent(uploadConfig.displayName)}&subject=${encodeURIComponent(uploadConfig.subject)}`,
-        {
-          method: 'POST',
-          headers: { 'accept': 'application/json' }
-        }
-      );
-
-      if (!createResponse.ok) {
-        const errorData = await createResponse.json();
-        throw new Error(errorData.detail || 'Failed to create item bank');
+        setError('Please fill all required fields');
+        return;
       }
 
-      // Upload CSV
-      const formData = new FormData();
-      formData.append('file', selectedFile);
+      setLoading(true);
+      setError(null);
+      setResult(null);
 
-      const uploadResponse = await fetch(
-        `${API_BASE}/item-banks/${uploadConfig.name}/upload`,
-        {
-          method: 'POST',
-          body: formData
+      try {
+        // Create item bank
+        const createResponse = await fetch(
+          `${API_BASE}/item-banks/create?name=${encodeURIComponent(uploadConfig.name)}&display_name=${encodeURIComponent(uploadConfig.displayName)}&subject=${encodeURIComponent(uploadConfig.subject)}`,
+          {
+            method: 'POST',
+            headers: { 'accept': 'application/json' }
+          }
+        );
+
+        if (!createResponse.ok) {
+          const errorData = await createResponse.json();
+          // ✅ FIX: Set error directly from detail, don't throw
+          setError(errorData.detail || 'Failed to create item bank');
+          setLoading(false);
+          return; // Stop here, don't continue to upload
         }
-      );
 
-      if (!uploadResponse.ok) {
-        const errorData = await uploadResponse.json();
-        throw new Error(errorData.detail || 'Failed to upload questions');
+        // Upload Excel file
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+
+        const uploadResponse = await fetch(
+          `${API_BASE}/item-banks/${uploadConfig.name}/upload`,
+          {
+            method: 'POST',
+            body: formData
+          }
+        );
+
+        if (!uploadResponse.ok) {
+          const errorData = await uploadResponse.json();
+          // FIX: Set error directly from detail, don't throw
+          setError(errorData.detail || 'Failed to upload questions');
+          setLoading(false);
+          return;
+        }
+
+        const uploadData = await uploadResponse.json();
+        setResult({
+          success: true,
+          message: `Successfully imported ${uploadData.imported} questions`,
+          itemBank: uploadConfig.name
+        });
+
+        // Reset form
+        setUploadConfig({ name: '', displayName: '', subject: '' });
+        setSelectedFile(null);
+
+      } catch (err) {
+        // FIX: This catch is now only for network errors
+        setError('Network error. Please check your connection and try again.');
+        console.error('Upload error:', err);
+      } finally {
+        setLoading(false);
       }
-
-      const uploadData = await uploadResponse.json();
-      setResult({
-        success: true,
-        message: `Successfully imported ${uploadData.imported} questions`,
-        itemBank: uploadConfig.name
-      });
-
-      // Reset form
-      setUploadConfig({ name: '', displayName: '', subject: '' });
-      setSelectedFile(null);
-
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
   };
 
   return (

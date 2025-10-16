@@ -234,16 +234,20 @@ async def create_item_bank(
         ).first()
 
         if existing:
-            return {
-                "success": True,
-                "message": "Item bank already exists",
-                "item_bank": {
-                    "name": existing.name,
-                    "display_name": existing.display_name,
-                    "subject": existing.subject,
-                    "status": existing.status
-                }
-            }
+            # return {
+            #     "success": True,
+            #     "message": "Item bank already exists",
+            #     "item_bank": {
+            #         "name": existing.name,
+            #         "display_name": existing.display_name,
+            #         "subject": existing.subject,
+            #         "status": existing.status
+            #     }
+            # }
+            raise HTTPException(
+                status_code=400,
+                detail=f"Item bank '{name}' already exists. Please use a different name or delete the existing item bank first."
+            )
 
         item_bank = item_bank_service.create_item_bank(
             db, name, display_name, subject
