@@ -2,6 +2,77 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Light theme colors - Yellow-Green Theme */
+  --primary: #10b981;
+  --primary-hover: #059669;
+  --secondary: #fbbf24;
+  --accent: #34d399;
+
+  --bg-primary: #ffffff;
+  --bg-secondary: #fefce8;
+  --bg-tertiary: #ecfdf5;
+
+  --text-primary: #1c1917;
+  --text-secondary: #44403c;
+  --text-muted: #78716c;
+
+  --border: #e7e5e4;
+  --border-hover: #d6d3d1;
+
+  --success: #10b981;
+  --success-bg: #d1fae5;
+  --error: #ef4444;
+  --error-bg: #fee2e2;
+  --warning: #f59e0b;
+  --warning-bg: #fef3c7;
+  --info: #06b6d4;
+  --info-bg: #cffafe;
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.dark {
+  /* Dark theme colors */
+  --primary: #34d399;
+  --primary-hover: #10b981;
+  --secondary: #fbbf24;
+  --accent: #6ee7b7;
+
+  --bg-primary: #1c1917;
+  --bg-secondary: #292524;
+  --bg-tertiary: #44403c;
+
+  --text-primary: #fafaf9;
+  --text-secondary: #e7e5e4;
+  --text-muted: #a8a29e;
+
+  --border: #57534e;
+  --border-hover: #78716c;
+
+  --success: #34d399;
+  --success-bg: #064e3b;
+  --error: #f87171;
+  --error-bg: #7f1d1d;
+  --warning: #fbbf24;
+  --warning-bg: #78350f;
+  --info: #22d3ee;
+  --info-bg: #164e63;
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
+}
+
+/* CRITICAL: Force background color to persist */
+html {
+  background: #fefce8 !important;
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -9,6 +80,15 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background: var(--bg-secondary) !important;
+  background-color: #fefce8 !important;
+  color: var(--text-primary);
+}
+
+#root {
+  background: var(--bg-secondary) !important;
+  background-color: #fefce8 !important;
+  min-height: 100vh;
 }
 
 code {
@@ -16,22 +96,23 @@ code {
     monospace;
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar - Light theme */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #1f2937;
+  background: var(--bg-secondary);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #4b5563;
-  border-radius: 4px;
+  background: var(--border-hover);
+  border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #6b7280;
+  background: var(--text-muted);
 }
 
 /* Loading animation */
@@ -48,21 +129,58 @@ code {
   }
 }
 
+/* Smooth fade in */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.4s ease-out;
+}
+
+/* Scale animation */
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.scale-in {
+  animation: scaleIn 0.3s ease-out;
+}
+
 /* Custom radio buttons */
 .custom-radio input[type="radio"] {
   appearance: none;
   width: 20px;
   height: 20px;
-  border: 2px solid #6b7280;
+  border: 2px solid var(--border);
   border-radius: 50%;
   margin-right: 12px;
   position: relative;
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.custom-radio input[type="radio"]:hover {
+  border-color: var(--primary);
 }
 
 .custom-radio input[type="radio"]:checked {
-  border-color: #3b82f6;
-  background-color: #3b82f6;
+  border-color: var(--primary);
+  background-color: var(--primary);
 }
 
 .custom-radio input[type="radio"]:checked::after {
@@ -75,4 +193,492 @@ code {
   height: 8px;
   border-radius: 50%;
   background-color: white;
+}
+
+/* Gradient utilities */
+.gradient-yellow {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%) !important;
+}
+
+.gradient-green {
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%) !important;
+}
+
+.gradient-primary {
+  background: linear-gradient(135deg, #fbbf24 0%, #10b981 100%) !important;
+}
+
+.dark .gradient-yellow {
+  background: linear-gradient(135deg, #78350f 0%, #92400e 100%) !important;
+}
+
+.dark .gradient-green {
+  background: linear-gradient(135deg, #14532d 0%, #166534 100%) !important;
+}
+
+.dark .gradient-primary {
+  background: linear-gradient(135deg, #92400e 0%, #166534 100%) !important;
+}
+
+/* Selection color */
+::selection {
+  background: var(--primary);
+  color: white;
+}
+
+/* Focus styles */
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Smooth transitions - BUT NOT for background colors to avoid flicker */
+* {
+  transition-property: border-color, color, fill, stroke, opacity, transform, box-shadow;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
+
+/* Button focus ring */
+button:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Disabled state */
+button:disabled,
+input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Link hover effect */
+a {
+  position: relative;
+  color: var(--primary);
+  text-decoration: none;
+}
+
+a::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: -2px;
+  left: 0;
+  background-color: var(--primary);
+  transition: width 0.3s ease;
+}
+
+a:hover::after {
+  width: 100%;
+}
+
+/* Card shadow on hover */
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Skeleton loader */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.skeleton {
+  animation: shimmer 2s infinite;
+  background: linear-gradient(
+    to right,
+    var(--bg-tertiary) 4%,
+    var(--border) 25%,
+    var(--bg-tertiary) 36%
+  );
+  background-size: 1000px 100%;
+}
+
+/* Toast notification slide in */
+@keyframes slideInTop {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.slide-in-top {
+  animation: slideInTop 0.3s ease-out;
+}
+
+/* Bounce animation for success */
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.bounce {
+  animation: bounce 0.5s ease;
+}
+
+/* Spin animation */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Responsive utilities */
+@media (max-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+}
+
+/* Override Tailwind's default backgrounds */
+.bg-gray-50 {
+  background-color: #fefce8 !important;
+}
+
+.bg-gray-900 {
+  background-color: #292524 !important;
+}
+
+/* Ensure admin and student areas maintain theme */
+[class*="admin"] {
+  background-color: var(--bg-secondary) !important;
+}
+
+[class*="student"] {
+  background-color: var(--bg-secondary) !important;
+}
+
+/* Button Gradient Effects */
+button, .btn {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Primary/Green Buttons - Like "View Details" */
+button.bg-emerald-500,
+button.bg-emerald-600,
+button.bg-green-500,
+button.bg-green-600,
+.btn-primary {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+}
+
+button.bg-emerald-500:hover,
+button.bg-emerald-600:hover,
+button.bg-green-500:hover,
+button.bg-green-600:hover,
+.btn-primary:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+}
+
+/* Yellow/Calibrate Buttons */
+button.bg-yellow-500,
+button.bg-yellow-600,
+button.bg-amber-500,
+button.bg-amber-600,
+.btn-warning {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%) !important;
+}
+
+button.bg-yellow-500:hover,
+button.bg-yellow-600:hover,
+button.bg-amber-500:hover,
+button.bg-amber-600:hover,
+.btn-warning:hover {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+}
+
+/* Red/Delete Buttons */
+button.bg-red-500,
+button.bg-red-600,
+.btn-danger {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+}
+
+button.bg-red-500:hover,
+button.bg-red-600:hover,
+.btn-danger:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+}
+
+/* White/Gray/Test Buttons */
+button.bg-white,
+button.bg-gray-50,
+button.bg-gray-100,
+.btn-secondary {
+  background: linear-gradient(135deg, #ffffff 0%, #f3f4f6 100%) !important;
+  border: 1px solid var(--border);
+}
+
+button.bg-white:hover,
+button.bg-gray-50:hover,
+button.bg-gray-100:hover,
+.btn-secondary:hover {
+  background: linear-gradient(135deg, #f9fafb 0%, #e5e7eb 100%) !important;
+}
+
+/* Dark mode button gradients */
+.dark button.bg-emerald-500,
+.dark button.bg-emerald-600,
+.dark button.bg-green-500,
+.dark button.bg-green-600,
+.dark .btn-primary {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+}
+
+.dark button.bg-yellow-500,
+.dark button.bg-yellow-600,
+.dark button.bg-amber-500,
+.dark button.bg-amber-600,
+.dark .btn-warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+}
+
+.dark button.bg-red-500,
+.dark button.bg-red-600,
+.dark .btn-danger {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+}
+
+.dark button.bg-white,
+.dark button.bg-gray-50,
+.dark button.bg-gray-100,
+.dark .btn-secondary {
+  background: linear-gradient(135deg, #374151 0%, #1f2937 100%) !important;
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+}
+
+
+/* ========================================
+   BUTTON GRADIENT EFFECTS - VIBRANT YELLOW TO GREEN
+   ======================================== */
+
+/* Green "View Details" Button - Vibrant Green Gradient */
+button.bg-emerald-500,
+button.bg-emerald-600,
+button.bg-green-500,
+button.bg-green-600 {
+  background: linear-gradient(90deg, #34d399 0%, #10b981 50%, #059669 100%) !important;
+  color: white !important;
+  border: none !important;
+}
+
+button.bg-emerald-500:hover,
+button.bg-emerald-600:hover,
+button.bg-green-500:hover,
+button.bg-green-600:hover {
+  background: linear-gradient(90deg, #10b981 0%, #059669 50%, #047857 100%) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4) !important;
+}
+
+/* Yellow "Calibrate" Button - Yellow to Orange Gradient */
+button.bg-yellow-500,
+button.bg-yellow-600,
+button.bg-amber-500,
+button.bg-amber-600 {
+  background: linear-gradient(90deg, #fbbf24 0%, #f59e0b 50%, #f97316 100%) !important;
+  color: white !important;
+  border: none !important;
+}
+
+button.bg-yellow-500:hover,
+button.bg-yellow-600:hover,
+button.bg-amber-500:hover,
+button.bg-amber-600:hover {
+  background: linear-gradient(90deg, #f59e0b 0%, #f97316 50%, #ea580c 100%) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4) !important;
+}
+
+/* Red "Delete" Button - Red Gradient */
+button.bg-red-500,
+button.bg-red-600 {
+  background: linear-gradient(90deg, #f87171 0%, #ef4444 50%, #dc2626 100%) !important;
+  color: white !important;
+  border: none !important;
+}
+
+button.bg-red-500:hover,
+button.bg-red-600:hover {
+  background: linear-gradient(90deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4) !important;
+}
+
+/* White/Gray "Test" Button - Subtle Gray Gradient */
+button.bg-white,
+button.bg-gray-50,
+button.bg-gray-100 {
+  background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%) !important;
+  color: #1c1917 !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+button.bg-white:hover,
+button.bg-gray-50:hover,
+button.bg-gray-100:hover {
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%) !important;
+  border-color: #d1d5db !important;
+}
+
+/* SPECIAL: Yellow-to-Green Gradient (like your reference image) */
+.btn-gradient-yellow-green,
+button.gradient-primary {
+  background: linear-gradient(90deg, #fbbf24 0%, #a3e635 50%, #10b981 100%) !important;
+  color: white !important;
+  border: none !important;
+  font-weight: 600 !important;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3) !important;
+}
+
+.btn-gradient-yellow-green:hover,
+button.gradient-primary:hover {
+  background: linear-gradient(90deg, #f59e0b 0%, #84cc16 50%, #059669 100%) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4) !important;
+}
+
+/* Dark mode button gradients */
+.dark button.bg-emerald-500,
+.dark button.bg-emerald-600,
+.dark button.bg-green-500,
+.dark button.bg-green-600 {
+  background: linear-gradient(90deg, #34d399 0%, #10b981 50%, #059669 100%) !important;
+  color: white !important;
+}
+
+.dark button.bg-yellow-500,
+.dark button.bg-yellow-600,
+.dark button.bg-amber-500,
+.dark button.bg-amber-600 {
+  background: linear-gradient(90deg, #fbbf24 0%, #f59e0b 50%, #f97316 100%) !important;
+  color: white !important;
+}
+
+.dark button.bg-red-500,
+.dark button.bg-red-600 {
+  background: linear-gradient(90deg, #f87171 0%, #ef4444 50%, #dc2626 100%) !important;
+  color: white !important;
+}
+
+.dark button.bg-white,
+.dark button.bg-gray-50,
+.dark button.bg-gray-100 {
+  background: linear-gradient(135deg, #374151 0%, #1f2937 100%) !important;
+  border: 1px solid #4b5563 !important;
+  color: white !important;
+}
+
+/* Ensure disabled buttons are gray */
+button:disabled {
+  background: #9ca3af !important;
+  color: #d1d5db !important;
+  cursor: not-allowed !important;
+  opacity: 0.6 !important;
+  box-shadow: none !important;
+}
+
+/* Smooth transitions */
+button {
+  transition: all 0.2s ease !important;
+}
+
+/* ========================================
+   ULTRA-LIGHT PROFESSIONAL BACKGROUND GRADIENT
+   Soft Yellow → Pale Yellow → Soft Cyan → Pale Greenish
+   ======================================== */
+
+/* Beautiful Ultra-Light Gradient - Very Soft Colors */
+body {
+  background: linear-gradient(135deg,
+    #fffbeb 0%,      /* Very Pale Yellow */
+    #fefce8 12%,     /* Cream Yellow */
+    #fef9e7 25%,     /* Soft Yellow */
+    #f7fee7 38%,     /* Very Light Lime */
+    #ecfdf5 50%,     /* Pale Mint */
+    #f0fdfa 62%,     /* Very Light Teal */
+    #ecfeff 75%,     /* Pale Cyan */
+    #f0f9ff 88%,     /* Very Light Sky */
+    #f5f9ff 100%     /* Almost White Blue */
+  ) !important;
+  min-height: 100vh;
+}
+
+#root {
+  background: linear-gradient(135deg,
+    #fffbeb 0%,
+    #fefce8 12%,
+    #fef9e7 25%,
+    #f7fee7 38%,
+    #ecfdf5 50%,
+    #f0fdfa 62%,
+    #ecfeff 75%,
+    #f0f9ff 88%,
+    #f5f9ff 100%
+  ) !important;
+  min-height: 100vh;
+}
+
+/* Override any background color utilities */
+.min-h-screen {
+  background: linear-gradient(135deg,
+    #fffbeb 0%,
+    #fefce8 12%,
+    #fef9e7 25%,
+    #f7fee7 38%,
+    #ecfdf5 50%,
+    #f0fdfa 62%,
+    #ecfeff 75%,
+    #f0f9ff 88%,
+    #f5f9ff 100%
+  ) !important;
+}
+
+/* Ensure dark mode doesn't override */
+.dark body,
+.dark #root,
+.dark .min-h-screen {
+  background: linear-gradient(135deg,
+    #fffbeb 0%,
+    #fefce8 12%,
+    #fef9e7 25%,
+    #f7fee7 38%,
+    #ecfdf5 50%,
+    #f0fdfa 62%,
+    #ecfeff 75%,
+    #f0f9ff 88%,
+    #f5f9ff 100%
+  ) !important;
 }

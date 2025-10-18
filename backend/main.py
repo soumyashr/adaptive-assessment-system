@@ -1,4 +1,4 @@
-# backend/main.py
+# backend/
 # UPDATED: XLSX format only - CSV support removed
 
 from datetime import datetime

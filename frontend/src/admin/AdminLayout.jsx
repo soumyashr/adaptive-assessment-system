@@ -1,12 +1,23 @@
+// ============================================
+// 2. src/admin/AdminLayout.jsx
+// ============================================
 import React from 'react';
 import Sidebar from '../components/Sidebar';
-import { theme } from '../config/theme';
+import { getBackgroundGradient } from '../config/theme';
 
 const AdminLayout = ({ children }) => {
   return (
-    <div className={`flex min-h-screen ${theme('bg-gray-900', 'bg-gray-50')}`}>
+    <div style={{
+      display: 'flex',
+      minHeight: '100vh',
+      background: getBackgroundGradient()
+    }}>
       <Sidebar />
-      <div className="flex-1">
+      <div style={{
+        flex: 1,
+        overflowY: 'auto',
+        maxHeight: '100vh'
+      }}>
         {children}
       </div>
     </div>

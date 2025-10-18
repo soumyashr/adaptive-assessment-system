@@ -22,6 +22,7 @@ import './App.css';
 import { DARK_MODE, theme } from '../config/theme';
 import config from '../config/config';
 import notificationService from '../services/notificationService';
+import ThetaLogo from '../components/ThetaLogo';
 
 
 const AdaptiveAssessment = () => {
@@ -750,7 +751,7 @@ const AdaptiveAssessment = () => {
       <div className={`min-h-screen ${theme('bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900', 'bg-gradient-to-br from-indigo-50 to-white')} flex items-center justify-center p-4`}>
         <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-100')} rounded-2xl shadow-xl p-8 w-full max-w-md border`}>
           <div className="text-center mb-8">
-            <div className={`w-16 h-16 ${theme('bg-blue-600', 'bg-indigo-600')} rounded-xl flex items-center justify-center mx-auto mb-4`}>
+            <div className={`w-16 h-16 ${theme('bg-yellow-100', 'bg-green-600')} rounded-xl flex items-center justify-center mx-auto mb-4`}>
               <span className="text-3xl text-white font-bold">θ</span>
             </div>
             <h1 className={`text-2xl font-bold ${theme('text-white', 'text-gray-900')} mb-1`}>MyTheta</h1>
@@ -778,7 +779,7 @@ const AdaptiveAssessment = () => {
             <button
               onClick={login}
               disabled={!username.trim() || loading}
-              className={`w-full ${theme('bg-blue-600 hover:bg-blue-700', 'bg-indigo-600 hover:bg-indigo-700')} disabled:bg-gray-400 text-white rounded-lg px-4 py-3 font-semibold transition disabled:cursor-not-allowed`}
+              className={`w-full ${theme('bg-gradient-to-r from-yellow-400 via-green-500 to-teal-500 hover:from-yellow-500 hover:via-green-600 hover:to-teal-600', 'bg-gradient-to-r from-yellow-400 via-green-500 to-teal-500 hover:from-yellow-500 hover:via-green-600 hover:to-teal-600')} disabled:bg-gray-400 text-white rounded-lg px-4 py-3 font-semibold transition disabled:cursor-not-allowed`}
             >
               {loading ? 'Logging in...' : 'Continue'}
             </button>
@@ -804,10 +805,12 @@ const AdaptiveAssessment = () => {
       <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} border-b sticky top-0 z-10 shadow-sm`}>
         <div className="max-w-7xl mx-auto px-6 py-3">
           <div className="flex justify-between items-center">
+              {/*FOr theta used as icon, this is the code*/}
             <div className="flex items-center space-x-3">
-              <div className={`w-10 h-10 ${theme('bg-blue-600', 'bg-indigo-600')} rounded-lg flex items-center justify-center`}>
+              <div className={`w-10 h-10 ${theme('bg-yellow-100', 'bg-green-600')} rounded-lg flex items-center justify-center`}>
                 <span className="text-xl text-white font-bold">θ</span>
               </div>
+
               <h1 className={`text-lg font-bold ${theme('text-white', 'text-gray-900')}`}>MyTheta</h1>
             </div>
             <div className="flex items-center space-x-4">
@@ -852,32 +855,63 @@ const AdaptiveAssessment = () => {
       )}
 
       <div className="max-w-7xl mx-auto p-6">
+          {/*here*/}
+
         {!currentSession ? (
           /* ASSESSMENT SELECTION */
           <div className="max-w-2xl mx-auto">
             <div className="text-center mb-8">
-              <h2 className={`text-2xl font-bold ${theme('text-white', 'text-gray-900')} mb-2`}>Choose Your Assessment</h2>
-              <p className={theme('text-gray-400', 'text-gray-600')}>Select a subject to begin your adaptive test</p>
+              <h2 className={`text-3xl font-bold ${theme('text-white', 'text-gray-900')} mb-3`}>
+                Choose Your Assessment
+              </h2>
+              <p className={`text-lg ${theme('text-gray-300', 'text-gray-700')} font-medium`}>
+                Select a subject to begin your adaptive test
+              </p>
             </div>
 
             {userStats && userStats.proficiencies.length > 0 && (
               <div className={`mb-6 ${theme('bg-blue-900/30 border-blue-700', 'bg-blue-50 border-blue-100')} border rounded-xl p-4`}>
                 <h3 className={`text-sm font-semibold ${theme('text-blue-300', 'text-blue-900')} mb-3`}>Your Progress</h3>
                 <div className="space-y-2">
-                  {userStats.proficiencies.map(prof => (
-                    <div key={prof.item_bank} className={`flex justify-between items-center ${theme('bg-gray-700/50', 'bg-white')} rounded-lg px-4 py-2.5 text-sm`}>
-                      <span className={`font-semibold ${theme('text-white', 'text-gray-900')} capitalize`}>{prof.item_bank}</span>
-                      <div className="flex items-center space-x-2">
-                        <span
-                          className="px-2.5 py-1 rounded-full text-xs font-bold text-white"
-                          style={{ backgroundColor: getCurrentThetaColor(prof.theta) }}
-                        >
-                          {getThetaTierLabel(prof.theta)}
-                        </span>
-                        <span className={`${theme('text-gray-400', 'text-gray-500')} text-xs`}>θ = {prof.theta.toFixed(2)}</span>
+                  {userStats.proficiencies.map(prof => {
+                    // Professional tier colors
+                    const getTierStyle = (theta) => {
+                      if (theta < -1.0) return {
+                        bg: theme('bg-red-500/90', 'bg-red-500'),
+                        text: 'text-white',
+                        label: 'Beginner'
+                      };
+                      if (theta < 0.0) return {
+                        bg: theme('bg-amber-500/90', 'bg-amber-500'),
+                        text: 'text-white',
+                        label: 'Intermediate'
+                      };
+                      if (theta < 1.0) return {
+                        bg: theme('bg-emerald-500/90', 'bg-emerald-500'),
+                        text: 'text-white',
+                        label: 'Advanced'
+                      };
+                      return {
+                        bg: theme('bg-blue-600/90', 'bg-blue-600'),
+                        text: 'text-white',
+                        label: 'Expert'
+                      };
+                    };
+
+                    const tierStyle = getTierStyle(prof.theta);
+
+                    return (
+                      <div key={prof.item_bank} className={`flex justify-between items-center ${theme('bg-gray-700/50', 'bg-white')} rounded-lg px-4 py-2.5 text-sm`}>
+                        <span className={`font-semibold ${theme('text-white', 'text-gray-900')} capitalize`}>{prof.item_bank}</span>
+                        <div className="flex items-center space-x-2">
+                          <span className={`px-3 py-1 rounded-full text-xs font-bold ${tierStyle.bg} ${tierStyle.text}`}>
+                            {tierStyle.label}
+                          </span>
+                          <span className={`${theme('text-gray-400', 'text-gray-500')} text-xs`}>θ = {prof.theta.toFixed(2)}</span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -913,12 +947,13 @@ const AdaptiveAssessment = () => {
             </div>
           </div>
         ) : assessmentComplete ? (
+
           /* RESULTS PAGE */
           <div className="max-w-5xl mx-auto">
             <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} rounded-2xl shadow-sm border p-8 mb-6`}>
               <div className="flex justify-between items-start mb-6">
                 <div className="text-center flex-1">
-                  <div className={`w-16 h-16 ${theme('bg-green-900/50', 'bg-green-100')} rounded-full flex items-center justify-center mx-auto mb-4`}>
+                  <div className={`w-16 h-16 ${theme('bg-yellow-100', 'bg-green-600')} rounded-full flex items-center justify-center mx-auto mb-4`}>
                     <svg className={`w-8 h-8 ${theme('text-green-400', 'text-green-600')}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
@@ -928,7 +963,7 @@ const AdaptiveAssessment = () => {
                 </div>
                 <button
                   onClick={handleExportPDF}
-                  className={`px-4 py-2 ${theme('bg-blue-600 hover:bg-blue-700', 'bg-indigo-600 hover:bg-indigo-700')} text-white rounded-lg flex items-center gap-2 transition`}
+                  className={`px-4 py-2 ${theme('bg-gradient-to-r from-yellow-400 via-green-500 to-teal-500 hover:from-yellow-500 hover:via-green-600 hover:to-teal-600', 'bg-gradient-to-r from-yellow-400 via-green-500 to-teal-500 hover:from-yellow-500 hover:via-green-600 hover:to-teal-600')} text-white rounded-lg flex items-center gap-2 transition`}
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
@@ -941,14 +976,14 @@ const AdaptiveAssessment = () => {
               {results && (
                 <>
                   <div className="grid grid-cols-2 gap-4 mb-6">
-                    <div className={`${theme('bg-blue-900/30 border-blue-700', 'bg-blue-50 border-blue-100')} rounded-xl p-6 border`}>
-                      <div className={`text-sm font-medium ${theme('text-blue-300', 'text-blue-700')} mb-1`}>Performance Level</div>
-                      <div className={`text-3xl font-bold ${theme('text-blue-100', 'text-blue-900')} mb-1`}>{results.tier}</div>
-                      <div className={`text-sm ${theme('text-blue-400', 'text-blue-600')}`}>{getThetaTierLabel(results.final_theta)}</div>
+                    <div className={`${theme('bg-gradient-to-br from-yellow-900/40 via-green-900/30 to-teal-900/40 border-yellow-700/50', 'bg-gradient-to-br from-yellow-50 via-green-50 to-teal-50 border-yellow-200')} rounded-xl p-6 border`}>
+                      <div className={`text-sm font-medium ${theme('text-yellow-300', 'text-yellow-700')} mb-1`}>Performance Level</div>
+                      <div className={`text-3xl font-bold ${theme('text-yellow-100', 'text-yellow-900')} mb-1`}>{results.tier}</div>
+                      <div className={`text-sm ${theme('text-green-400', 'text-green-700')}`}>{getThetaTierLabel(results.final_theta)}</div>
                     </div>
 
-                    <div className={`${theme('bg-gray-700/50 border-gray-600', 'bg-gray-50 border-gray-200')} rounded-xl p-6 border`}>
-                      <div className={`text-sm font-medium ${theme('text-gray-300', 'text-gray-700')} mb-3`}>Proficiency Levels</div>
+                    <div className={`${theme('bg-gradient-to-br from-green-900/40 via-teal-900/30 to-cyan-900/40 border-green-700/50', 'bg-gradient-to-br from-green-50 via-teal-50 to-cyan-50 border-green-200')} rounded-xl p-6 border`}>
+                      <div className={`text-sm font-medium ${theme('text-green-300', 'text-green-700')} mb-3`}>Proficiency Levels</div>
                       <div className="space-y-1.5">
                         {[
                           { label: 'Beginner', color: tierColors.C1, range: 'θ < -1.0' },
@@ -1007,7 +1042,7 @@ const AdaptiveAssessment = () => {
                   setTopicPerformance({});
                   setLoading(false);
                 }}
-                className={`w-full ${theme('bg-blue-600 hover:bg-blue-700', 'bg-indigo-600 hover:bg-indigo-700')} text-white rounded-xl py-3 font-semibold transition`}
+                className={`w-full ${theme('bg-gradient-to-r from-yellow-400 via-green-500 to-teal-500 hover:from-yellow-500 hover:via-green-600 hover:to-teal-600', 'bg-gradient-to-r from-yellow-400 via-green-500 to-teal-500 hover:from-yellow-500 hover:via-green-600 hover:to-teal-600')} text-white rounded-xl py-3 font-semibold transition`}
               >
                 Take Another Assessment
               </button>
@@ -1016,7 +1051,7 @@ const AdaptiveAssessment = () => {
             {/* All Charts Grid */}
             <div className="grid grid-cols-3 gap-6 mb-6">
               {/* ICC Chart */}
-              <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} rounded-xl shadow-sm border p-5`}>
+              <div className={`${theme('bg-gradient-to-br from-gray-800 to-gray-800/95 border-yellow-900/30', 'bg-gradient-to-br from-yellow-50/50 to-green-50/30 border-yellow-200/50')} rounded-xl shadow-sm border p-5`}>
                 <h3 className={`font-semibold ${theme('text-white', 'text-gray-900')} mb-1 text-sm`}>Item Characteristic Curve</h3>
                 <p className={`text-xs ${theme('text-gray-400', 'text-gray-500')} mb-3`}>Probability of correct response versus Proficiency(θ)</p>
                 <div className="h-56">
@@ -1227,7 +1262,7 @@ const AdaptiveAssessment = () => {
                 </div>
                 <div className={`w-full ${theme('bg-gray-700', 'bg-gray-200')} rounded-full h-2`}>
                   <div
-                    className={`h-2 rounded-full ${theme('bg-blue-600', 'bg-indigo-600')} transition-all duration-500`}
+                    className="h-2 rounded-full bg-gradient-to-r from-yellow-400 to-green-500 transition-all duration-500"
                     style={{ width: `${Math.min((currentSession.questions_asked / 20) * 100, 100)}%` }}
                   ></div>
                 </div>
@@ -1248,7 +1283,7 @@ const AdaptiveAssessment = () => {
                     key={option.key}
                     className={`flex items-start p-3.5 rounded-xl border-2 cursor-pointer transition ${
                       selectedOption === option.key
-                        ? theme('border-blue-500 bg-blue-900/20', 'border-indigo-500 bg-indigo-50')
+                        ? theme('border-green-500 bg-green-900/20', 'border-green-500 bg-green-50')
                         : theme('border-gray-600 hover:border-gray-500 hover:bg-gray-700/50', 'border-gray-200 hover:border-gray-300 hover:bg-gray-50')
                     }`}
                   >
@@ -1262,7 +1297,9 @@ const AdaptiveAssessment = () => {
                       className="hidden"
                     />
                     <div className={`w-5 h-5 rounded-full border-2 mr-3 flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                      selectedOption === option.key ? theme('border-blue-500 bg-blue-500', 'border-indigo-500 bg-indigo-500') : theme('border-gray-500', 'border-gray-400')
+                      selectedOption === option.key 
+                        ? theme('border-green-500 bg-green-500', 'border-green-500 bg-green-500') 
+                        : theme('border-gray-500', 'border-gray-400')
                     }`}>
                       {selectedOption === option.key && (
                         <div className="w-2 h-2 bg-white rounded-full"></div>
@@ -1287,7 +1324,7 @@ const AdaptiveAssessment = () => {
                 <button
                   onClick={submitAnswer}
                   disabled={!selectedOption || loading}
-                  className={`px-7 py-2 ${theme('bg-blue-600 hover:bg-blue-700', 'bg-indigo-600 hover:bg-indigo-700')} disabled:bg-gray-400 text-white rounded-lg font-semibold transition disabled:cursor-not-allowed text-sm`}
+                  className={`px-7 py-2 ${theme('bg-gradient-to-r from-yellow-400 via-green-500 to-teal-500 hover:from-yellow-500 hover:via-green-600 hover:to-teal-600', 'bg-gradient-to-r from-yellow-400 via-green-500 to-teal-500 hover:from-yellow-500 hover:via-green-600 hover:to-teal-600')} disabled:bg-gray-400 text-white rounded-lg font-semibold transition disabled:cursor-not-allowed text-sm`}
                 >
                   {loading ? 'Submitting...' : 'Submit'}
                 </button>

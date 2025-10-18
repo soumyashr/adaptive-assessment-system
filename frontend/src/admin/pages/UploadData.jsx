@@ -1,6 +1,10 @@
+// src/admin/pages/UploadData.jsx - WITH XLSX DOWNLOAD
 import React, { useState } from 'react';
-import { theme } from '../../config/theme';
+import { getThemeColors, DARK_MODE } from '../../config/theme';
+import { Upload, FileText, Download, CheckCircle, AlertCircle, Info } from 'lucide-react';
 import config from '../../config/config';
+import notificationService from '../../services/notificationService';
+import * as XLSX from 'xlsx';
 
 const UploadData = () => {
   const [uploadConfig, setUploadConfig] = useState({
@@ -14,238 +18,531 @@ const UploadData = () => {
   const [error, setError] = useState(null);
 
   const API_BASE = config.API_BASE_URL;
+  const colors = getThemeColors();
 
   const handleUpload = async () => {
-    if (!selectedFile || !uploadConfig.name || !uploadConfig.displayName || !uploadConfig.subject) {
-        setError('Please fill all required fields');
-        return;
+    const sanitizedName = uploadConfig.name
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, '_')
+      .replace(/[^a-z0-9_-]/g, '');
+
+    if (!sanitizedName || sanitizedName.length < 3) {
+      setError('Item bank name must be at least 3 characters');
+      return;
+    }
+
+    if (!uploadConfig.displayName.trim()) {
+      setError('Display name is required');
+      return;
+    }
+
+    if (!uploadConfig.subject.trim()) {
+      setError('Subject is required');
+      return;
+    }
+
+    if (!selectedFile) {
+      setError('Please select an Excel file');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setResult(null);
+
+    try {
+      const createResponse = await fetch(
+        `${API_BASE}/item-banks/create?name=${encodeURIComponent(sanitizedName)}&display_name=${encodeURIComponent(uploadConfig.displayName)}&subject=${encodeURIComponent(uploadConfig.subject)}`,
+        {
+          method: 'POST',
+          headers: { 'accept': 'application/json' }
+        }
+      );
+
+      if (!createResponse.ok) {
+        const errorData = await createResponse.json();
+        throw new Error(errorData.detail || 'Failed to create item bank');
       }
 
-      setLoading(true);
-      setError(null);
-      setResult(null);
+      const formData = new FormData();
+      formData.append('file', selectedFile);
 
-      try {
-        // Create item bank
-        const createResponse = await fetch(
-          `${API_BASE}/item-banks/create?name=${encodeURIComponent(uploadConfig.name)}&display_name=${encodeURIComponent(uploadConfig.displayName)}&subject=${encodeURIComponent(uploadConfig.subject)}`,
-          {
-            method: 'POST',
-            headers: { 'accept': 'application/json' }
-          }
-        );
-
-        if (!createResponse.ok) {
-          const errorData = await createResponse.json();
-          // ✅ FIX: Set error directly from detail, don't throw
-          setError(errorData.detail || 'Failed to create item bank');
-          setLoading(false);
-          return; // Stop here, don't continue to upload
+      const uploadResponse = await fetch(
+        `${API_BASE}/item-banks/${sanitizedName}/upload`,
+        {
+          method: 'POST',
+          body: formData
         }
+      );
 
-        // Upload Excel file
-        const formData = new FormData();
-        formData.append('file', selectedFile);
-
-        const uploadResponse = await fetch(
-          `${API_BASE}/item-banks/${uploadConfig.name}/upload`,
-          {
-            method: 'POST',
-            body: formData
-          }
-        );
-
-        if (!uploadResponse.ok) {
-          const errorData = await uploadResponse.json();
-          // FIX: Set error directly from detail, don't throw
-          setError(errorData.detail || 'Failed to upload questions');
-          setLoading(false);
-          return;
-        }
-
-        const uploadData = await uploadResponse.json();
-        setResult({
-          success: true,
-          message: `Successfully imported ${uploadData.imported} questions`,
-          itemBank: uploadConfig.name
-        });
-
-        // Reset form
-        setUploadConfig({ name: '', displayName: '', subject: '' });
-        setSelectedFile(null);
-
-      } catch (err) {
-        // FIX: This catch is now only for network errors
-        setError('Network error. Please check your connection and try again.');
-        console.error('Upload error:', err);
-      } finally {
-        setLoading(false);
+      if (!uploadResponse.ok) {
+        const errorData = await uploadResponse.json();
+        throw new Error(errorData.detail || 'Failed to upload questions');
       }
+
+      const uploadData = await uploadResponse.json();
+      setResult({
+        success: true,
+        message: `Successfully imported ${uploadData.imported} questions`,
+        itemBank: sanitizedName
+      });
+
+      notificationService.success(`Success! Imported ${uploadData.imported} questions`);
+
+      setUploadConfig({ name: '', displayName: '', subject: '' });
+      setSelectedFile(null);
+
+    } catch (err) {
+      setError(err.message);
+      notificationService.error(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const downloadTemplate = () => {
+    // Create template data with required and optional columns
+    const templateData = [
+      {
+        question: "What is 2 + 2?",
+        option_a: "3",
+        option_b: "4",
+        option_c: "5",
+        option_d: "6",
+        answer: "B",
+        tier: "C1",
+        topic: "Arithmetic",
+        discrimination_a: "",
+        difficulty_b: "",
+        guessing_c: ""
+      },
+      {
+        question: "Solve: x² = 16",
+        option_a: "2",
+        option_b: "4",
+        option_c: "-4",
+        option_d: "±4",
+        answer: "D",
+        tier: "C2",
+        topic: "Algebra",
+        discrimination_a: "",
+        difficulty_b: "",
+        guessing_c: ""
+      },
+      {
+        question: "What is the capital of France?",
+        option_a: "London",
+        option_b: "Paris",
+        option_c: "Berlin",
+        option_d: "Madrid",
+        answer: "B",
+        tier: "C1",
+        topic: "Geography",
+        discrimination_a: "",
+        difficulty_b: "",
+        guessing_c: ""
+      }
+    ];
+
+    // Create a new workbook
+    const wb = XLSX.utils.book_new();
+
+    // Convert data to worksheet
+    const ws = XLSX.utils.json_to_sheet(templateData);
+
+    // Set column widths for better readability
+    ws['!cols'] = [
+      { wch: 40 }, // question
+      { wch: 15 }, // option_a
+      { wch: 15 }, // option_b
+      { wch: 15 }, // option_c
+      { wch: 15 }, // option_d
+      { wch: 10 }, // answer
+      { wch: 10 }, // tier
+      { wch: 15 }, // topic
+      { wch: 18 }, // discrimination_a
+      { wch: 15 }, // difficulty_b
+      { wch: 15 }  // guessing_c
+    ];
+
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(wb, ws, "Item Bank Template");
+
+    // Generate and download the file
+    XLSX.writeFile(wb, 'item_bank_template.xlsx');
+
+    notificationService.success('Excel template downloaded successfully!');
   };
 
   return (
-    <div className={`p-8 ${theme('bg-gray-900', 'bg-gray-50')} min-h-screen`}>
-      <h1 className={`text-3xl font-bold ${theme('text-white', 'text-gray-900')} mb-2`}>Upload Data</h1>
-      <p className={`${theme('text-gray-400', 'text-gray-600')} mb-8`}>Create new item banks and upload question sets</p>
+    <div style={{ padding: '32px' }}>
+      {/* Header */}
+      <div style={{ marginBottom: '20px' }}>
+        <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '6px' }}>
+          Upload Data
+        </h1>
+        <p style={{ color: colors.textMuted, fontSize: '13px' }}>
+          Create new item banks and upload question sets
+        </p>
+      </div>
 
-      {/* Success Message */}
+      {/* Success/Error Messages */}
       {result && (
-        <div className={`${theme('bg-green-900/30 border-green-700 text-green-300', 'bg-green-50 border-green-200 text-green-800')} border px-6 py-4 rounded-lg mb-6`}>
-          <div className="flex items-center gap-3">
-            <span className="text-2xl">✓</span>
-            <div>
-              <div className="font-bold">{result.message}</div>
-              <div className="text-sm">Item bank '{result.itemBank}' created successfully</div>
-            </div>
+        <div style={{
+          marginBottom: '16px',
+          padding: '12px 16px',
+          background: colors.successBg,
+          border: `1px solid ${colors.success}`,
+          borderRadius: '8px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          fontSize: '13px'
+        }}>
+          <CheckCircle size={18} color={colors.success} />
+          <div style={{ color: colors.success, fontWeight: '500' }}>
+            {result.message}
           </div>
         </div>
       )}
 
-      {/* Error Message */}
       {error && (
-        <div className={`${theme('bg-red-900/30 border-red-700 text-red-300', 'bg-red-50 border-red-200 text-red-800')} border px-6 py-4 rounded-lg mb-6`}>
-          <div className="flex items-center gap-3">
-            <span className="text-2xl">✗</span>
-            <div>{error}</div>
+        <div style={{
+          marginBottom: '16px',
+          padding: '12px 16px',
+          background: colors.errorBg,
+          border: `1px solid ${colors.error}`,
+          borderRadius: '8px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          fontSize: '13px'
+        }}>
+          <AlertCircle size={18} color={colors.error} />
+          <div style={{ color: colors.error, fontWeight: '500' }}>
+            {error}
           </div>
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-8">
-        {/* Upload Form */}
-        <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white')} rounded-lg shadow p-6 ${theme('border', '')}`}>
-          <h2 className={`text-xl font-bold mb-6 ${theme('text-white', 'text-gray-900')}`}>Item Bank Configuration</h2>
+      {/* Main Grid - 3 Columns */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: '1.5fr 1fr 1fr',
+        gap: '16px'
+      }}>
+        {/* Column 1: Configuration Form */}
+        <div style={{
+          background: colors.cardBg,
+          border: `1px solid ${colors.cardBorder}`,
+          borderRadius: '10px',
+          padding: '20px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+            <div style={{
+              width: '36px',
+              height: '36px',
+              borderRadius: '8px',
+              background: colors.primaryGradient,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <FileText size={20} color="white" />
+            </div>
+            <h2 style={{ fontSize: '16px', fontWeight: 'bold', color: colors.textPrimary, margin: 0 }}>
+              Item Bank Configuration
+            </h2>
+          </div>
 
-          <div className="space-y-4">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <div>
-              <label className={`block text-sm font-medium ${theme('text-gray-300', 'text-gray-700')} mb-2`}>
-                Item Bank Name*
+              <label style={{
+                display: 'block',
+                fontSize: '12px',
+                fontWeight: '600',
+                marginBottom: '5px',
+                color: colors.textPrimary
+              }}>
+                Item Bank Name <span style={{ color: colors.error }}>*</span>
               </label>
               <input
                 type="text"
                 placeholder="e.g., maths, vocabulary"
-                className={`w-full ${theme('bg-gray-700 border-gray-600 text-white placeholder-gray-400', 'bg-white border-gray-300 text-gray-900 placeholder-gray-500')} border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                style={{
+                  width: '100%',
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  border: `1px solid ${colors.inputBorder}`,
+                  background: colors.inputBg,
+                  color: colors.inputText,
+                  fontSize: '13px',
+                  outline: 'none'
+                }}
                 value={uploadConfig.name}
                 onChange={(e) => setUploadConfig({...uploadConfig, name: e.target.value})}
+                onFocus={(e) => e.target.style.borderColor = colors.primary}
+                onBlur={(e) => e.target.style.borderColor = colors.inputBorder}
               />
-              <p className={`text-xs ${theme('text-gray-400', 'text-gray-500')} mt-1`}>
-                Lowercase, no spaces (used in URLs)
+              <p style={{ fontSize: '10px', marginTop: '3px', color: colors.textMuted }}>
+                Lowercase, no spaces
               </p>
             </div>
 
             <div>
-              <label className={`block text-sm font-medium ${theme('text-gray-300', 'text-gray-700')} mb-2`}>
-                Display Name*
+              <label style={{
+                display: 'block',
+                fontSize: '12px',
+                fontWeight: '600',
+                marginBottom: '5px',
+                color: colors.textPrimary
+              }}>
+                Display Name <span style={{ color: colors.error }}>*</span>
               </label>
               <input
                 type="text"
                 placeholder="e.g., Mathematics Assessment"
-                className={`w-full ${theme('bg-gray-700 border-gray-600 text-white placeholder-gray-400', 'bg-white border-gray-300 text-gray-900 placeholder-gray-500')} border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                style={{
+                  width: '100%',
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  border: `1px solid ${colors.inputBorder}`,
+                  background: colors.inputBg,
+                  color: colors.inputText,
+                  fontSize: '13px',
+                  outline: 'none'
+                }}
                 value={uploadConfig.displayName}
                 onChange={(e) => setUploadConfig({...uploadConfig, displayName: e.target.value})}
+                onFocus={(e) => e.target.style.borderColor = colors.primary}
+                onBlur={(e) => e.target.style.borderColor = colors.inputBorder}
               />
-              <p className={`text-xs ${theme('text-gray-400', 'text-gray-500')} mt-1`}>
-                Friendly name shown to users
-              </p>
             </div>
 
             <div>
-              <label className={`block text-sm font-medium ${theme('text-gray-300', 'text-gray-700')} mb-2`}>
-                Subject*
+              <label style={{
+                display: 'block',
+                fontSize: '12px',
+                fontWeight: '600',
+                marginBottom: '5px',
+                color: colors.textPrimary
+              }}>
+                Subject <span style={{ color: colors.error }}>*</span>
               </label>
               <input
                 type="text"
                 placeholder="e.g., Mathematics"
-                className={`w-full ${theme('bg-gray-700 border-gray-600 text-white placeholder-gray-400', 'bg-white border-gray-300 text-gray-900 placeholder-gray-500')} border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                style={{
+                  width: '100%',
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  border: `1px solid ${colors.inputBorder}`,
+                  background: colors.inputBg,
+                  color: colors.inputText,
+                  fontSize: '13px',
+                  outline: 'none'
+                }}
                 value={uploadConfig.subject}
                 onChange={(e) => setUploadConfig({...uploadConfig, subject: e.target.value})}
+                onFocus={(e) => e.target.style.borderColor = colors.primary}
+                onBlur={(e) => e.target.style.borderColor = colors.inputBorder}
               />
             </div>
 
+            {/* File Upload */}
             <div>
-                <label className={`block text-sm font-medium ${theme('text-gray-300', 'text-gray-700')} mb-2`}>
-                  Questions Excel File*
-                </label>
-                <div className={`border-2 border-dashed ${theme('border-gray-600 hover:border-blue-500', 'border-gray-300 hover:border-blue-500')} rounded-lg p-6 text-center transition`}>
-                  <input
-                    type="file"
-                    accept=".xlsx"
-                    onChange={(e) => setSelectedFile(e.target.files[0])}
-                    className="hidden"
-                    id="file-upload"
-                  />
-                  <label htmlFor="file-upload" className="cursor-pointer">
-                    {selectedFile ? (
-                      <div>
-                        <div className="text-4xl mb-2">📄</div>
-                        <div className={`font-medium ${theme('text-gray-200', 'text-gray-900')}`}>{selectedFile.name}</div>
-                        <div className={`text-sm ${theme('text-gray-400', 'text-gray-500')}`}>{(selectedFile.size / 1024).toFixed(2)} KB</div>
-                      </div>
-                    ) : (
-                      <div>
-                        <div className="text-4xl mb-2">📤</div>
-                        <div className={`font-medium ${theme('text-gray-200', 'text-gray-900')}`}>Click to upload</div>
-                        <div className={`text-sm ${theme('text-gray-400', 'text-gray-500')}`}>Excel (.xlsx) files only</div>
-                      </div>
-                    )}
-                  </label>
-                </div>
-
-
+              <label style={{
+                display: 'block',
+                fontSize: '12px',
+                fontWeight: '600',
+                marginBottom: '5px',
+                color: colors.textPrimary
+              }}>
+                Excel File <span style={{ color: colors.error }}>*</span>
+              </label>
+              <div
+                onClick={() => document.getElementById('file-upload').click()}
+                style={{
+                  border: `2px dashed ${selectedFile ? colors.success : colors.cardBorder}`,
+                  borderRadius: '8px',
+                  padding: '16px',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  background: selectedFile ? colors.successBg : colors.inputBg,
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = colors.primary;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = selectedFile ? colors.success : colors.cardBorder;
+                }}
+              >
+                <input
+                  id="file-upload"
+                  type="file"
+                  accept=".xlsx"
+                  onChange={(e) => setSelectedFile(e.target.files[0])}
+                  style={{ display: 'none' }}
+                />
+                {selectedFile ? (
+                  <>
+                    <FileText size={32} color={colors.success} style={{ margin: '0 auto 6px' }} />
+                    <div style={{ fontWeight: '600', fontSize: '13px', color: colors.textPrimary, marginBottom: '3px' }}>
+                      {selectedFile.name}
+                    </div>
+                    <div style={{ fontSize: '11px', color: colors.textMuted }}>
+                      {(selectedFile.size / 1024).toFixed(2)} KB
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <Upload size={32} color={colors.textMuted} style={{ margin: '0 auto 6px' }} />
+                    <div style={{ fontWeight: '600', fontSize: '13px', color: colors.textPrimary, marginBottom: '3px' }}>
+                      Click to upload
+                    </div>
+                    <div style={{ fontSize: '11px', color: colors.textMuted }}>
+                      Excel (.xlsx) only
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
 
             <button
               onClick={handleUpload}
-              disabled={loading || !selectedFile || !uploadConfig.name}
-              className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading || !selectedFile || !uploadConfig.name || !uploadConfig.displayName || !uploadConfig.subject}
+              style={{
+                width: '100%',
+                padding: '10px',
+                borderRadius: '6px',
+                border: 'none',
+                background: loading ? colors.border : colors.primaryGradient,
+                color: 'white',
+                fontWeight: '600',
+                fontSize: '13px',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                opacity: (loading || !selectedFile || !uploadConfig.name || !uploadConfig.displayName || !uploadConfig.subject) ? 0.5 : 1,
+                transition: 'all 0.2s'
+              }}
             >
               {loading ? 'Uploading...' : 'Create & Upload'}
             </button>
           </div>
         </div>
 
-        {/* Instructions */}
-        <div className={`${theme('bg-blue-900/30 border-blue-700', 'bg-blue-50')} rounded-lg p-6 ${theme('border', '')}`}>
-          <h3 className={`text-lg font-bold ${theme('text-blue-300', 'text-blue-900')} mb-4`}>📋 Excel File Format Requirements</h3>
-
-
-          <div className="space-y-4 text-sm">
-            <div>
-              <div className={`font-medium ${theme('text-blue-200', 'text-blue-900')} mb-2`}>Required Columns:</div>
-              <ul className={`list-disc list-inside space-y-1 ${theme('text-blue-300', 'text-blue-800')}`}>
-                <li><code className={`${theme('bg-blue-800/50', 'bg-blue-100')} px-2 py-1 rounded`}>question</code> - Question text</li>
-                <li><code className={`${theme('bg-blue-800/50', 'bg-blue-100')} px-2 py-1 rounded`}>option_a</code> - First option</li>
-                <li><code className={`${theme('bg-blue-800/50', 'bg-blue-100')} px-2 py-1 rounded`}>option_b</code> - Second option</li>
-                <li><code className={`${theme('bg-blue-800/50', 'bg-blue-100')} px-2 py-1 rounded`}>option_c</code> - Third option</li>
-                <li><code className={`${theme('bg-blue-800/50', 'bg-blue-100')} px-2 py-1 rounded`}>option_d</code> - Fourth option</li>
-                <li><code className={`${theme('bg-blue-800/50', 'bg-blue-100')} px-2 py-1 rounded`}>answer</code> - Correct answer (A/B/C/D)</li>
-                <li><code className={`${theme('bg-blue-800/50', 'bg-blue-100')} px-2 py-1 rounded`}>tier</code> - Difficulty tier (C1/C2/C3/C4)</li>
-                <li><code className={`${theme('bg-blue-800/50', 'bg-blue-100')} px-2 py-1 rounded`}>topic</code> - Question topic</li>
-              </ul>
-            </div>
-
-            <div>
-              <div className={`font-medium ${theme('text-blue-200', 'text-blue-900')} mb-2`}>Optional Columns:</div>
-              <ul className={`list-disc list-inside space-y-1 ${theme('text-blue-300', 'text-blue-800')}`}>
-                <li><code className={`${theme('bg-blue-800/50', 'bg-blue-100')} px-2 py-1 rounded`}>discrimination_a</code> - Default: 1.5</li>
-                <li><code className={`${theme('bg-blue-800/50', 'bg-blue-100')} px-2 py-1 rounded`}>difficulty_b</code> - Auto-assigned by tier</li>
-                <li><code className={`${theme('bg-blue-800/50', 'bg-blue-100')} px-2 py-1 rounded`}>guessing_c</code> - Default: 0.25</li>
-              </ul>
-            </div>
-
-            <div className={`${theme('bg-blue-800/30 border-blue-700', 'bg-blue-100 border-blue-200')} border p-4 rounded-lg`}>
-              <div className={`font-medium ${theme('text-blue-200', 'text-blue-900')} mb-2`}>💡 Example Structure:</div>
-                <div className={`text-xs ${theme('text-blue-300', 'text-blue-800')}`}>
-                  <p className="mb-2">Create an Excel file (.xlsx) with these columns in the first row:</p>
-                  <pre className="overflow-x-auto">
-                {`question | option_a | option_b | option_c | option_d | answer | tier | topic
-                What is 2+2? | 3 | 4 | 5 | 6 | B | C1 | Arithmetic
-                Solve: x² = 16 | 2 | 4 | -4 | ±4 | D | C2 | Algebra`}
-                  </pre>
+        {/* Column 2: Required/Optional Fields - COMPACT */}
+        <div style={{
+          background: colors.cardBg,
+          border: `1px solid ${colors.cardBorder}`,
+          borderRadius: '10px',
+          padding: '20px'
+        }}>
+          <div style={{ marginBottom: '12px' }}>
+            <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Info size={16} color={colors.primary} />
+              Required Columns
+            </h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', fontSize: '11px' }}>
+              {['question', 'option_a', 'option_b', 'option_c', 'option_d', 'answer', 'tier', 'topic'].map((field, i) => (
+                <div key={i} style={{
+                  padding: '5px 8px',
+                  background: DARK_MODE ? 'rgba(59, 130, 246, 0.15)' : '#EFF6FF',
+                  borderRadius: '4px',
+                  fontFamily: 'monospace',
+                  fontWeight: '500',
+                  color: colors.textPrimary,
+                  fontSize: '10px'
+                }}>
+                  {field}
                 </div>
-
-
+              ))}
             </div>
+          </div>
+
+          <div>
+            <h3 style={{ fontSize: '13px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '6px' }}>
+              Optional
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', fontSize: '10px' }}>
+              {['discrimination_a', 'difficulty_b', 'guessing_c'].map((field, i) => (
+                <div key={i} style={{
+                  padding: '4px 8px',
+                  background: DARK_MODE ? 'rgba(156, 163, 175, 0.15)' : '#F3F4F6',
+                  borderRadius: '4px',
+                  fontFamily: 'monospace',
+                  color: colors.textMuted
+                }}>
+                  {field}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Column 3: Template Download - COMPACT */}
+        <div style={{
+          background: colors.cardBg,
+          border: `1px solid ${colors.cardBorder}`,
+          borderRadius: '10px',
+          padding: '20px'
+        }}>
+          <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Download size={16} color={colors.success} />
+            Excel Template
+          </h3>
+
+          <div style={{
+            padding: '12px',
+            background: DARK_MODE ? '#1a1a1a' : '#F9FAFB',
+            borderRadius: '6px',
+            marginBottom: '12px',
+            fontSize: '10px',
+            fontFamily: 'monospace',
+            color: colors.textSecondary,
+            overflowX: 'auto'
+          }}>
+            <div style={{ whiteSpace: 'nowrap' }}>
+              <div style={{ color: colors.primary, marginBottom: '6px' }}>question | option_a | ...</div>
+              <div>What is 2+2? | 3 | 4 | ...</div>
+              <div>Solve x²=16 | 2 | 4 | ...</div>
+            </div>
+          </div>
+
+          <button
+            onClick={downloadTemplate}
+            style={{
+              width: '100%',
+              padding: '10px',
+              borderRadius: '6px',
+              border: `1px solid ${colors.success}`,
+              background: colors.successBg,
+              color: colors.success,
+              fontWeight: '600',
+              fontSize: '13px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              marginBottom: '12px'
+            }}
+          >
+            <Download size={16} />
+            Download XLSX
+          </button>
+
+          <div style={{
+            padding: '10px',
+            background: DARK_MODE ? 'rgba(16, 185, 129, 0.1)' : '#D1FAE5',
+            border: `1px solid ${colors.success}`,
+            borderRadius: '6px',
+            fontSize: '11px',
+            color: colors.success,
+            lineHeight: '1.4'
+          }}>
+            💡 Ready-to-use Excel template with sample data
           </div>
         </div>
       </div>

@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { theme } from '../../config/theme';
+import { getThemeColors, DARK_MODE } from '../../config/theme';
 import config from '../../config/config';
-
 import notificationService from '../../services/notificationService';
 
 const Calibration = () => {
@@ -11,8 +10,8 @@ const Calibration = () => {
   const [calibratingBank, setCalibratingBank] = useState(null);
   const [error, setError] = useState(null);
 
+  const colors = getThemeColors();
   const API_BASE = config.API_BASE_URL;
-
 
   useEffect(() => {
     fetchItemBanks();
@@ -50,10 +49,7 @@ const Calibration = () => {
       }
 
       const data = await response.json();
-
       notificationService.success(`Calibration completed!\n\n${data.message}`);
-
-      // Refresh item banks to show updated calibration status
       await fetchItemBanks();
 
     } catch (err) {
@@ -68,40 +64,92 @@ const Calibration = () => {
   const calibratedBanks = itemBanks.filter(b => b.status === 'calibrated');
 
   return (
-    <div className={`p-8 ${theme('bg-gray-900', 'bg-gray-50')} min-h-screen`}>
+    <div className="p-8 min-h-screen" style={{ backgroundColor: colors.bgSecondary }}>
+      {/* Header */}
       <div className="mb-8">
-        <h1 className={`text-3xl font-bold ${theme('text-white', 'text-gray-900')} mb-2`}>IRT Calibration</h1>
-        <p className={theme('text-gray-400', 'text-gray-600')}>
+        <h1 className="text-3xl font-bold mb-2" style={{ color: colors.textPrimary }}>
+          IRT Calibration
+        </h1>
+        <p style={{ color: colors.textMuted }}>
           Run Item Response Theory calibration to estimate item parameters
         </p>
       </div>
 
+      {/* Error Message */}
       {error && (
-        <div className={`mb-6 ${theme('bg-red-900/30 border-red-700 text-red-300', 'bg-red-50 border-red-200 text-red-700')} border px-4 py-3 rounded-lg`}>
+        <div
+          className="mb-6 border px-4 py-3 rounded-lg"
+          style={{
+            backgroundColor: colors.errorBg,
+            borderColor: colors.error,
+            color: colors.error
+          }}
+        >
           {error}
           <button onClick={() => setError(null)} className="float-right font-bold">×</button>
         </div>
       )}
 
-      {/* Info Card */}
-      <div className={`mb-8 ${theme('bg-blue-900/30 border-blue-700', 'bg-blue-50 border-blue-200')} border rounded-lg p-6`}>
+      {/* Info Card - Theme Aware */}
+      <div
+        className="mb-8 rounded-xl p-6"
+        style={{
+          backgroundColor: DARK_MODE ? '#292524' : '#ffffff',
+          boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)'
+        }}
+      >
         <div className="flex items-start gap-4">
-          <div className={`${theme('bg-blue-800/50', 'bg-blue-100')} p-3 rounded-lg`}>
-            <svg className={`w-6 h-6 ${theme('text-blue-300', 'text-blue-600')}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          {/* Icon Circle */}
+          <div
+            className="p-4 rounded-2xl flex-shrink-0"
+            style={{
+              backgroundColor: colors.success,
+            }}
+          >
+            <svg
+              className="w-7 h-7"
+              style={{ color: 'white' }}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <div>
-            <h3 className={`font-bold ${theme('text-blue-300', 'text-blue-900')} mb-2`}>About IRT Calibration</h3>
-            <p className={`text-sm ${theme('text-blue-300', 'text-blue-800')} mb-2`}>
+          <div className="flex-1">
+            <h3
+              className="font-bold mb-2 text-lg"
+              style={{ color: colors.textPrimary }}
+            >
+              About IRT Calibration
+            </h3>
+            <p
+              className="text-sm mb-3 leading-relaxed"
+              style={{ color: colors.textSecondary }}
+            >
               Calibration estimates item parameters (discrimination, difficulty, guessing) using simulated test-taker responses.
               This process is essential for adaptive testing to work effectively.
             </p>
-            <ul className={`text-sm ${theme('text-blue-300', 'text-blue-800')} list-disc list-inside space-y-1`}>
-              <li>Simulates multiple test-takers at different ability levels</li>
-              <li>Uses 3-parameter logistic (3PL) IRT model</li>
-              <li>Updates item parameters based on response patterns</li>
-              <li>Required before item bank can be used for assessments</li>
+            <ul
+              className="text-sm space-y-2"
+              style={{ color: colors.textSecondary }}
+            >
+              <li className="flex items-start">
+                <span className="mr-2" style={{ color: colors.success }}>✓</span>
+                <span>Simulates multiple test-takers at different ability levels</span>
+              </li>
+              <li className="flex items-start">
+                <span className="mr-2" style={{ color: colors.success }}>✓</span>
+                <span>Uses 3-parameter logistic (3PL) IRT model</span>
+              </li>
+              <li className="flex items-start">
+                <span className="mr-2" style={{ color: colors.success }}>✓</span>
+                <span>Updates item parameters based on response patterns</span>
+              </li>
+              <li className="flex items-start">
+                <span className="mr-2" style={{ color: colors.success }}>✓</span>
+                <span>Required before item bank can be used for assessments</span>
+              </li>
             </ul>
           </div>
         </div>
@@ -109,61 +157,140 @@ const Calibration = () => {
 
       {loading ? (
         <div className="flex justify-center items-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          <div
+            className="animate-spin rounded-full h-12 w-12 border-b-2"
+            style={{ borderColor: colors.primary }}
+          ></div>
         </div>
       ) : itemBanks.length === 0 ? (
-        <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} border rounded-lg p-12 text-center`}>
+        <div
+          className="rounded-xl p-12 text-center"
+          style={{
+            backgroundColor: DARK_MODE ? '#292524' : '#ffffff',
+            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)'
+          }}
+        >
           <div className="text-6xl mb-4">📦</div>
-          <h2 className={`text-xl font-bold ${theme('text-white', 'text-gray-900')} mb-2`}>No Item Banks Found</h2>
-          <p className={`${theme('text-gray-400', 'text-gray-600')} mb-6`}>
+          <h2
+            className="text-xl font-bold mb-2"
+            style={{ color: colors.textPrimary }}
+          >
+            No Item Banks Found
+          </h2>
+          <p
+            className="mb-6"
+            style={{ color: colors.textMuted }}
+          >
             You need to create and upload item banks before running calibration.
           </p>
 
           <Link
             to="/admin/upload"
-            className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition"
+            className="inline-block px-6 py-3 rounded-lg font-medium transition"
+            style={{
+              background: 'linear-gradient(135deg, #fbbf24 0%, #10b981 100%)',
+              color: 'white',
+              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+            }}
           >
             Upload Item Bank
           </Link>
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-8">
           {/* Uncalibrated Banks */}
           {uncalibratedBanks.length > 0 && (
             <div>
-              <h2 className={`text-xl font-bold ${theme('text-white', 'text-gray-900')} mb-4`}>
+              <h2
+                className="text-xl font-bold mb-4"
+                style={{ color: colors.textPrimary }}
+              >
                 Needs Calibration ({uncalibratedBanks.length})
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {uncalibratedBanks.map((bank) => (
-                  <div key={bank.name} className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} border rounded-lg p-6`}>
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <h3 className={`text-lg font-bold ${theme('text-white', 'text-gray-900')}`}>{bank.display_name}</h3>
-                        <p className={`text-sm ${theme('text-gray-400', 'text-gray-600')}`}>{bank.subject}</p>
+                  <div
+                    key={bank.name}
+                    className="rounded-xl p-6 hover:shadow-lg transition-all"
+                    style={{
+                      backgroundColor: DARK_MODE ? '#292524' : '#ffffff',
+                      border: '2px solid #fbbf24',
+                      boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)'
+                    }}
+                  >
+                    <div className="flex items-start gap-4 mb-4">
+                      {/* Icon */}
+                      <div
+                        className="p-3 rounded-xl flex-shrink-0"
+                        style={{ backgroundColor: colors.secondary }}
+                      >
+                        <svg
+                          className="w-6 h-6"
+                          style={{ color: 'white' }}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
                       </div>
-                      <span className="px-3 py-1 bg-yellow-100 text-yellow-800 text-xs font-semibold rounded-full">
-                        Uncalibrated
-                      </span>
+
+                      <div className="flex-1">
+                        <div className="flex justify-between items-start mb-1">
+                          <h3
+                            className="text-lg font-bold"
+                            style={{ color: colors.textPrimary }}
+                          >
+                            {bank.display_name}
+                          </h3>
+                          <span
+                            className="px-3 py-1 text-xs font-semibold rounded-full"
+                            style={{
+                              backgroundColor: colors.warningBg,
+                              color: colors.warning
+                            }}
+                          >
+                            Uncalibrated
+                          </span>
+                        </div>
+                        <p
+                          className="text-sm mb-3"
+                          style={{ color: colors.textMuted }}
+                        >
+                          {bank.subject}
+                        </p>
+                      </div>
                     </div>
 
-                    <div className={`grid grid-cols-2 gap-4 mb-4 text-sm ${theme('text-gray-300', 'text-gray-600')}`}>
+                    <div
+                      className="grid grid-cols-2 gap-4 mb-4 text-sm"
+                      style={{ color: colors.textSecondary }}
+                    >
                       <div>
-                        <span className={theme('text-gray-400', 'text-gray-500')}>Items:</span> <span className="font-medium">{bank.total_items}</span>
+                        <span style={{ color: colors.textMuted }}>Items:</span>{' '}
+                        <span className="font-semibold" style={{ color: colors.textPrimary }}>{bank.total_items}</span>
                       </div>
                       <div>
-                        <span className={theme('text-gray-400', 'text-gray-500')}>Model:</span> <span className="font-medium">{bank.irt_model}</span>
+                        <span style={{ color: colors.textMuted }}>Model:</span>{' '}
+                        <span className="font-semibold" style={{ color: colors.textPrimary }}>{bank.irt_model}</span>
                       </div>
                     </div>
 
                     <button
                       onClick={() => handleCalibrate(bank.name)}
                       disabled={calibratingBank === bank.name}
-                      className={`w-full py-2.5 rounded-lg font-medium transition ${
+                      className={`w-full py-3 rounded-lg font-medium transition ${
                         calibratingBank === bank.name
-                          ? 'bg-gray-400 cursor-not-allowed'
-                          : 'bg-blue-600 hover:bg-blue-700'
-                      } text-white`}
+                          ? 'opacity-50 cursor-not-allowed'
+                          : ''
+                      }`}
+                      style={{
+                        background: calibratingBank === bank.name
+                          ? colors.border
+                          : 'linear-gradient(135deg, #fbbf24 0%, #10b981 100%)',
+                        color: 'white',
+                        boxShadow: calibratingBank === bank.name ? 'none' : '0 2px 4px rgba(0, 0, 0, 0.1)'
+                      }}
                     >
                       {calibratingBank === bank.name ? (
                         <div className="flex items-center justify-center gap-2">
@@ -183,31 +310,81 @@ const Calibration = () => {
           {/* Calibrated Banks */}
           {calibratedBanks.length > 0 && (
             <div>
-              <h2 className={`text-xl font-bold ${theme('text-white', 'text-gray-900')} mb-4`}>
+              <h2
+                className="text-xl font-bold mb-4"
+                style={{ color: colors.textPrimary }}
+              >
                 Already Calibrated ({calibratedBanks.length})
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {calibratedBanks.map((bank) => (
-                  <div key={bank.name} className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} border rounded-lg p-6`}>
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <h3 className={`text-lg font-bold ${theme('text-white', 'text-gray-900')}`}>{bank.display_name}</h3>
-                        <p className={`text-sm ${theme('text-gray-400', 'text-gray-600')}`}>{bank.subject}</p>
+                  <div
+                    key={bank.name}
+                    className="rounded-xl p-6 hover:shadow-lg transition-shadow"
+                    style={{
+                      backgroundColor: DARK_MODE ? '#292524' : '#ffffff',
+                      boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)'
+                    }}
+                  >
+                    <div className="flex items-start gap-4 mb-4">
+                      {/* Icon */}
+                      <div
+                        className="p-3 rounded-xl flex-shrink-0"
+                        style={{ backgroundColor: colors.success }}
+                      >
+                        <svg
+                          className="w-6 h-6"
+                          style={{ color: 'white' }}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
                       </div>
-                      <span className="px-3 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">
-                        Calibrated
-                      </span>
+
+                      <div className="flex-1">
+                        <div className="flex justify-between items-start mb-1">
+                          <h3
+                            className="text-lg font-bold"
+                            style={{ color: colors.textPrimary }}
+                          >
+                            {bank.display_name}
+                          </h3>
+                          <span
+                            className="px-3 py-1 text-xs font-semibold rounded-full"
+                            style={{
+                              backgroundColor: colors.successBg,
+                              color: colors.success
+                            }}
+                          >
+                            Calibrated
+                          </span>
+                        </div>
+                        <p
+                          className="text-sm mb-3"
+                          style={{ color: colors.textMuted }}
+                        >
+                          {bank.subject}
+                        </p>
+                      </div>
                     </div>
 
-                    <div className={`grid grid-cols-3 gap-4 mb-4 text-sm ${theme('text-gray-300', 'text-gray-600')}`}>
+                    <div
+                      className="grid grid-cols-3 gap-4 mb-4 text-sm"
+                      style={{ color: colors.textSecondary }}
+                    >
                       <div>
-                        <span className={theme('text-gray-400', 'text-gray-500')}>Items:</span> <span className="font-medium">{bank.total_items}</span>
+                        <span style={{ color: colors.textMuted }}>Items:</span>{' '}
+                        <span className="font-semibold" style={{ color: colors.textPrimary }}>{bank.total_items}</span>
                       </div>
                       <div>
-                        <span className={theme('text-gray-400', 'text-gray-500')}>Tests:</span> <span className="font-medium">{bank.test_takers}</span>
+                        <span style={{ color: colors.textMuted }}>Tests:</span>{' '}
+                        <span className="font-semibold" style={{ color: colors.textPrimary }}>{bank.test_takers}</span>
                       </div>
                       <div>
-                        <span className={theme('text-gray-400', 'text-gray-500')}>Accuracy:</span> <span className="font-medium">
+                        <span style={{ color: colors.textMuted }}>Accuracy:</span>{' '}
+                        <span className="font-semibold" style={{ color: colors.textPrimary }}>
                           {bank.accuracy ? `${(bank.accuracy * 100).toFixed(1)}%` : 'N/A'}
                         </span>
                       </div>
@@ -216,15 +393,23 @@ const Calibration = () => {
                     <button
                       onClick={() => handleCalibrate(bank.name)}
                       disabled={calibratingBank === bank.name}
-                      className={`w-full py-2.5 rounded-lg font-medium transition ${
+                      className={`w-full py-3 rounded-lg font-medium transition ${
                         calibratingBank === bank.name
-                          ? 'bg-gray-400 cursor-not-allowed'
-                          : theme('bg-gray-700 hover:bg-gray-600', 'bg-gray-200 hover:bg-gray-300')
-                      } ${theme('text-gray-300', 'text-gray-700')}`}
+                          ? 'opacity-50 cursor-not-allowed'
+                          : ''
+                      }`}
+                      style={{
+                        backgroundColor: DARK_MODE ? '#292524' : '#ffffff',
+                        color: colors.success,
+                        border: `2px solid ${colors.success}`,
+                      }}
                     >
                       {calibratingBank === bank.name ? (
                         <div className="flex items-center justify-center gap-2">
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                          <div
+                            className="animate-spin rounded-full h-4 w-4 border-b-2"
+                            style={{ borderColor: colors.success }}
+                          ></div>
                           Re-calibrating...
                         </div>
                       ) : (
@@ -241,13 +426,30 @@ const Calibration = () => {
 
       {/* Loading Overlay */}
       {calibratingBank && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-          <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} border rounded-lg p-6 max-w-sm`}>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div
+            className="rounded-xl p-6 max-w-sm"
+            style={{
+              backgroundColor: DARK_MODE ? '#292524' : '#ffffff',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
+            }}
+          >
             <div className="flex items-center gap-3 mb-4">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-              <span className={`font-medium ${theme('text-white', 'text-gray-900')}`}>Calibrating {calibratingBank}...</span>
+              <div
+                className="animate-spin rounded-full h-6 w-6 border-b-2"
+                style={{ borderColor: colors.primary }}
+              ></div>
+              <span
+                className="font-medium"
+                style={{ color: colors.textPrimary }}
+              >
+                Calibrating {calibratingBank}...
+              </span>
             </div>
-            <p className={`text-sm ${theme('text-gray-400', 'text-gray-600')}`}>
+            <p
+              className="text-sm"
+              style={{ color: colors.textMuted }}
+            >
               This may take 1-2 minutes. Simulating 200 test-takers with 15 questions each...
             </p>
           </div>

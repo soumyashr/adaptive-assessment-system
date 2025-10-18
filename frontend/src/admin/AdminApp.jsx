@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import AdminLayout from './AdminLayout';
 
@@ -11,6 +11,12 @@ import Calibration from './pages/Calibration';
 import SessionDetail from './pages/SessionDetail';
 
 const AdminApp = () => {
+  // Force theme colors on mount
+  useEffect(() => {
+    document.body.style.backgroundColor = '#fefce8';
+    document.documentElement.style.backgroundColor = '#fefce8';
+  }, []);
+
   return (
     <AdminLayout>
       <Routes>
