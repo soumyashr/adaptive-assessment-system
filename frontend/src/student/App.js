@@ -19,11 +19,9 @@ import {
   Legend
 } from 'recharts';
 import './App.css';
-import { DARK_MODE, theme } from '../config/theme';
+import { DARK_MODE, theme, toggleDarkMode } from '../config/theme';
 import config from '../config/config';
 import notificationService from '../services/notificationService';
-import ThetaLogo from '../components/ThetaLogo';
-
 
 const AdaptiveAssessment = () => {
   // State management
@@ -43,9 +41,32 @@ const AdaptiveAssessment = () => {
   const [questionDifficulties, setQuestionDifficulties] = useState([]);
   const [currentQuestionDifficulty, setCurrentQuestionDifficulty] = useState(null);
   const [topicPerformance, setTopicPerformance] = useState({});
+  const [isDarkMode, setIsDarkMode] = useState(DARK_MODE); // Sync with theme.js
 
-  const API_BASE = config.API_BASE_URL ;
+  const API_BASE = config.API_BASE_URL;
   const DEFAULT_COMPETENCE_LEVEL = 'beginner';
+
+  // Handle theme toggle using the theme.js function
+  const handleToggleDarkMode = () => {
+    const newMode = toggleDarkMode(); // Use the function from theme.js
+    setIsDarkMode(newMode); // Update local state to trigger re-render
+  };
+
+  // Listen for theme changes from other sources
+  useEffect(() => {
+    const handleThemeChange = () => {
+      setIsDarkMode(DARK_MODE); // Sync with theme.js DARK_MODE
+    };
+
+    window.addEventListener('themeChange', handleThemeChange);
+
+    // Initialize on mount
+    setIsDarkMode(DARK_MODE);
+
+    return () => {
+      window.removeEventListener('themeChange', handleThemeChange);
+    };
+  }, []);
 
   // Professional color palette
   const tierColors = {
@@ -338,16 +359,16 @@ const AdaptiveAssessment = () => {
       <div className="space-y-6 mt-6">
         {/* Overall Assessment */}
         {roadmap?.overall_message && (
-          <div className={`${theme('bg-blue-900/30 border-blue-700', 'bg-blue-50 border-blue-200')} border rounded-xl p-5`}>
+          <div className={`${theme('bg-blue-800/90 border-blue-600', 'bg-blue-200 border-blue-400')} border rounded-xl p-5`}>
             <div className="flex items-start space-x-3">
-              <div className={`${theme('bg-blue-600', 'bg-blue-500')} rounded-full p-2 flex-shrink-0`}>
+              <div className={`${theme('bg-blue-600', 'bg-blue-600')} rounded-full p-2 flex-shrink-0`}>
                 <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
               <div className="flex-1">
-                <h3 className={`font-semibold ${theme('text-blue-200', 'text-blue-900')} mb-1`}>Overall Assessment</h3>
-                <p className={`text-sm ${theme('text-blue-300', 'text-blue-800')}`}>{roadmap.overall_message}</p>
+                <h3 className={`font-semibold ${theme('text-white', 'text-gray-900')} mb-1`}>Overall Assessment</h3>
+                <p className={`text-sm ${theme('text-gray-200', 'text-gray-900')}`}>{roadmap.overall_message}</p>
               </div>
             </div>
           </div>
@@ -355,25 +376,25 @@ const AdaptiveAssessment = () => {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-3 gap-4">
-          <div className={`${theme('bg-green-900/30 border-green-700', 'bg-green-50 border-green-200')} border rounded-xl p-4 text-center`}>
-            <div className={`text-2xl font-bold ${theme('text-green-400', 'text-green-700')}`}>
+          <div className={`${theme('bg-green-800/90 border-green-600', 'bg-green-200 border-green-400')} border rounded-xl p-4 text-center`}>
+            <div className={`text-2xl font-bold ${theme('text-white', 'text-gray-900')}`}>
               {roadmap?.strengths?.length || 0}
             </div>
-            <div className={`text-xs ${theme('text-green-300', 'text-green-600')} mt-1`}>Strong Topics</div>
+            <div className={`text-xs ${theme('text-green-100', 'text-gray-900')} mt-1 font-bold`}>Strong Topics</div>
           </div>
 
-          <div className={`${theme('bg-yellow-900/30 border-yellow-700', 'bg-yellow-50 border-yellow-200')} border rounded-xl p-4 text-center`}>
-            <div className={`text-2xl font-bold ${theme('text-yellow-400', 'text-yellow-700')}`}>
+          <div className={`${theme('bg-yellow-700/90 border-yellow-600', 'bg-yellow-200 border-yellow-400')} border rounded-xl p-4 text-center`}>
+            <div className={`text-2xl font-bold ${theme('text-white', 'text-gray-900')}`}>
               {roadmap?.weaknesses?.length || 0}
             </div>
-            <div className={`text-xs ${theme('text-yellow-300', 'text-yellow-600')} mt-1`}>Focus Areas</div>
+            <div className={`text-xs ${theme('text-yellow-100', 'text-gray-900')} mt-1 font-bold`}>Focus Areas</div>
           </div>
 
-          <div className={`${theme('bg-blue-900/30 border-blue-700', 'bg-blue-50 border-blue-200')} border rounded-xl p-4 text-center`}>
-            <div className={`text-2xl font-bold ${theme('text-blue-400', 'text-blue-700')}`}>
+          <div className={`${theme('bg-blue-800/90 border-blue-600', 'bg-blue-200 border-blue-400')} border rounded-xl p-4 text-center`}>
+            <div className={`text-2xl font-bold ${theme('text-white', 'text-gray-900')}`}>
               {topics.length}
             </div>
-            <div className={`text-xs ${theme('text-blue-300', 'text-blue-600')} mt-1`}>Topics Assessed</div>
+            <div className={`text-xs ${theme('text-blue-100', 'text-gray-900')} mt-1 font-bold`}>Topics Assessed</div>
           </div>
         </div>
 
@@ -384,31 +405,31 @@ const AdaptiveAssessment = () => {
             <div className="space-y-4">
               {/* Next Milestone */}
               {roadmap?.next_milestone && (
-                <div className={`${theme('bg-gradient-to-r from-purple-900/50 to-blue-900/50 border-purple-700', 'bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200')} border rounded-xl p-5`}>
+                <div className={`${theme('bg-gradient-to-r from-purple-800/90 to-blue-800/90 border-purple-600', 'bg-gradient-to-r from-purple-200 to-blue-200 border-purple-400')} border rounded-xl p-5`}>
                   <div className="flex items-start space-x-3">
-                    <div className={`${theme('bg-purple-600', 'bg-purple-500')} rounded-full p-2 flex-shrink-0`}>
+                    <div className={`${theme('bg-purple-600', 'bg-purple-600')} rounded-full p-2 flex-shrink-0`}>
                       <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                       </svg>
                     </div>
                     <div className="flex-1">
-                      <h4 className={`font-semibold ${theme('text-purple-200', 'text-purple-900')} mb-2`}>Next Milestone</h4>
+                      <h4 className={`font-semibold ${theme('text-white', 'text-gray-900')} mb-2`}>Next Milestone</h4>
                       <div className="grid grid-cols-2 gap-3 text-sm">
                         <div>
-                          <span className={`${theme('text-purple-400', 'text-purple-700')} block text-xs mb-0.5`}>Target Level</span>
-                          <span className={`font-bold ${theme('text-purple-100', 'text-purple-900')}`}>{roadmap.next_milestone.target_tier}</span>
+                          <span className={`${theme('text-purple-200', 'text-gray-900')} block text-xs mb-0.5 font-bold`}>Target Level</span>
+                          <span className={`font-bold ${theme('text-white', 'text-gray-900')}`}>{roadmap.next_milestone.target_tier}</span>
                         </div>
                         <div>
-                          <span className={`${theme('text-purple-400', 'text-purple-700')} block text-xs mb-0.5`}>Target θ</span>
-                          <span className={`font-bold ${theme('text-purple-100', 'text-purple-900')}`}>{roadmap.next_milestone.target_theta.toFixed(2)}</span>
+                          <span className={`${theme('text-purple-200', 'text-gray-900')} block text-xs mb-0.5 font-bold`}>Target θ</span>
+                          <span className={`font-bold ${theme('text-white', 'text-gray-900')}`}>{roadmap.next_milestone.target_theta.toFixed(2)}</span>
                         </div>
                         <div>
-                          <span className={`${theme('text-purple-400', 'text-purple-700')} block text-xs mb-0.5`}>Est. Questions</span>
-                          <span className={`font-bold ${theme('text-purple-100', 'text-purple-900')}`}>{roadmap.next_milestone.estimated_questions}</span>
+                          <span className={`${theme('text-purple-200', 'text-gray-900')} block text-xs mb-0.5 font-bold`}>Est. Questions</span>
+                          <span className={`font-bold ${theme('text-white', 'text-gray-900')}`}>{roadmap.next_milestone.estimated_questions}</span>
                         </div>
                         <div>
-                          <span className={`${theme('text-purple-400', 'text-purple-700')} block text-xs mb-0.5`}>Focus Area</span>
-                          <span className={`font-bold ${theme('text-purple-100', 'text-purple-900')} text-xs`}>{roadmap.next_milestone.focus}</span>
+                          <span className={`${theme('text-purple-200', 'text-gray-900')} block text-xs mb-0.5 font-bold`}>Focus Area</span>
+                          <span className={`font-bold ${theme('text-white', 'text-gray-900')} text-xs`}>{roadmap.next_milestone.focus}</span>
                         </div>
                       </div>
                     </div>
@@ -749,9 +770,26 @@ const AdaptiveAssessment = () => {
   if (showLogin) {
     return (
       <div className={`min-h-screen ${theme('bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900', 'bg-gradient-to-br from-indigo-50 to-white')} flex items-center justify-center p-4`}>
+        {/* Dark Mode Toggle - Fixed Position */}
+        <button
+          onClick={handleToggleDarkMode}
+          className={`fixed top-6 right-6 p-3 rounded-lg transition shadow-lg ${theme('bg-gray-800 hover:bg-gray-700 text-yellow-400 border border-gray-700', 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-200')}`}
+          aria-label="Toggle dark mode"
+        >
+          {isDarkMode ? (
+            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fillRule="evenodd" clipRule="evenodd" />
+            </svg>
+          ) : (
+            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+            </svg>
+          )}
+        </button>
+
         <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-100')} rounded-2xl shadow-xl p-8 w-full max-w-md border`}>
           <div className="text-center mb-8">
-            <div className={`w-16 h-16 ${theme('bg-yellow-100', 'bg-green-600')} rounded-xl flex items-center justify-center mx-auto mb-4`}>
+            <div className={`w-16 h-16 ${theme('bg-green-600', 'bg-green-600')} rounded-xl flex items-center justify-center mx-auto mb-4`}>
               <span className="text-3xl text-white font-bold">θ</span>
             </div>
             <h1 className={`text-2xl font-bold ${theme('text-white', 'text-gray-900')} mb-1`}>MyTheta</h1>
@@ -801,19 +839,33 @@ const AdaptiveAssessment = () => {
 
   return (
     <div className={`min-h-screen ${theme('bg-gray-900', 'bg-gray-50')}`}>
-      {/* Professional Header */}
+      {/* Professional Header with Dark Mode Toggle */}
       <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} border-b sticky top-0 z-10 shadow-sm`}>
         <div className="max-w-7xl mx-auto px-6 py-3">
           <div className="flex justify-between items-center">
-              {/*FOr theta used as icon, this is the code*/}
             <div className="flex items-center space-x-3">
-              <div className={`w-10 h-10 ${theme('bg-yellow-100', 'bg-green-600')} rounded-lg flex items-center justify-center`}>
+              <div className={`w-10 h-10 ${theme('bg-green-600', 'bg-green-600')} rounded-lg flex items-center justify-center`}>
                 <span className="text-xl text-white font-bold">θ</span>
               </div>
-
               <h1 className={`text-lg font-bold ${theme('text-white', 'text-gray-900')}`}>MyTheta</h1>
             </div>
             <div className="flex items-center space-x-4">
+              {/* Dark Mode Toggle Button */}
+              <button
+                onClick={handleToggleDarkMode}
+                className={`p-2 rounded-lg transition ${theme('bg-gray-700 hover:bg-gray-600 text-yellow-400', 'bg-gray-100 hover:bg-gray-200 text-gray-700')}`}
+                aria-label="Toggle dark mode"
+              >
+                {isDarkMode ? (
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fillRule="evenodd" clipRule="evenodd" />
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+                  </svg>
+                )}
+              </button>
               <span className={`text-sm ${theme('text-gray-400', 'text-gray-600')}`}>
                 <span className={`font-medium ${theme('text-white', 'text-gray-900')}`}>{currentUser?.username}</span>
               </span>
@@ -855,12 +907,10 @@ const AdaptiveAssessment = () => {
       )}
 
       <div className="max-w-7xl mx-auto p-6">
-          {/*here*/}
-
         {!currentSession ? (
           /* ASSESSMENT SELECTION */
           <div className="max-w-2xl mx-auto">
-            <div className="text-center mb-8">
+            <div className={`text-center mb-8 ${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} border rounded-2xl p-6`}>
               <h2 className={`text-3xl font-bold ${theme('text-white', 'text-gray-900')} mb-3`}>
                 Choose Your Assessment
               </h2>
@@ -870,11 +920,10 @@ const AdaptiveAssessment = () => {
             </div>
 
             {userStats && userStats.proficiencies.length > 0 && (
-              <div className={`mb-6 ${theme('bg-blue-900/30 border-blue-700', 'bg-blue-50 border-blue-100')} border rounded-xl p-4`}>
-                <h3 className={`text-sm font-semibold ${theme('text-blue-300', 'text-blue-900')} mb-3`}>Your Progress</h3>
+              <div className={`mb-6 ${theme('bg-gray-800 border-gray-700', 'bg-blue-200 border-blue-200')} border rounded-xl p-4`}>
+                <h3 className={`text-sm font-semibold ${theme('text-white', 'text-blue-900')} mb-3`}>Your Progress</h3>
                 <div className="space-y-2">
                   {userStats.proficiencies.map(prof => {
-                    // Professional tier colors
                     const getTierStyle = (theta) => {
                       if (theta < -1.0) return {
                         bg: theme('bg-red-500/90', 'bg-red-500'),
@@ -901,13 +950,13 @@ const AdaptiveAssessment = () => {
                     const tierStyle = getTierStyle(prof.theta);
 
                     return (
-                      <div key={prof.item_bank} className={`flex justify-between items-center ${theme('bg-gray-700/50', 'bg-white')} rounded-lg px-4 py-2.5 text-sm`}>
+                      <div key={prof.item_bank} className={`flex justify-between items-center ${theme('bg-gray-700', 'bg-white')} rounded-lg px-4 py-2.5 text-sm`}>
                         <span className={`font-semibold ${theme('text-white', 'text-gray-900')} capitalize`}>{prof.item_bank}</span>
                         <div className="flex items-center space-x-2">
                           <span className={`px-3 py-1 rounded-full text-xs font-bold ${tierStyle.bg} ${tierStyle.text}`}>
                             {tierStyle.label}
                           </span>
-                          <span className={`${theme('text-gray-400', 'text-gray-500')} text-xs`}>θ = {prof.theta.toFixed(2)}</span>
+                          <span className={`${theme('text-gray-300', 'text-gray-500')} text-xs`}>θ = {prof.theta.toFixed(2)}</span>
                         </div>
                       </div>
                     );
@@ -947,14 +996,13 @@ const AdaptiveAssessment = () => {
             </div>
           </div>
         ) : assessmentComplete ? (
-
           /* RESULTS PAGE */
           <div className="max-w-5xl mx-auto">
             <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} rounded-2xl shadow-sm border p-8 mb-6`}>
               <div className="flex justify-between items-start mb-6">
                 <div className="text-center flex-1">
-                  <div className={`w-16 h-16 ${theme('bg-yellow-100', 'bg-green-600')} rounded-full flex items-center justify-center mx-auto mb-4`}>
-                    <svg className={`w-8 h-8 ${theme('text-green-400', 'text-green-600')}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className={`w-16 h-16 ${theme('bg-green-600', 'bg-green-600')} rounded-full flex items-center justify-center mx-auto mb-4`}>
+                    <svg className={`w-8 h-8 ${theme('text-white', 'text-white')}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   </div>

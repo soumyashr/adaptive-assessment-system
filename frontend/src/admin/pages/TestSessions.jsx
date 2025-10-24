@@ -197,9 +197,9 @@ const TestSessions = () => {
             style={{
               padding: '10px 20px',
               borderRadius: '8px',
-              border: `1px solid ${colors.cardBorder}`,
-              background: colors.cardBg,
-              color: colors.textPrimary,
+              border: DARK_MODE ? '1px solid rgba(239, 68, 68, 0.2)' : '1px solid #FEE2E2',
+              background: DARK_MODE ? 'rgba(30, 30, 30, 1)' : '#FEF2F2',
+              color: DARK_MODE ? '#FCA5A5' : '#DC2626',
               fontWeight: '600',
               fontSize: '13px',
               cursor: 'pointer',
@@ -209,10 +209,12 @@ const TestSessions = () => {
               transition: 'all 0.2s'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = DARK_MODE ? '#2a2a2a' : '#F3F4F6';
+              e.currentTarget.style.background = DARK_MODE ? 'rgba(40, 25, 25, 1)' : '#FEE2E2';
+              e.currentTarget.style.borderColor = DARK_MODE ? 'rgba(239, 68, 68, 0.4)' : '#FCA5A5';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = colors.cardBg;
+              e.currentTarget.style.background = DARK_MODE ? 'rgba(30, 30, 30, 1)' : '#FEF2F2';
+              e.currentTarget.style.borderColor = DARK_MODE ? 'rgba(239, 68, 68, 0.2)' : '#FEE2E2';
             }}
           >
             <XCircle size={18} />
@@ -242,7 +244,8 @@ const TestSessions = () => {
         marginBottom: '16px',
         overflow: 'hidden'
       }}>
-        <div style={{ borderBottom: `1px solid ${colors.cardBorder}`, display: 'flex' }}>
+        <div style={{ borderBottom: `1px solid ${colors.cardBorder}`,
+            display: 'flex' }}>
           {[
             { id: 'all', label: `All Sessions (${sessions.length})` },
             { id: 'completed', label: `Completed (${completedCount})` },
@@ -271,29 +274,32 @@ const TestSessions = () => {
 
         {/* Sessions Table */}
         <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', background: colors.cardBg }}>
             <thead>
-              <tr style={{ background: DARK_MODE ? '#1a1a1a' : '#F9FAFB' }}>
-                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '11px', fontWeight: '600', color: colors.textMuted, textTransform: 'uppercase' }}>ID</th>
-                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '11px', fontWeight: '600', color: colors.textMuted, textTransform: 'uppercase' }}>User</th>
-                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '11px', fontWeight: '600', color: colors.textMuted, textTransform: 'uppercase' }}>Item Bank</th>
-                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '11px', fontWeight: '600', color: colors.textMuted, textTransform: 'uppercase' }}>Status</th>
-                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '11px', fontWeight: '600', color: colors.textMuted, textTransform: 'uppercase' }}>Theta</th>
-                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '11px', fontWeight: '600', color: colors.textMuted, textTransform: 'uppercase' }}>Questions</th>
-                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '11px', fontWeight: '600', color: colors.textMuted, textTransform: 'uppercase' }}>Accuracy</th>
-                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '11px', fontWeight: '600', color: colors.textMuted, textTransform: 'uppercase' }}>Started</th>
-                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '11px', fontWeight: '600', color: colors.textMuted, textTransform: 'uppercase' }}>Actions</th>
+              <tr style={{
+                  background: DARK_MODE ? '#0f0f0f' : '#F9FAFB'
+
+              }}>
+                <th style={{padding: '12px 16px', textAlign: 'left', fontSize: '11px',fontWeight: '600',color: colors.textMuted, textTransform: 'uppercase', background: DARK_MODE ? '#0f0f0f' : '#F9FAFB'}}>ID</th>
+                <th style={{padding: '12px 16px', textAlign: 'left', fontSize: '11px',fontWeight: '600',color: colors.textMuted, textTransform: 'uppercase', background: DARK_MODE ? '#0f0f0f' : '#F9FAFB'}}>User</th>
+                <th style={{padding: '12px 16px', textAlign: 'left', fontSize: '11px',fontWeight: '600',color: colors.textMuted, textTransform: 'uppercase', background: DARK_MODE ? '#0f0f0f' : '#F9FAFB'}}>Item Bank</th>
+                <th style={{padding: '12px 16px', textAlign: 'left', fontSize: '11px',fontWeight: '600',color: colors.textMuted, textTransform: 'uppercase', background: DARK_MODE ? '#0f0f0f' : '#F9FAFB'}}>Status</th>
+                <th style={{padding: '12px 16px', textAlign: 'left', fontSize: '11px',fontWeight: '600',color: colors.textMuted, textTransform: 'uppercase', background: DARK_MODE ? '#0f0f0f' : '#F9FAFB'}}>Theta</th>
+                <th style={{padding: '12px 16px', textAlign: 'left', fontSize: '11px',fontWeight: '600',color: colors.textMuted, textTransform: 'uppercase', background: DARK_MODE ? '#0f0f0f' : '#F9FAFB'}}>Questions</th>
+                <th style={{padding: '12px 16px', textAlign: 'left', fontSize: '11px',fontWeight: '600',color: colors.textMuted, textTransform: 'uppercase', background: DARK_MODE ? '#0f0f0f' : '#F9FAFB'}}>Accuracy</th>
+                <th style={{padding: '12px 16px', textAlign: 'left', fontSize: '11px',fontWeight: '600',color: colors.textMuted, textTransform: 'uppercase', background: DARK_MODE ? '#0f0f0f' : '#F9FAFB'}}>Started</th>
+                <th style={{padding: '12px 16px', textAlign: 'left', fontSize: '11px',fontWeight: '600',color: colors.textMuted, textTransform: 'uppercase', background: DARK_MODE ? '#0f0f0f' : '#F9FAFB'}}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr>
+                <tr style={{ background: colors.cardBg }}>
                   <td colSpan="9" style={{ padding: '40px', textAlign: 'center', color: colors.textMuted }}>
                     Loading sessions...
                   </td>
                 </tr>
               ) : filteredSessions.length === 0 ? (
-                <tr>
+                <tr style={{ background: colors.cardBg }}>
                   <td colSpan="9" style={{ padding: '40px', textAlign: 'center', color: colors.textMuted }}>
                     No {filter !== 'all' ? filter : ''} sessions found
                   </td>
@@ -304,13 +310,14 @@ const TestSessions = () => {
                     key={`${session.item_bank}-${session.session_id}`}
                     style={{
                       borderBottom: `1px solid ${colors.cardBorder}`,
-                      transition: 'background 0.2s'
+                      transition: 'background 0.2s',
+                      background: colors.cardBg
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.background = DARK_MODE ? 'rgba(255,255,255,0.03)' : '#F9FAFB';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'transparent';
+                      e.currentTarget.style.background = colors.cardBg;
                     }}
                   >
                     <td style={{ padding: '12px 16px', fontSize: '13px', fontWeight: '600', color: colors.textPrimary }}>
