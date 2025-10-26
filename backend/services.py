@@ -371,7 +371,11 @@ class PDFExportService:
             accuracies += accuracies[:1]  # Complete the circle
             angles += angles[:1]
 
-            fig, ax = plt.subplots(figsize=(7, 7), subplot_kw=dict(projection='polar'))
+            # CREATE SQUARE FIGURE - KEY FIX
+            fig, ax = plt.subplots(figsize=(8, 8), subplot_kw=dict(projection='polar'))  # Changed from (7,7) to (8,8)
+
+            # SET EQUAL ASPECT RATIO - ENSURES CIRCULAR SHAPE
+            ax.set_aspect('equal')
 
             # Plot accuracy
             ax.plot(angles, accuracies, 'o-', linewidth=2, color='#10B981', label='Accuracy %')
@@ -531,8 +535,13 @@ class PDFExportService:
                                 topMargin=0.6 * inch, bottomMargin=0.6 * inch)
         elements = []
 
-        # ========== TITLE ==========
-        elements.append(Paragraph("Assessment Report", self.styles['CustomTitle']))
+        # ========== TITLE - UPDATED WITH DISPLAY NAME AND USERNAME ==========
+        display_name = session_data.get('item_bank_display_name', 'Assessment')
+        username = user_data.get('username', 'Student')
+
+        title_style = self.styles['CustomTitle']
+        elements.append(Paragraph(f"Assessment Report for {username}", title_style))
+        elements.append(Paragraph(f"Subject: {display_name}", title_style))
         elements.append(Spacer(1, 0.15 * inch))
 
         # ========== PROFICIENCY LEGEND ==========
@@ -606,7 +615,7 @@ class PDFExportService:
         elements.append(HRFlowable(width="100%", thickness=1, color=colors.grey))
         elements.append(Spacer(1, 0.2 * inch))
 
-        # ========== ASSESSMENT OVERVIEW TABLE ==========
+        # ========== ASSESSMENT OVERVIEW TABLE - UPDATED ==========
         # Format date
         date_str = 'N/A'
         created_at = session_data.get('created_at') or session_data.get('completed_at')
@@ -626,16 +635,15 @@ class PDFExportService:
                 date_str = str(created_at) if created_at else 'N/A'
 
         session_id = session_data.get('session_id') or session_data.get('id', 'N/A')
-        item_bank_name = (session_data.get('item_bank_name') or session_data.get('subject', 'N/A'))
-        if item_bank_name != 'N/A':
-            item_bank_name = item_bank_name.replace('_', ' ').title()
         status = 'Completed' if session_data.get('completed', True) else 'Active'
 
+        # Updated overview data with display name
         overview_data = [
             ['Field', 'Value'],
-            ['User', user_data.get('username', 'N/A')],
+            ['User', username],
             ['Session ID', str(session_id)],
-            ['Item Bank', item_bank_name],
+            ['Question Bank', display_name],  # User-friendly display name
+            ['Item Bank Name', session_data.get('item_bank_name', 'N/A')],  # Internal name
             ['Date', date_str],
             ['Status', status],
         ]
@@ -934,11 +942,19 @@ class PDFExportService:
     # Place them AFTER the existing generate_session_pdf() method
 
     def export_complete_session(self, registry_db: Session, item_db: Session,
-                                session_id: int, item_bank_name: str) -> BytesIO:
+                                session_id: int, item_bank_name: str,
+                                display_name: str = None,  # ADD THIS
+                                username: str = None) -> BytesIO:  # ADD THIS
         """
         Export complete session data as PDF - ALL business logic here
 
-        This method replaces the logic that was in main.py
+        Args:
+            registry_db: Registry database session
+            item_db: Item bank database session
+            session_id: Session ID
+            item_bank_name: Internal item bank name (e.g., "maths")
+            display_name: User-friendly display name (e.g., "Mathematics")
+            username: Student username (e.g., "at")
         """
         # 1. Get session
         session = item_db.query(models_itembank.AssessmentSession).filter(
@@ -956,6 +972,9 @@ class PDFExportService:
         if not user:
             raise ValueError(f"User with ID {session.user_id} not found")
 
+        # Use provided username or fall back to user object
+        final_username = username or user.username
+
         # 3. Get responses
         responses = item_db.query(models_itembank.Response).filter(
             models_itembank.Response.session_id == session_id
@@ -965,11 +984,12 @@ class PDFExportService:
         correct_count = sum(1 for r in responses if r.is_correct)
         accuracy = correct_count / len(responses) if responses else 0
 
-        # 5. Prepare session data
+        # 5. Prepare session data with display_name
         session_data = {
             'session_id': session.session_id,
             'subject': session.subject,
             'item_bank_name': item_bank_name,
+            'item_bank_display_name': display_name or item_bank_name,  # ADD THIS LINE
             'theta': session.theta,
             'sem': session.sem,
             'tier': session.tier,
@@ -1009,9 +1029,9 @@ class PDFExportService:
         except Exception as e:
             logger.error(f"Error with topic performance: {e}", exc_info=True)
 
-        # 7. User data
+        # 7. User data with final_username
         user_data = {
-            'username': user.username,
+            'username': final_username,  # USE final_username
             'id': user.id
         }
 

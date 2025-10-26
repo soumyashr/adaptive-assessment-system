@@ -831,16 +831,23 @@ async def get_item_bank_stats(
 
 
 # ========== PDF EXPORT ==========
+# In main.py, update the export_session_pdf endpoint:
+
 @app.get("/api/sessions/{session_id}/export-pdf")
 async def export_session_pdf(
         session_id: int,
         item_bank_name: str,
+        display_name: str = None,  # NEW: Accept display name
+        username: str = None,  # NEW: Accept username
         db: Session = Depends(get_db)
 ):
     """
     Export session results as a comprehensive PDF report
 
-    ✅ BACKWARD COMPATIBLE - Same API contract, cleaner implementation
+    Query Parameters:
+        - item_bank_name: Internal item bank name (e.g., "maths")
+        - display_name: User-friendly display name (e.g., "Mathematics")
+        - username: Student username (e.g., "at")
     """
     # Verify item bank exists
     item_bank = db.query(models.ItemBank).filter(
@@ -850,19 +857,26 @@ async def export_session_pdf(
     if not item_bank:
         raise HTTPException(status_code=404, detail=f"Item bank '{item_bank_name}' not found")
 
+    # Use display_name from query param, fallback to item bank's display_name, then to name
+    final_display_name = display_name or item_bank.display_name or item_bank_name
+
     item_db = item_bank_db.get_session(item_bank_name)
 
     try:
-        # ALL business logic moved to service
+        # Pass display_name and username to service
         pdf_buffer = pdf_export_service.export_complete_session(
             registry_db=db,
             item_db=item_db,
             session_id=session_id,
-            item_bank_name=item_bank_name
+            item_bank_name=item_bank_name,
+            display_name=final_display_name,  # NEW
+            username=username  # NEW
         )
 
-        # Only HTTP response formatting here
-        filename = f"assessment_report_{item_bank_name}_{session_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+        # Use display name in filename
+        safe_display_name = final_display_name.replace(' ', '_').replace('-', '_')
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        filename = f"assessment_report_{safe_display_name}_{username or 'user'}_{session_id}_{timestamp}.pdf"
 
         return StreamingResponse(
             pdf_buffer,
@@ -873,13 +887,14 @@ async def export_session_pdf(
         )
 
     except ValueError as e:
-        # Service raises ValueError for not found
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         logger.error(f"Error exporting PDF for session {session_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to generate PDF: {str(e)}")
     finally:
         item_db.close()
+
+
 
 
 #====== Below is to test the uniqueness of session IDs across item banks.

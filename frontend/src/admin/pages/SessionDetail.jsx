@@ -8,7 +8,7 @@ import {
 } from 'recharts';
 
 // Import theme from config
-import { DARK_MODE } from '../../config/theme';
+import { DARK_MODE, getThemeColors } from '../../config/theme';
 import config from '../../config/config';
 
 
@@ -21,16 +21,27 @@ const SessionDetail = () => {
 
 
   const API_BASE = config.API_BASE_URL;
+  const themeColors = getThemeColors();
 
-
-  // Theme helper function
+  // Theme helper function - uses DARK_MODE from theme.js
   const theme = (darkValue, lightValue) => DARK_MODE ? darkValue : lightValue;
 
   // Export PDF function
   const handleExportPDF = async () => {
     try {
+      const displayName = sessionData.item_bank_display_name || sessionData.item_bank;
+      const username = sessionData.username;
+
+      // Pass all necessary information to backend for PDF generation
+      const params = new URLSearchParams({
+        item_bank_name: sessionData.item_bank,
+        display_name: displayName,
+        username: username,
+        session_id: sessionId
+      });
+
       const response = await fetch(
-        `${API_BASE}/sessions/${sessionId}/export-pdf?item_bank_name=${sessionData.item_bank}`
+        `${API_BASE}/sessions/${sessionId}/export-pdf?${params.toString()}`
       );
 
       if (response.ok) {
@@ -38,7 +49,9 @@ const SessionDetail = () => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `assessment_report_${sessionData.item_bank}_${sessionId}_${sessionData.username}.pdf`;
+        // Use display name in filename, sanitize for filesystem
+        const sanitizedDisplayName = displayName.replace(/[^a-z0-9_-]/gi, '_');
+        a.download = `assessment_report_${sanitizedDisplayName}_${username}_${sessionId}.pdf`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
@@ -53,15 +66,16 @@ const SessionDetail = () => {
     }
   };
 
-  // Professional color palette
+  // Professional color palette - using theme colors
   const colors = {
-    primary: theme('#2563EB', '#3B82F6'),      // Blue
-    success: theme('#059669', '#10B981'),      // Green
-    warning: theme('#D97706', '#F59E0B'),      // Amber
-    danger: theme('#DC2626', '#EF4444'),       // Red
-    purple: theme('#7C3AED', '#8B5CF6'),       // Purple
-    user: '#F59E0B',                           // Amber for user bars
-    userBorder: '#000000'                      // Black border
+    primary: themeColors.primary,
+    success: themeColors.success,
+    warning: themeColors.warning,
+    error: themeColors.error,
+    info: themeColors.info,
+    purple: DARK_MODE ? '#8B5CF6' : '#7C3AED',  // Purple for efficiency
+    user: '#F59E0B',                            // Amber for user bars
+    userBorder: '#000000'                       // Black border
   };
 
   // Custom Tooltip for Histogram
@@ -236,6 +250,55 @@ const SessionDetail = () => {
         return;
       }
 
+      console.log('=== DEBUG: Current Session ===');
+      console.log('Current session data:', currentSession);
+      console.log('Item bank from session:', currentSession.item_bank);
+
+      // Fetch item bank details to get display name
+      const itemBanksRes = await fetch(`${API_BASE}/item-banks`);
+      const itemBanks = await itemBanksRes.json();
+
+      console.log('=== DEBUG: Item Banks API Response ===');
+      console.log('Full API response:', itemBanks);
+      console.log('Number of item banks:', itemBanks.length);
+
+      if (Array.isArray(itemBanks) && itemBanks.length > 0) {
+        console.log('First item bank structure:', itemBanks[0]);
+        console.log('First item bank name:', itemBanks[0].name);
+        console.log('First item bank display_name:', itemBanks[0].display_name);
+      }
+
+      // Find the matching item bank by name field
+      const itemBank = itemBanks.find(ib => {
+        const matches = ib.name === currentSession.item_bank;
+        console.log(`Comparing: "${ib.name}" === "${currentSession.item_bank}" => ${matches}`);
+        return matches;
+      });
+
+      console.log('=== DEBUG: Matching Result ===');
+      console.log('Found matching item bank:', itemBank);
+
+      if (itemBank) {
+        console.log('Matched item bank name:', itemBank.name);
+        console.log('Matched item bank display_name:', itemBank.display_name);
+      } else {
+        console.warn('No matching item bank found!');
+      }
+
+      // Use display_name from item bank, fallback to formatting the name
+      let displayName;
+      if (itemBank && itemBank.display_name) {
+        displayName = itemBank.display_name;
+        console.log('✓ Using display_name from bank:', displayName);
+      } else {
+        // Fallback: convert snake_case to Title Case
+        displayName = currentSession.item_bank
+          .split('_')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ');
+        console.log('⚠ Using formatted fallback:', displayName);
+      }
+
       const resultsRes = await fetch(
         `${API_BASE}/assessments/${sessionId}/results?item_bank_name=${currentSession.item_bank}`
       );
@@ -245,7 +308,16 @@ const SessionDetail = () => {
         s => s.item_bank === currentSession.item_bank && s.status === 'Completed'
       );
 
-      setSessionData({ ...currentSession, ...results });
+      console.log('=== DEBUG: Final Session Data ===');
+      console.log('Setting item_bank_display_name to:', displayName);
+      console.log('Setting item_bank_name to:', currentSession.item_bank);
+
+      setSessionData({
+        ...currentSession,
+        ...results,
+        item_bank_display_name: displayName,
+        item_bank_name: currentSession.item_bank  // Keep the internal name
+      });
       calculateComparativeMetrics(results, sameItemBankSessions);
 
       setLoading(false);
@@ -256,22 +328,69 @@ const SessionDetail = () => {
   };
 
   const calculateComparativeMetrics = (currentResults, allSessions) => {
-    const thetas = allSessions.map(s => s.theta).sort((a, b) => a - b);
-    const accuracies = allSessions.map(s => s.accuracy * 100).sort((a, b) => a - b);
-    const questionCounts = allSessions.map(s => s.questions_asked).sort((a, b) => a - b);
+    // Filter out invalid sessions and extract valid values
+    const validSessions = allSessions.filter(s =>
+      s.theta != null && !isNaN(s.theta) &&
+      s.accuracy != null && !isNaN(s.accuracy) &&
+      s.questions_asked != null && !isNaN(s.questions_asked)
+    );
+
+    if (validSessions.length === 0) {
+      console.warn('No valid sessions for comparative metrics');
+      setComparativeData(null);
+      return;
+    }
+
+    const thetas = validSessions.map(s => s.theta).sort((a, b) => a - b);
+    const accuracies = validSessions.map(s => s.accuracy * 100).sort((a, b) => a - b);
+    const questionCounts = validSessions.map(s => s.questions_asked).sort((a, b) => a - b);
 
     const calculatePercentile = (value, sortedArray) => {
+      if (!sortedArray || sortedArray.length === 0) return 0;
       const index = sortedArray.findIndex(v => v >= value);
       if (index === -1) return 100;
       return Math.round((index / sortedArray.length) * 100);
     };
 
-    const average = (arr) => arr.reduce((a, b) => a + b, 0) / arr.length;
+    const average = (arr) => {
+      if (!arr || arr.length === 0) return 0;
+      return arr.reduce((a, b) => a + b, 0) / arr.length;
+    };
 
     const createHistogram = (data, userValue, binCount = 10) => {
-      const min = Math.min(...data);
-      const max = Math.max(...data);
+      // Validate input data
+      if (!data || data.length === 0) {
+        console.warn('Empty data array for histogram');
+        return [];
+      }
+
+      // Filter out invalid values
+      const validData = data.filter(v => v != null && !isNaN(v) && isFinite(v));
+
+      if (validData.length === 0) {
+        console.warn('No valid data for histogram');
+        return [];
+      }
+
+      const min = Math.min(...validData);
+      const max = Math.max(...validData);
+
+      // Handle case where all values are the same
+      if (min === max) {
+        return [{
+          bin: parseFloat(min.toFixed(2)),
+          count: validData.length,
+          isUser: true
+        }];
+      }
+
       const binSize = (max - min) / binCount;
+
+      // Validate binSize
+      if (!isFinite(binSize) || binSize <= 0) {
+        console.warn('Invalid bin size:', binSize);
+        return [];
+      }
 
       const bins = Array(binCount).fill(0).map((_, i) => ({
         bin: parseFloat((min + (i * binSize)).toFixed(2)),
@@ -279,14 +398,21 @@ const SessionDetail = () => {
         isUser: false
       }));
 
-      data.forEach(value => {
+      validData.forEach(value => {
         const binIndex = Math.min(Math.floor((value - min) / binSize), binCount - 1);
-        bins[binIndex].count++;
+
+        // Additional safety check
+        if (binIndex >= 0 && binIndex < bins.length && bins[binIndex]) {
+          bins[binIndex].count++;
+        }
       });
 
-      const userBinIndex = Math.min(Math.floor((userValue - min) / binSize), binCount - 1);
-      if (userBinIndex >= 0 && userBinIndex < bins.length) {
-        bins[userBinIndex].isUser = true;
+      // Mark user's bin
+      if (userValue != null && !isNaN(userValue) && isFinite(userValue)) {
+        const userBinIndex = Math.min(Math.floor((userValue - min) / binSize), binCount - 1);
+        if (userBinIndex >= 0 && userBinIndex < bins.length) {
+          bins[userBinIndex].isUser = true;
+        }
       }
 
       return bins;
@@ -299,7 +425,7 @@ const SessionDetail = () => {
       avgTheta: average(thetas),
       avgAccuracy: average(accuracies) / 100,
       avgQuestions: average(questionCounts),
-      totalUsers: allSessions.length,
+      totalUsers: validSessions.length,
       thetaHistogram: createHistogram(thetas, currentResults.final_theta),
       accuracyHistogram: createHistogram(accuracies, currentResults.accuracy * 100),
       questionsHistogram: createHistogram(questionCounts, currentResults.questions_asked)
@@ -386,26 +512,19 @@ const SessionDetail = () => {
   return (
     <div className={`p-8 ${theme('bg-gray-900', 'bg-gray-50')} min-h-screen`}>
       {/* Header */}
-      <div className="mb-6">
+      <div className="mb-8">
         <button
           onClick={() => navigate('/admin/sessions')}
-          className={`${theme('text-blue-400 hover:text-blue-300', 'text-blue-600 hover:text-blue-700')} mb-4 flex items-center`}
+          className={`${theme('text-blue-400 hover:text-blue-300', 'text-blue-600 hover:text-blue-700')} mb-6 flex items-center gap-2 text-sm font-medium`}
         >
           ← Back to Sessions
         </button>
-        <div className="flex justify-between items-start">
-          <div>
-            <h1 className={`text-3xl font-bold ${theme('text-white', 'text-gray-900')} mb-2`}>
-              Session #{sessionData.session_id}
-            </h1>
-            <div className={theme('text-gray-400', 'text-gray-600')}>
-              User: <span className={`${theme('text-white', 'text-gray-900')} font-medium`}>{sessionData.username}</span>
-              {' '} • Item Bank: <span className={`${theme('text-white', 'text-gray-900')} font-medium`}>{sessionData.item_bank}</span>
-            </div>
-          </div>
+
+        {/* Export Button - Right aligned */}
+        <div className="flex justify-end mb-4">
           <button
             onClick={handleExportPDF}
-            className={`px-4 py-2 ${theme('bg-blue-600 hover:bg-blue-700', 'bg-indigo-600 hover:bg-indigo-700')} text-white rounded-lg flex items-center gap-2`}
+            className={`px-5 py-2.5 ${theme('bg-blue-600 hover:bg-blue-700', 'bg-indigo-600 hover:bg-indigo-700')} text-white rounded-lg flex items-center gap-2 font-medium shadow-lg transition-all`}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
@@ -414,6 +533,47 @@ const SessionDetail = () => {
             Export PDF
           </button>
         </div>
+
+        {/* Session Information Card */}
+        <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} border rounded-xl p-6 shadow-lg`}>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div>
+              <div className={`text-xs font-semibold uppercase tracking-wider ${theme('text-gray-500', 'text-gray-500')} mb-2`}>
+                Session #
+              </div>
+              <div className={`text-lg font-semibold ${theme('text-white', 'text-gray-900')}`}>
+                {sessionData.session_id}
+              </div>
+            </div>
+
+            <div>
+              <div className={`text-xs font-semibold uppercase tracking-wider ${theme('text-gray-500', 'text-gray-500')} mb-2`}>
+                User
+              </div>
+              <div className={`text-lg font-semibold ${theme('text-white', 'text-gray-900')}`}>
+                {sessionData.username}
+              </div>
+            </div>
+
+            <div>
+              <div className={`text-xs font-semibold uppercase tracking-wider ${theme('text-gray-500', 'text-gray-500')} mb-2`}>
+                Question Bank
+              </div>
+              <div className={`text-lg font-semibold ${theme('text-white', 'text-gray-900')}`}>
+                {sessionData.item_bank_display_name || 'Loading...'}
+              </div>
+            </div>
+
+            <div>
+              <div className={`text-xs font-semibold uppercase tracking-wider ${theme('text-gray-500', 'text-gray-500')} mb-2`}>
+                Item Bank Name
+              </div>
+              <div className={`text-sm font-mono ${theme('text-blue-400', 'text-blue-600')} bg-opacity-20 ${theme('bg-blue-900', 'bg-blue-100')} px-3 py-1 rounded inline-block`}>
+                {sessionData.item_bank_name || sessionData.item_bank}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Performance Summary */}
@@ -421,9 +581,9 @@ const SessionDetail = () => {
         <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} border rounded-xl p-4`}>
           <div className={`text-sm ${theme('text-gray-400', 'text-gray-600')} mb-1`}>Final θ</div>
           <div className={`text-2xl font-bold ${theme('text-white', 'text-gray-900')} mb-1`}>
-            {sessionData.final_theta?.toFixed(2)}
+            {sessionData.final_theta?.toFixed(2) || 'N/A'}
           </div>
-          {comparativeData && (
+          {comparativeData && comparativeData.thetaPercentile != null && (
             <div className="text-xs" style={{ color: colors.primary }}>
               {comparativeData.thetaPercentile}th percentile
             </div>
@@ -433,9 +593,9 @@ const SessionDetail = () => {
         <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} border rounded-xl p-4`}>
           <div className={`text-sm ${theme('text-gray-400', 'text-gray-600')} mb-1`}>Accuracy</div>
           <div className={`text-2xl font-bold ${theme('text-white', 'text-gray-900')} mb-1`}>
-            {(sessionData.accuracy * 100).toFixed(0)}%
+            {sessionData.accuracy != null ? (sessionData.accuracy * 100).toFixed(0) : 'N/A'}%
           </div>
-          {comparativeData && (
+          {comparativeData && comparativeData.accuracyPercentile != null && (
             <div className="text-xs" style={{ color: colors.success }}>
               {comparativeData.accuracyPercentile}th percentile
             </div>
@@ -445,9 +605,9 @@ const SessionDetail = () => {
         <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} border rounded-xl p-4`}>
           <div className={`text-sm ${theme('text-gray-400', 'text-gray-600')} mb-1`}>Questions</div>
           <div className={`text-2xl font-bold ${theme('text-white', 'text-gray-900')} mb-1`}>
-            {sessionData.questions_asked}
+            {sessionData.questions_asked || 'N/A'}
           </div>
-          {comparativeData && (
+          {comparativeData && comparativeData.avgQuestions != null && (
             <div className={`text-xs ${theme('text-gray-400', 'text-gray-600')}`}>
               Avg: {comparativeData.avgQuestions.toFixed(0)}
             </div>
@@ -457,9 +617,9 @@ const SessionDetail = () => {
         <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} border rounded-xl p-4`}>
           <div className={`text-sm ${theme('text-gray-400', 'text-gray-600')} mb-1`}>Tier</div>
           <div className={`text-2xl font-bold ${theme('text-white', 'text-gray-900')}`}>
-            {sessionData.tier}
+            {sessionData.tier || 'N/A'}
           </div>
-          {comparativeData && (
+          {comparativeData && comparativeData.totalUsers != null && (
             <div className={`text-xs ${theme('text-gray-400', 'text-gray-600')}`}>
               vs {comparativeData.totalUsers} users
             </div>
@@ -527,7 +687,7 @@ const SessionDetail = () => {
       )}
 
       {/* Performance Distribution - UPDATED WITH USER BAR STYLING */}
-      {comparativeData && (
+      {comparativeData && comparativeData.thetaHistogram && comparativeData.thetaHistogram.length > 0 && (
         <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} border rounded-xl p-6 mb-6`}>
           <h2 className={`text-xl font-bold ${theme('text-white', 'text-gray-900')} mb-4`}>
             Performance Distribution
@@ -538,10 +698,10 @@ const SessionDetail = () => {
               <div className="text-center mb-4">
                 <div className={`text-sm ${theme('text-gray-400', 'text-gray-600')} mb-2`}>θ Distribution</div>
                 <div className="text-4xl font-bold mb-1" style={{ color: colors.primary }}>
-                  {comparativeData.thetaPercentile}%
+                  {comparativeData.thetaPercentile || 0}%
                 </div>
                 <div className={`text-xs ${theme('text-gray-500', 'text-gray-600')}`}>
-                  Your θ: {sessionData.final_theta.toFixed(2)} vs Avg: {comparativeData.avgTheta.toFixed(2)}
+                  Your θ: {sessionData.final_theta?.toFixed(2) || 'N/A'} vs Avg: {comparativeData.avgTheta?.toFixed(2) || 'N/A'}
                 </div>
               </div>
               <div className={`h-32 ${theme('bg-gray-900', 'bg-gray-100')} rounded-lg p-2`}>
@@ -584,10 +744,10 @@ const SessionDetail = () => {
               <div className="text-center mb-4">
                 <div className={`text-sm ${theme('text-gray-400', 'text-gray-600')} mb-2`}>Accuracy Percentile</div>
                 <div className="text-4xl font-bold mb-1" style={{ color: colors.success }}>
-                  {comparativeData.accuracyPercentile}%
+                  {comparativeData.accuracyPercentile || 0}%
                 </div>
                 <div className={`text-xs ${theme('text-gray-500', 'text-gray-600')}`}>
-                  Your: {(sessionData.accuracy * 100).toFixed(0)}% vs Avg: {(comparativeData.avgAccuracy * 100).toFixed(0)}%
+                  Your: {sessionData.accuracy != null ? (sessionData.accuracy * 100).toFixed(0) : 'N/A'}% vs Avg: {comparativeData.avgAccuracy != null ? (comparativeData.avgAccuracy * 100).toFixed(0) : 'N/A'}%
                 </div>
               </div>
               <div className={`h-32 ${theme('bg-gray-900', 'bg-gray-100')} rounded-lg p-2`}>
@@ -597,7 +757,7 @@ const SessionDetail = () => {
                       dataKey="bin"
                       fontSize={8}
                       stroke={theme('#9CA3AF', '#6B7280')}
-                      tickFormatter={(value) => `${value.toFixed(0)}%`}
+                      tickFormatter={(value) => `${value?.toFixed(0) || 0}%`}
                     />
                     <YAxis fontSize={8} stroke={theme('#9CA3AF', '#6B7280')} />
                     <Tooltip
@@ -630,10 +790,10 @@ const SessionDetail = () => {
               <div className="text-center mb-4">
                 <div className={`text-sm ${theme('text-gray-400', 'text-gray-600')} mb-2`}>Efficiency Percentile</div>
                 <div className="text-4xl font-bold mb-1" style={{ color: colors.purple }}>
-                  {comparativeData.questionsPercentile}%
+                  {comparativeData.questionsPercentile || 0}%
                 </div>
                 <div className={`text-xs ${theme('text-gray-500', 'text-gray-600')}`}>
-                  Questions: {sessionData.questions_asked} vs Avg: {comparativeData.avgQuestions.toFixed(0)}
+                  Questions: {sessionData.questions_asked || 'N/A'} vs Avg: {comparativeData.avgQuestions?.toFixed(0) || 'N/A'}
                 </div>
                 <div className={`text-xs ${theme('text-gray-400', 'text-gray-500')} mt-1`}>
                   (Fewer questions = Higher efficiency)
@@ -646,7 +806,7 @@ const SessionDetail = () => {
                       dataKey="bin"
                       fontSize={8}
                       stroke={theme('#9CA3AF', '#6B7280')}
-                      tickFormatter={(value) => value.toFixed(0)}
+                      tickFormatter={(value) => value?.toFixed(0) || 0}
                     />
                     <YAxis fontSize={8} stroke={theme('#9CA3AF', '#6B7280')} />
                     <Tooltip
@@ -733,7 +893,7 @@ const SessionDetail = () => {
                 />
                 <Scatter dataKey="theta">
                   {thetaProgression.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.correct ? colors.success : colors.danger} />
+                    <Cell key={`cell-${index}`} fill={entry.correct ? colors.success : colors.error} />
                   ))}
                 </Scatter>
               </ComposedChart>
@@ -745,7 +905,7 @@ const SessionDetail = () => {
               <span className={theme('text-gray-300', 'text-gray-700')}>Correct</span>
             </div>
             <div className="flex items-center">
-              <div className="w-2 h-2 rounded-full mr-1" style={{ backgroundColor: colors.danger }}></div>
+              <div className="w-2 h-2 rounded-full mr-1" style={{ backgroundColor: colors.error }}></div>
               <span className={theme('text-gray-300', 'text-gray-700')}>Incorrect</span>
             </div>
           </div>
@@ -765,7 +925,7 @@ const SessionDetail = () => {
                   {responsePattern.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
-                      fill={entry.correct ? colors.success : colors.danger}
+                      fill={entry.correct ? colors.success : colors.error}
                     />
                   ))}
                 </Scatter>
@@ -778,7 +938,7 @@ const SessionDetail = () => {
               <span className={theme('text-gray-300', 'text-gray-700')}>Correct</span>
             </div>
             <div className="flex items-center">
-              <div className="w-2 h-2 rounded-full mr-1" style={{ backgroundColor: colors.danger }}></div>
+              <div className="w-2 h-2 rounded-full mr-1" style={{ backgroundColor: colors.error }}></div>
               <span className={theme('text-gray-300', 'text-gray-700')}>Incorrect</span>
             </div>
           </div>
