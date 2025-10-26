@@ -91,7 +91,7 @@ yarn-error.log*
 *.db
 *.sqlite
 *.sqlite3
-data/
+
 
 # Archives (optional - uncomment if needed)
 # *.zip
