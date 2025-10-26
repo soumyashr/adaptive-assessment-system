@@ -174,15 +174,27 @@ const ItemBanksPage = () => {
 
   return (
     <div style={{ padding: '32px' }}>
-      {/* Header */}
-      <div style={{ marginBottom: '20px' }}>
-        <h1 style={{ fontSize: '32px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '8px' }}>
+
+
+
+
+        {/* Header */}
+      <div
+        className="mb-8 rounded-xl p-6"
+        style={{
+          backgroundColor: DARK_MODE ? '#292524' : '#ffffff',
+          boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)'
+        }}
+      >
+        <h1 className="text-3xl font-bold mb-2" style={{ color: colors.textPrimary }}>
           Item Banks
         </h1>
-        <p style={{ color: colors.textMuted, fontSize: '14px' }}>
+        <p style={{ color: colors.textMuted }}>
           Browse and manage your adaptive testing item banks
         </p>
       </div>
+
+
 
       {/* Header Stats Grid */}
       <div style={{
@@ -448,20 +460,72 @@ const ItemBanksPage = () => {
             {deleteStats ? (
               <>
                 {deleteStats.active_sessions > 0 ? (
-                  <div style={{
-                    padding: '12px',
-                    borderRadius: '8px',
-                    background: `${colors.warning}20`,
-                    border: `1px solid ${colors.warning}`,
-                    marginBottom: '16px'
-                  }}>
-                    <p style={{ color: colors.warning, fontWeight: 'bold', marginBottom: '8px' }}>
-                      ⚠️ Warning: {deleteStats.active_sessions} active session(s)
-                    </p>
-                    <p style={{ fontSize: '13px', color: colors.textSecondary }}>
-                      There are ongoing assessments. These must be completed before deletion.
-                    </p>
-                  </div>
+                  <>
+                      <div style={{
+                        padding: '12px',
+                        borderRadius: '8px',
+                        background: `${colors.warning}20`,
+                        border: `1px solid ${colors.warning}`,
+                        marginBottom: '12px'
+                      }}>
+                        <p style={{ color: colors.warning, fontWeight: 'bold', marginBottom: '8px' }}>
+                          ⚠️ Warning: {deleteStats.active_sessions} active session(s)
+                        </p>
+                        <p style={{ fontSize: '13px', color: colors.textSecondary }}>
+                          There are ongoing assessments. These must be completed before deletion.
+                        </p>
+                      </div>
+
+                      <button
+                        onClick={async () => {
+                          try {
+                            const response = await fetch(
+                              `${API_BASE}/item-banks/${selectedBank.name}/sessions/terminate`,
+                              { method: 'POST' }
+                            );
+
+                            if (response.ok) {
+                              const result = await response.json();
+                              notificationService.success(
+                                `Successfully terminated ${result.terminated_count} session(s)`
+                              );
+
+                              const statsResponse = await fetch(
+                                `${API_BASE}/item-banks/${selectedBank.name}/stats`
+                              );
+                              const newStats = await statsResponse.json();
+                              setDeleteStats(newStats);
+                            } else {
+                              const errorData = await response.json();
+                              notificationService.error(
+                                `Failed to terminate sessions: ${errorData.detail || 'Unknown error'}`
+                              );
+                            }
+                          } catch (err) {
+                            console.error('Error terminating sessions:', err);
+                            notificationService.error('Error terminating sessions');
+                          }
+                        }}
+                        style={{
+                          width: '100%',
+                          padding: '10px 16px',
+                          borderRadius: '8px',
+                          border: 'none',
+                          background: colors.warning,
+                          color: 'white',
+                          fontWeight: '600',
+                          fontSize: '14px',
+                          cursor: 'pointer',
+                          marginBottom: '16px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '8px'
+                        }}
+                      >
+                        Terminate Active Sessions
+                      </button>
+                    </>
                 ) : (
                   <div style={{
                     padding: '12px',

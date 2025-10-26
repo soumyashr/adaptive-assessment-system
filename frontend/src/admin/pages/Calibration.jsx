@@ -65,15 +65,21 @@ const Calibration = () => {
 
   return (
     <div className="p-8 min-h-screen" style={{ backgroundColor: colors.bgSecondary }}>
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2" style={{ color: colors.textPrimary }}>
-          IRT Calibration
-        </h1>
-        <p style={{ color: colors.textMuted }}>
-          Run Item Response Theory calibration to estimate item parameters
-        </p>
-      </div>
+        {/* Header */}
+          <div
+            className="mb-8 rounded-xl p-6"
+            style={{
+              backgroundColor: DARK_MODE ? '#292524' : '#ffffff',
+              boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)'
+            }}
+          >
+            <h1 className="text-3xl font-bold mb-2" style={{ color: colors.textPrimary }}>
+              IRT Calibration
+            </h1>
+            <p style={{ color: colors.textMuted }}>
+              Run Item Response Theory calibration to estimate item parameters
+            </p>
+          </div>
 
       {/* Error Message */}
       {error && (

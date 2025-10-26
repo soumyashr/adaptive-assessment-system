@@ -177,12 +177,20 @@ const UploadData = () => {
 
   return (
     <div style={{ padding: '32px' }}>
-      {/* Header */}
-      <div style={{ marginBottom: '20px' }}>
-        <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '6px' }}>
+
+
+        {/* Header */}
+      <div
+        className="mb-8 rounded-xl p-6"
+        style={{
+          backgroundColor: DARK_MODE ? '#292524' : '#ffffff',
+          boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)'
+        }}
+      >
+        <h1 className="text-3xl font-bold mb-2" style={{ color: colors.textPrimary }}>
           Upload Data
         </h1>
-        <p style={{ color: colors.textMuted, fontSize: '13px' }}>
+        <p style={{ color: colors.textMuted }}>
           Create new item banks and upload question sets
         </p>
       </div>

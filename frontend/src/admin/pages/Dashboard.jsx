@@ -128,18 +128,20 @@ const Dashboard = () => {
 
   return (
     <div style={{ padding: '32px' }}>
+
       {/* Header */}
-      <div style={{ marginBottom: '24px' }}>
-        <h1 style={{
-          fontSize: '32px',
-          fontWeight: 'bold',
-          color: colors.textPrimary,
-          marginBottom: '8px'
-        }}>
+      <div
+        className="mb-8 rounded-xl p-6"
+        style={{
+          backgroundColor: DARK_MODE ? '#292524' : '#ffffff',
+          boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)'
+        }}
+      >
+        <h1 className="text-3xl font-bold mb-2" style={{ color: colors.textPrimary }}>
           Dashboard
         </h1>
-        <p style={{ color: colors.textMuted, fontSize: '14px' }}>
-          Overview of your adaptive testing system
+        <p style={{ color: colors.textMuted }}>
+         Overview of your adaptive testing system
         </p>
       </div>
 
