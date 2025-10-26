@@ -11,6 +11,12 @@ const ItemBanksPage = () => {
   const [error, setError] = useState(null);
   const [calibratingBank, setCalibratingBank] = useState(null);
 
+  // Delete functionality states
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedBank, setSelectedBank] = useState(null);
+  const [deleteStats, setDeleteStats] = useState(null);
+  const [deletingBank, setDeletingBank] = useState(false);
+
   const API_BASE = config.API_BASE_URL;
   const colors = getThemeColors();
 
@@ -56,6 +62,55 @@ const ItemBanksPage = () => {
       notificationService.error(`Calibration failed: ${err.message}`);
     } finally {
       setCalibratingBank(null);
+    }
+  };
+
+  // Delete functionality handlers
+  const handleDeleteClick = async (bank) => {
+    setSelectedBank(bank);
+    setShowDeleteModal(true);
+
+    try {
+      const response = await fetch(`${API_BASE}/item-banks/${bank.name}/stats`);
+      const stats = await response.json();
+      setDeleteStats(stats);
+    } catch (err) {
+      console.error('Failed to fetch stats:', err);
+      setDeleteStats(null);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!selectedBank) return;
+
+    setDeletingBank(true);
+
+    try {
+      const response = await fetch(
+        `${API_BASE}/item-banks/${selectedBank.name}`,
+        { method: 'DELETE' }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.detail || 'Failed to delete item bank');
+      }
+
+      notificationService.success(`Successfully deleted ${selectedBank.display_name}`);
+      setShowDeleteModal(false);
+      setSelectedBank(null);
+      setDeleteStats(null);
+      await fetchItemBanks();
+
+    } catch (error) {
+      console.error('Error deleting item bank:', error);
+      notificationService.error(`Error: ${error.message}`);
+      setShowDeleteModal(false);
+      setSelectedBank(null);
+      setDeleteStats(null);
+    } finally {
+      setDeletingBank(false);
     }
   };
 
@@ -309,7 +364,7 @@ const ItemBanksPage = () => {
                 Cal
               </button>
               <button
-                onClick={() => notificationService.notify('Delete feature')}
+                onClick={() => handleDeleteClick(bank)}
                 style={{
                   padding: '8px',
                   borderRadius: '6px',
@@ -341,8 +396,156 @@ const ItemBanksPage = () => {
           <p style={{ fontSize: '14px' }}>Click "Upload & Create" to create your first item bank</p>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && selectedBank && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: colors.cardBg,
+            borderRadius: '12px',
+            padding: '24px',
+            maxWidth: '500px',
+            width: '90%',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.3)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+              <div style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: '50%',
+                background: `${colors.error}20`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <Trash2 size={24} color={colors.error} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '4px' }}>
+                  Confirm Deletion
+                </h3>
+                <p style={{ fontSize: '14px', color: colors.textMuted }}>
+                  This action cannot be undone
+                </p>
+              </div>
+            </div>
+
+            <p style={{ color: colors.textSecondary, marginBottom: '16px' }}>
+              Are you sure you want to delete <strong>{selectedBank.display_name}</strong>?
+            </p>
+
+            {deleteStats ? (
+              <>
+                {deleteStats.active_sessions > 0 ? (
+                  <div style={{
+                    padding: '12px',
+                    borderRadius: '8px',
+                    background: `${colors.warning}20`,
+                    border: `1px solid ${colors.warning}`,
+                    marginBottom: '16px'
+                  }}>
+                    <p style={{ color: colors.warning, fontWeight: 'bold', marginBottom: '8px' }}>
+                      ⚠️ Warning: {deleteStats.active_sessions} active session(s)
+                    </p>
+                    <p style={{ fontSize: '13px', color: colors.textSecondary }}>
+                      There are ongoing assessments. These must be completed before deletion.
+                    </p>
+                  </div>
+                ) : (
+                  <div style={{
+                    padding: '12px',
+                    borderRadius: '8px',
+                    background: colors.bgSecondary,
+                    marginBottom: '16px'
+                  }}>
+                    <p style={{ fontSize: '14px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '8px' }}>
+                      This will permanently delete:
+                    </p>
+                    <ul style={{ fontSize: '13px', color: colors.textSecondary, paddingLeft: '20px' }}>
+                      <li>✗ {deleteStats.total_items} questions</li>
+                      <li>✗ {deleteStats.test_takers} test sessions</li>
+                      <li>✗ {deleteStats.total_responses} student responses</li>
+                    </ul>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '16px' }}>
+                <div style={{
+                  width: '32px',
+                  height: '32px',
+                  border: `3px solid ${colors.border}`,
+                  borderTopColor: colors.primary,
+                  borderRadius: '50%',
+                  animation: 'spin 1s linear infinite',
+                  margin: '0 auto'
+                }} />
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setSelectedBank(null);
+                  setDeleteStats(null);
+                }}
+                disabled={deletingBank}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: '8px',
+                  border: `1px solid ${colors.cardBorder}`,
+                  background: colors.cardBg,
+                  color: colors.textPrimary,
+                  fontWeight: '600',
+                  cursor: deletingBank ? 'not-allowed' : 'pointer',
+                  opacity: deletingBank ? 0.5 : 1
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                disabled={deletingBank || (deleteStats && deleteStats.active_sessions > 0)}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: (deleteStats && deleteStats.active_sessions > 0) ? colors.border : colors.error,
+                  color: 'white',
+                  fontWeight: '600',
+                  cursor: (deletingBank || (deleteStats && deleteStats.active_sessions > 0)) ? 'not-allowed' : 'pointer',
+                  opacity: (deletingBank || (deleteStats && deleteStats.active_sessions > 0)) ? 0.5 : 1
+                }}
+              >
+                {deletingBank ? 'Deleting...' : 'Delete Item Bank'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
+
+// Add CSS for spinner animation
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+`;
+document.head.appendChild(style);
 
 export default ItemBanksPage;

@@ -21,6 +21,7 @@ import {
 import './App.css';
 import { DARK_MODE, theme, toggleDarkMode } from '../config/theme';
 import config from '../config/config';
+import StudentDashboard from './pages/StudentDashboard';
 import notificationService from '../services/notificationService';
 
 const AdaptiveAssessment = () => {
@@ -908,93 +909,13 @@ const AdaptiveAssessment = () => {
 
       <div className="max-w-7xl mx-auto p-6">
         {!currentSession ? (
-          /* ASSESSMENT SELECTION */
-          <div className="max-w-2xl mx-auto">
-            <div className={`text-center mb-8 ${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} border rounded-2xl p-6`}>
-              <h2 className={`text-3xl font-bold ${theme('text-white', 'text-gray-900')} mb-3`}>
-                Choose Your Assessment
-              </h2>
-              <p className={`text-lg ${theme('text-gray-300', 'text-gray-700')} font-medium`}>
-                Select a subject to begin your adaptive test
-              </p>
-            </div>
-
-            {userStats && userStats.proficiencies.length > 0 && (
-              <div className={`mb-6 ${theme('bg-gray-800 border-gray-700', 'bg-blue-200 border-blue-200')} border rounded-xl p-4`}>
-                <h3 className={`text-sm font-semibold ${theme('text-white', 'text-blue-900')} mb-3`}>Your Progress</h3>
-                <div className="space-y-2">
-                  {userStats.proficiencies.map(prof => {
-                    const getTierStyle = (theta) => {
-                      if (theta < -1.0) return {
-                        bg: theme('bg-red-500/90', 'bg-red-500'),
-                        text: 'text-white',
-                        label: 'Beginner'
-                      };
-                      if (theta < 0.0) return {
-                        bg: theme('bg-amber-500/90', 'bg-amber-500'),
-                        text: 'text-white',
-                        label: 'Intermediate'
-                      };
-                      if (theta < 1.0) return {
-                        bg: theme('bg-emerald-500/90', 'bg-emerald-500'),
-                        text: 'text-white',
-                        label: 'Advanced'
-                      };
-                      return {
-                        bg: theme('bg-blue-600/90', 'bg-blue-600'),
-                        text: 'text-white',
-                        label: 'Expert'
-                      };
-                    };
-
-                    const tierStyle = getTierStyle(prof.theta);
-
-                    return (
-                      <div key={prof.item_bank} className={`flex justify-between items-center ${theme('bg-gray-700', 'bg-white')} rounded-lg px-4 py-2.5 text-sm`}>
-                        <span className={`font-semibold ${theme('text-white', 'text-gray-900')} capitalize`}>{prof.item_bank}</span>
-                        <div className="flex items-center space-x-2">
-                          <span className={`px-3 py-1 rounded-full text-xs font-bold ${tierStyle.bg} ${tierStyle.text}`}>
-                            {tierStyle.label}
-                          </span>
-                          <span className={`${theme('text-gray-300', 'text-gray-500')} text-xs`}>θ = {prof.theta.toFixed(2)}</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            <div className="space-y-3">
-              {availableItemBanks.length > 0 ? (
-                availableItemBanks.map((bank) => (
-                  <button
-                    key={bank.name}
-                    onClick={() => startAssessment(bank.name)}
-                    disabled={loading || bank.status !== 'calibrated'}
-                    className={`w-full ${theme('bg-gray-800 hover:bg-gray-700 border-gray-700 hover:border-blue-600', 'bg-white hover:bg-gray-50 border-gray-200 hover:border-indigo-300')} border-2 rounded-xl px-6 py-4 transition text-left ${(loading || bank.status !== 'calibrated') ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  >
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <div className={`font-bold ${theme('text-white', 'text-gray-900')} text-lg`}>{bank.display_name}</div>
-                        <div className={`text-sm ${theme('text-gray-400', 'text-gray-600')} mt-0.5`}>
-                          {bank.total_items} questions • {bank.status}
-                        </div>
-                      </div>
-                      <svg className={`w-5 h-5 ${theme('text-gray-500', 'text-gray-400')}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </div>
-                  </button>
-                ))
-              ) : (
-                <div className={`text-center py-12 ${theme('text-gray-400', 'text-gray-500')}`}>
-                  <div className={`animate-spin rounded-full h-8 w-8 border-b-2 ${theme('border-blue-500', 'border-indigo-600')} mx-auto mb-2`}></div>
-                  Loading assessments...
-                </div>
-              )}
-            </div>
-          </div>
+          /* STUDENT DASHBOARD */
+          <StudentDashboard
+            userStats={userStats}
+            availableItemBanks={availableItemBanks}
+            onStartAssessment={startAssessment}
+            loading={loading}
+          />
         ) : assessmentComplete ? (
           /* RESULTS PAGE */
           <div className="max-w-5xl mx-auto">

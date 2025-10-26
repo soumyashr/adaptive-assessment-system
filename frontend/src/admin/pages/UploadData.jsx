@@ -112,10 +112,10 @@ const UploadData = () => {
         option_d: "6",
         answer: "B",
         tier: "C1",
-        topic: "Arithmetic",
-        discrimination_a: "",
-        difficulty_b: "",
-        guessing_c: ""
+        topic: "Arithmetic"
+        // discrimination_a: "",
+        // difficulty_b: "",
+        // guessing_c: ""
       },
       {
         question: "Solve: x² = 16",
@@ -125,10 +125,10 @@ const UploadData = () => {
         option_d: "±4",
         answer: "D",
         tier: "C2",
-        topic: "Algebra",
-        discrimination_a: "",
-        difficulty_b: "",
-        guessing_c: ""
+        topic: "Algebra"
+        // discrimination_a: "",
+        // difficulty_b: "",
+        // guessing_c: ""
       },
       {
         question: "What is the capital of France?",
@@ -138,10 +138,10 @@ const UploadData = () => {
         option_d: "Madrid",
         answer: "B",
         tier: "C1",
-        topic: "Geography",
-        discrimination_a: "",
-        difficulty_b: "",
-        guessing_c: ""
+        topic: "Geography"
+        // discrimination_a: "",
+        // difficulty_b: "",
+        // guessing_c: ""
       }
     ];
 
@@ -161,9 +161,9 @@ const UploadData = () => {
       { wch: 10 }, // answer
       { wch: 10 }, // tier
       { wch: 15 }, // topic
-      { wch: 18 }, // discrimination_a
-      { wch: 15 }, // difficulty_b
-      { wch: 15 }  // guessing_c
+      // { wch: 18 }, // discrimination_a
+      // { wch: 15 }, // difficulty_b
+      // { wch: 15 }  // guessing_c
     ];
 
     // Add worksheet to workbook
@@ -172,7 +172,7 @@ const UploadData = () => {
     // Generate and download the file
     XLSX.writeFile(wb, 'item_bank_template.xlsx');
 
-    notificationService.success('Excel template downloaded successfully!');
+    notificationService.success('Excel template with 8 columns downloaded successfully!');
   };
 
   return (
@@ -432,7 +432,7 @@ const UploadData = () => {
           </div>
         </div>
 
-        {/* Column 2: Required/Optional Fields - COMPACT */}
+        {/* Column 2: Required Fields */}
         <div style={{
           background: colors.cardBg,
           border: `1px solid ${colors.cardBorder}`,
@@ -442,7 +442,7 @@ const UploadData = () => {
           <div style={{ marginBottom: '12px' }}>
             <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <Info size={16} color={colors.primary} />
-              Required Columns
+              Required Columns (8)
             </h3>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', fontSize: '11px' }}>
               {['question', 'option_a', 'option_b', 'option_c', 'option_d', 'answer', 'tier', 'topic'].map((field, i) => (
@@ -461,23 +461,16 @@ const UploadData = () => {
             </div>
           </div>
 
-          <div>
-            <h3 style={{ fontSize: '13px', fontWeight: 'bold', color: colors.textPrimary, marginBottom: '6px' }}>
-              Optional
-            </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', fontSize: '10px' }}>
-              {['discrimination_a', 'difficulty_b', 'guessing_c'].map((field, i) => (
-                <div key={i} style={{
-                  padding: '4px 8px',
-                  background: DARK_MODE ? 'rgba(156, 163, 175, 0.15)' : '#F3F4F6',
-                  borderRadius: '4px',
-                  fontFamily: 'monospace',
-                  color: colors.textMuted
-                }}>
-                  {field}
-                </div>
-              ))}
-            </div>
+          <div style={{
+            padding: '10px',
+            background: DARK_MODE ? 'rgba(16, 185, 129, 0.1)' : '#D1FAE5',
+            border: `1px solid ${colors.success}`,
+            borderRadius: '6px',
+            fontSize: '11px',
+            color: colors.success,
+            lineHeight: '1.4'
+          }}>
+            IRT parameters (discrimination, difficulty, guessing) are auto-generated based on tier!
           </div>
         </div>
 
@@ -542,7 +535,7 @@ const UploadData = () => {
             color: colors.success,
             lineHeight: '1.4'
           }}>
-            💡 Ready-to-use Excel template with sample data
+            Ready-to-use Excel template with sample data
           </div>
         </div>
       </div>

@@ -182,7 +182,7 @@ async def upload_questions(file: UploadFile = File(...), db: Session = Depends(g
 
     # Validate columns
     required_columns = ['subject', 'question_id', 'question', 'option_a', 'option_b',
-                        'option_c', 'option_d', 'answer', 'topic', 'tier',
+                        'option_c', 'option_d', 'answer',  'tier','topic',
                         'discrimination_a', 'difficulty_b', 'guessing_c']
 
     # Normalize column names
@@ -192,7 +192,7 @@ async def upload_questions(file: UploadFile = File(...), db: Session = Depends(g
     if missing:
         # Check if it's a simplified format (missing IRT parameters)
         basic_required = ['question', 'option_a', 'option_b', 'option_c', 'option_d',
-                          'answer', 'topic', 'tier']
+                          'answer',  'tier', 'topic',]
         basic_missing = [col for col in basic_required if col not in df.columns]
 
         if basic_missing:

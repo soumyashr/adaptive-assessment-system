@@ -1423,6 +1423,55 @@ class UserService:
 class QuestionService:
     """UNCHANGED - All original methods preserved"""
 
+    def auto_complete_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Auto-generate missing columns for a simplified question upload
+
+        Args:
+            df: DataFrame with basic columns (question, options, answer, tier, topic)
+
+        Returns:
+            DataFrame with all required columns filled in
+        """
+        # Generate subject from first topic if not present
+        if 'subject' not in df.columns:
+            # Use the most common topic prefix as subject
+            if 'topic' in df.columns and len(df) > 0:
+                first_topic = df['topic'].iloc[0]
+                # Extract subject from topic (e.g., "Complex Numbers - Basic" → "complex_numbers")
+                subject = first_topic.split(' - ')[0].lower().replace(' ', '_')
+                df['subject'] = subject
+            else:
+                df['subject'] = 'unknown'
+
+        # Generate question_id if not present
+        if 'question_id' not in df.columns:
+            subject = df['subject'].iloc[0] if len(df) > 0 else 'unknown'
+            df['question_id'] = [f"{subject}_{i + 1}" for i in range(len(df))]
+
+        # Set default IRT parameters if not provided
+        if 'discrimination_a' not in df.columns:
+            df['discrimination_a'] = 1.5
+
+        if 'difficulty_b' not in df.columns:
+            # Map tier to difficulty
+            tier_difficulty_map = {
+                'C1': -1.5,
+                'C2': -0.5,
+                'C3': 0.5,
+                'C4': 1.5
+            }
+            df['difficulty_b'] = df['tier'].map(tier_difficulty_map).fillna(0.0)
+
+        if 'guessing_c' not in df.columns:
+            df['guessing_c'] = 0.25
+
+        if 'content_area' not in df.columns:
+            df['content_area'] = df['topic']
+
+        logger.info(f"Auto-generated missing columns for {len(df)} questions")
+        return df
+
     def import_questions_from_df(self, db: Session, df: pd.DataFrame) -> int:
         """UNCHANGED"""
         imported_count = 0
