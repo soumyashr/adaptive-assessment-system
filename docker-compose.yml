@@ -25,10 +25,12 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile_FE
-      # No args - uses .env.production automatically
     container_name: adaptive-frontend
     ports:
       - "80:80"
+      - "443:443"
+    volumes:
+      - ./ssl:/etc/nginx/ssl:ro
     depends_on:
       - backend
     restart: unless-stopped
