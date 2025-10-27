@@ -1618,9 +1618,16 @@ class AssessmentService:
             models_itembank.AssessmentSession.session_id == session_id
         ).first()
 
+    # Sanitize data - convert None to empty string for all options
+    def sanitize_option(self, value):
+        """Convert None or non-string values to empty string"""
+        if value is None:
+            return ""
+        return str(value)
+
     def get_next_question(self, db: Session, session_id: int,
                           irt_engine: IRTEngine) -> Optional[schemas.QuestionResponse]:
-        """UNCHANGED"""
+        """Get next question with sanitized options - ensures no None values"""
         session = self.get_session(db, session_id)
         if not session or session.completed:
             return None
@@ -1653,19 +1660,22 @@ class AssessmentService:
 
         logger.info(f"Selected question: {next_question_data['question_id']}")
 
+        # Sanitize data - convert None to empty string for all options
+
         return schemas.QuestionResponse(
             id=next_question_data['id'],
             question=next_question_data['question'],
-            option_a=next_question_data['option_a'],
-            option_b=next_question_data['option_b'],
-            option_c=next_question_data['option_c'],
-            option_d=next_question_data['option_d'],
+            option_a=self.sanitize_option(next_question_data.get('option_a')),
+            option_b=self.sanitize_option(next_question_data.get('option_b')),
+            option_c=self.sanitize_option(next_question_data.get('option_c')),
+            option_d=self.sanitize_option(next_question_data.get('option_d')),
             topic=next_question_data['topic'],
             tier=next_question_data['tier'],
             difficulty_b=next_question_data['difficulty_b'],
             discrimination_a=next_question_data['discrimination_a'],
             guessing_c=next_question_data['guessing_c']
         )
+
 
     # This shows the key modifications to the record_response method
 
