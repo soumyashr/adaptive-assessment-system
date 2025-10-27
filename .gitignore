@@ -18,7 +18,7 @@ pip-delete-this-directory.txt
 backend/__pycache__/
 backend/**/__pycache__/
 backend/adaptive_assessment.log
-backend/data/*.db
+#backend/data/*.db
 backend/data/*.sqlite
 backend/data/*.sqlite3
 *.pyc
@@ -88,7 +88,7 @@ yarn-debug.log*
 yarn-error.log*
 
 # Database files
-*.db
+#*.db
 *.sqlite
 *.sqlite3
 /data/*_report.txt
