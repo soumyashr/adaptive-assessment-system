@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  backend:
+    environment:
+      # Update CORS for HTTPS
+      - FRONTEND_URL=https://108.0.7.193
+      - CORS_ORIGINS=https://108.0.7.193,http://108.0.7.193,http://localhost
+
+  frontend:
+    build:
+      args:
+        # Use HTTPS for API calls
+        REACT_APP_API_URL: https://108.0.7.193/api
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # Mount SSL certificates directory
+      - ./ssl:/etc/nginx/ssl:ro

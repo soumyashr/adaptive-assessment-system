@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  backend:
+    environment:
+      - FRONTEND_URL=https://108.0.7.193
+      - CORS_ORIGINS=https://108.0.7.193,http://108.0.7.193,http://localhost
+
+  frontend:
+    build:
+      args:
+        # Override .env.production for HTTPS
+        REACT_APP_API_URL: https://108.0.7.193/api
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./ssl:/etc/nginx/ssl:ro
+
+  # Note: REACT_APP_API_URL will be picked from .env.Production

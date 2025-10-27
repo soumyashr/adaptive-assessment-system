@@ -8,19 +8,19 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install
 
-# Copy application code
+# Copy application code (includes .env files)
 COPY . .
 
-# CRITICAL: Accept build argument and set as environment variable
+# Accept optional build argument
+# If provided, it overrides .env.production
 ARG REACT_APP_API_URL
-ENV REACT_APP_API_URL=$REACT_APP_API_URL
+ENV REACT_APP_API_URL=${REACT_APP_API_URL}
 
 # Debug: Show what the API URL is during build
-RUN echo "Building with API URL: $REACT_APP_API_URL"
+RUN echo "Building with API URL: ${REACT_APP_API_URL:-from .env file}"
 
 # Build the React app
-# npm run build ( not npm start ) so React considers it a Production environment
-# and hence uses .env file and ignores .env.development file
+# Uses .env.production by default, or build arg if provided
 RUN npm run build
 
 # Production stage
@@ -32,6 +32,10 @@ COPY --from=build /app/build /usr/share/nginx/html
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-EXPOSE 80
+# Create directory for SSL certificates (will be mounted as volume)
+RUN mkdir -p /etc/nginx/ssl
+
+# Expose both HTTP and HTTPS ports
+EXPOSE 80 443
 
 CMD ["nginx", "-g", "daemon off;"]
