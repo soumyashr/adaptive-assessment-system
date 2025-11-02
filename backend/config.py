@@ -10,6 +10,7 @@ class Config:
 
     # IRT Engine Configuration
     IRT_CONFIG = {
+        # Note: Cleanup : Remove target_sem - it's in AdaptiveConfig now
         "target_sem": float(os.getenv("TARGET_SEM", "0.13")),
         "max_questions": int(os.getenv("MAX_QUESTIONS", "40")),
         "min_questions": int(os.getenv("MIN_QUESTIONS", "8")),

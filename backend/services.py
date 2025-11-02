@@ -1,22 +1,20 @@
 # backend/services.py
 """
-FULLY BACKWARD COMPATIBLE SERVICES
-All changes are ADDITIVE with safety mechanisms
-Admin module will continue to work unchanged
+with safety mechanisms
 """
 
 
-
-
-
 import matplotlib
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+
 matplotlib.use('Agg')  # Use non-GUI backend - MUST be before pyplot import
 import matplotlib.pyplot as plt
 import numpy as np
 
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, not_, text
-from typing import List, Optional, Dict, Tuple
+from typing import List, Optional, Dict
 import pandas as pd
 from datetime import datetime
 import logging
@@ -28,21 +26,21 @@ from collections import defaultdict
 import sqlite3
 from io import BytesIO
 from reportlab.lib import colors
-from reportlab.lib.pagesizes import A4, letter
+from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak, Image
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
-from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
+from reportlab.lib.enums import TA_CENTER
 from reportlab.platypus.flowables import HRFlowable
 
 
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'scripts'))
-from db_manager import item_bank_db
+from scripts.db_manager import item_bank_db
 
 import models_registry
 import models_itembank
-from irt_engine import IRTEngine
+from irt_engine import IRTEngine, TestPurpose
 import schemas
 
 logger = logging.getLogger(__name__)
@@ -1063,7 +1061,7 @@ class PDFExportService:
         """Helper: Calculate topic performance from responses"""
         try:
             topic_calculator = TopicPerformanceCalculator()
-            irt_engine = IRTEngine()
+            irt_engine = IRTEngine(test_purpose=TestPurpose.FORMATIVE)
             topic_data = defaultdict(list)
 
             for resp in responses:
@@ -1099,7 +1097,7 @@ class SessionManagementService:
 
     def __init__(self):
         self.user_service = UserService()
-        self.irt_engine = IRTEngine()
+        self.irt_engine = IRTEngine(test_purpose=TestPurpose.FORMATIVE)
 
     def terminate_single_session(self, item_db: Session, registry_db: Session,
                                  session_id: int, item_bank_name: str) -> Dict:
@@ -1591,7 +1589,7 @@ class AssessmentService:
             user = registry_db.query(models_registry.User).filter(
                 models_registry.User.id == user_id
             ).first()
-            irt_engine = IRTEngine()
+            irt_engine = IRTEngine(test_purpose=TestPurpose.FORMATIVE)
             starting_theta = irt_engine.get_initial_theta(user.initial_competence_level)
             logger.info(f"Using initial competence: {user.initial_competence_level}, theta: {starting_theta:.3f}")
 
@@ -1600,7 +1598,7 @@ class AssessmentService:
             subject=subject,
             theta=starting_theta,
             sem=1.0,
-            tier=IRTEngine().theta_to_tier(starting_theta),
+            tier=IRTEngine(test_purpose=TestPurpose.FORMATIVE).theta_to_tier(starting_theta),
             questions_asked=0,
             completed=False
         )
@@ -1759,8 +1757,9 @@ class AssessmentService:
         except Exception as e:
             logger.warning(f"Could not calculate topic performance: {e}")
 
-        # EXISTING: Check completion
-        if irt_engine.should_stop_assessment(new_sem, session.questions_asked, response_history):
+        # EXISTING: Check completion - FIXED to use TestPurpose enum
+        should_stop, stop_reason = irt_engine.should_stop_assessment(new_sem, session.questions_asked, test_purpose=TestPurpose.FORMATIVE)
+        if should_stop:
             session.completed = True
             session.completed_at = datetime.utcnow()
 
@@ -1885,8 +1884,28 @@ class AssessmentService:
 
             response_details.append(schemas.ResponseDetails(**detail_dict))
 
-        irt_engine = IRTEngine()
+        irt_engine = IRTEngine(test_purpose=TestPurpose.FORMATIVE)
         final_tier = irt_engine.theta_to_tier(session.theta)
+
+        # Calculate precision quality
+        if session.sem <= 0.25:
+            precision_quality = {"label": "Excellent Precision", "color": "#10B981", "stars": 5}
+        elif session.sem <= 0.35:
+            precision_quality = {"label": "High Precision", "color": "#3B82F6", "stars": 4}
+        elif session.sem <= 0.45:
+            precision_quality = {"label": "Moderate Precision", "color": "#F59E0B", "stars": 3}
+        elif session.sem <= 0.60:
+            precision_quality = {"label": "Low Precision", "color": "#F97316", "stars": 2}
+        else:
+            precision_quality = {"label": "Very Low Precision", "color": "#DC2626", "stars": 1}
+
+        # Calculate progress to target
+        target_sem = irt_engine.target_sem
+        if session.sem > target_sem:
+            progress_to_target = 0.0
+        else:
+            initial_sem = 1.0
+            progress_to_target = min(1.0, (initial_sem - session.sem) / (initial_sem - target_sem))
 
         # Base result (always available)
         result_dict = {
@@ -1900,7 +1919,10 @@ class AssessmentService:
             'correct_answers': correct_count,
             'accuracy': accuracy,
             'responses': response_details,
-            'completed_at': session.completed_at
+            'completed_at': session.completed_at,
+            'precision_quality': precision_quality,
+            'progress_to_target': progress_to_target,
+            'target_sem': target_sem
         }
 
         # NEW: Add enhanced data if available

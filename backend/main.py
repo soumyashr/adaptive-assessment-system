@@ -26,7 +26,7 @@ import models_registry as models
 import models_itembank
 
 import schemas
-from irt_engine import IRTEngine
+from irt_engine import IRTEngine, TestPurpose
 from services import (
     UserService,
     QuestionService,
@@ -76,7 +76,7 @@ question_service = QuestionService()
 assessment_service = AssessmentService()
 session_management_service = SessionManagementService()
 pdf_export_service = PDFExportService()
-irt_engine = IRTEngine()
+irt_engine = IRTEngine(test_purpose=TestPurpose.FORMATIVE)  # Use FORMATIVE for all assessments
 
 
 def get_item_bank_session(item_bank_name: str):
@@ -485,14 +485,14 @@ def start_assessment(
         item_db.close()
 
 
-@app.post("/api/assessments/{session_id}/answer", response_model=schemas.AssessmentSession)
+@app.post("/api/assessments/{session_id}/answer")
 def submit_answer(
         session_id: int,
         answer: schemas.AnswerSubmission,
         item_bank_name: str,
         db: Session = Depends(get_db)
 ):
-    """Submit an answer and get next question"""
+    """Submit an answer and get next question with tier tracking"""
 
     # Verify item bank exists
     item_bank = db.query(models.ItemBank).filter(
@@ -504,6 +504,7 @@ def submit_answer(
     item_db = item_bank_db.get_session(item_bank_name)
 
     try:
+        # Record response
         recorded_data = assessment_service.record_response(
             item_db=item_db,
             registry_db=db,
@@ -525,6 +526,45 @@ def submit_answer(
         if not session:
             raise HTTPException(status_code=404, detail="Session not found")
 
+        # Calculate tier information
+        estimated_tier = irt_engine.theta_to_tier(session.theta)
+
+        # Try to get active tier, fallback to estimated if method doesn't exist
+        try:
+            active_tier = irt_engine.get_active_tier(session.theta, session.sem, session.questions_asked)
+        except (AttributeError, TypeError):
+            active_tier = estimated_tier
+
+        tier_aligned = (estimated_tier == active_tier)
+
+        tier_note = None
+        if not tier_aligned:
+            if active_tier < estimated_tier:
+                tier_note = "Presenting easier questions to improve measurement precision. Recent performance suggests ability is still stabilizing."
+            else:
+                tier_note = "Presenting more challenging questions to better assess upper limits of ability."
+
+        # Calculate precision quality
+        if session.sem <= 0.25:
+            precision_quality = {"label": "Excellent Precision", "color": "#10B981", "stars": 5}
+        elif session.sem <= 0.35:
+            precision_quality = {"label": "High Precision", "color": "#3B82F6", "stars": 4}
+        elif session.sem <= 0.45:
+            precision_quality = {"label": "Moderate Precision", "color": "#F59E0B", "stars": 3}
+        elif session.sem <= 0.60:
+            precision_quality = {"label": "Low Precision", "color": "#F97316", "stars": 2}
+        else:
+            precision_quality = {"label": "Very Low Precision", "color": "#DC2626", "stars": 1}
+
+        # Calculate progress to target
+        target_sem = irt_engine.target_sem  # Use actual target from config (0.5 for formative)
+        if session.sem > target_sem:
+            progress_to_target = 0.0
+        else:
+            initial_sem = 1.0
+            progress_to_target = min(1.0, (initial_sem - session.sem) / (initial_sem - target_sem))
+
+        # Handle completed assessment
         if session.completed:
             response_data = {
                 "session_id": session.session_id,
@@ -534,7 +574,14 @@ def submit_answer(
                 "questions_asked": session.questions_asked,
                 "completed": True,
                 "last_response_correct": recorded_response.is_correct,
-                "topic_performance": topic_performance
+                "topic_performance": topic_performance,
+                "estimated_tier": estimated_tier,
+                "active_tier": active_tier,
+                "tier_alignment": tier_aligned,
+                "tier_note": tier_note,
+                "precision_quality": precision_quality,
+                "progress_to_target": progress_to_target,
+                "target_sem": target_sem
             }
             return response_data
 
@@ -550,13 +597,21 @@ def submit_answer(
             "questions_asked": session.questions_asked,
             "completed": session.completed,
             "last_response_correct": recorded_response.is_correct,
-            "topic_performance": topic_performance
+            "topic_performance": topic_performance,
+            "estimated_tier": estimated_tier,
+            "active_tier": active_tier,
+            "tier_alignment": tier_aligned,
+            "tier_note": tier_note,
+            "precision_quality": precision_quality,
+            "progress_to_target": progress_to_target,
+            "target_sem": target_sem
         }
     except Exception as e:
         logger.error(f"Error in submit_answer: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Internal error: {str(e)}")
     finally:
         item_db.close()
+
 
 
 @app.get("/api/assessments/{session_id}/results", response_model=schemas.AssessmentResults)

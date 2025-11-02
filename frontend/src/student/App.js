@@ -44,6 +44,18 @@ const AdaptiveAssessment = () => {
   const [topicPerformance, setTopicPerformance] = useState({});
   const [isDarkMode, setIsDarkMode] = useState(DARK_MODE); // Sync with theme.js
 
+  // NEW: Track tier information from backend
+  const [currentTierInfo, setCurrentTierInfo] = useState({
+    estimated_tier: null,
+    active_tier: null,
+    tier_aligned: true,
+    tier_note: ''
+  });
+
+  const [precisionQuality, setPrecisionQuality] = useState(null);
+  const [progressToTarget, setProgressToTarget] = useState(null);
+  const [targetSem, setTargetSem] = useState(0.3); // Default for formative
+
   const API_BASE = config.API_BASE_URL;
   const DEFAULT_COMPETENCE_LEVEL = 'beginner';
 
@@ -622,6 +634,15 @@ const AdaptiveAssessment = () => {
   const startAssessment = async (subject = 'maths') => {
     setLoading(true);
     setError(null);
+
+    // NEW: Reset tier info for new assessment
+    setCurrentTierInfo({
+      estimated_tier: null,
+      active_tier: null,
+      tier_aligned: true,
+      tier_note: ''
+    });
+
     try {
       const response = await fetch(`${API_BASE}/assessments/start`, {
         method: 'POST',
@@ -669,6 +690,28 @@ const AdaptiveAssessment = () => {
       );
       if (response.ok) {
         const updatedSession = await response.json();
+
+        // NEW: Capture tier information from backend response
+        if (updatedSession.estimated_tier && updatedSession.active_tier) {
+          setCurrentTierInfo({
+            estimated_tier: updatedSession.estimated_tier,
+            active_tier: updatedSession.active_tier,
+            tier_aligned: updatedSession.tier_alignment || (updatedSession.estimated_tier === updatedSession.active_tier),
+            tier_note: updatedSession.tier_note || ''
+          });
+          setPrecisionQuality(null);
+          setProgressToTarget(null);
+        }
+
+        if (updatedSession.precision_quality) {
+          setPrecisionQuality(updatedSession.precision_quality);
+        }
+        if (updatedSession.progress_to_target !== undefined) {
+          setProgressToTarget(updatedSession.progress_to_target);
+        }
+        if (updatedSession.target_sem !== undefined) {
+          setTargetSem(updatedSession.target_sem);
+        }
 
         if (updatedSession.topic_performance) {
           setTopicPerformance(updatedSession.topic_performance);
@@ -732,6 +775,28 @@ const AdaptiveAssessment = () => {
       if (response.ok) {
         const resultsData = await response.json();
         setResults(resultsData);
+
+        // NEW: Capture final tier information
+        if (resultsData.estimated_tier && resultsData.active_tier) {
+          setCurrentTierInfo({
+            estimated_tier: resultsData.estimated_tier,
+            active_tier: resultsData.active_tier,
+            tier_aligned: resultsData.estimated_tier === resultsData.active_tier,
+            tier_note: resultsData.tier_note || ''
+          });
+        }
+
+        // NEW: Capture final precision information
+        if (resultsData.precision_quality) {
+          setPrecisionQuality(resultsData.precision_quality);
+        }
+        if (resultsData.progress_to_target !== undefined) {
+          setProgressToTarget(resultsData.progress_to_target);
+        }
+        if (resultsData.target_sem !== undefined) {
+          setTargetSem(resultsData.target_sem);
+        }
+
       }
     } catch (error) {
       console.error('Failed to load results:', error);
@@ -750,6 +815,21 @@ const AdaptiveAssessment = () => {
     if (theta < 0.0) return 'Intermediate';
     if (theta < 1.0) return 'Advanced';
     return 'Expert';
+  };
+
+  // NEW: Helper functions for tier code mapping
+  const getTierLabel = (tierCode) => {
+    const tierMap = {
+      'C1': 'Beginner',
+      'C2': 'Intermediate',
+      'C3': 'Advanced',
+      'C4': 'Expert'
+    };
+    return tierMap[tierCode] || 'Unknown';
+  };
+
+  const getTierColor = (tierCode) => {
+    return tierColors[tierCode] || '#9CA3AF';
   };
 
   useEffect(() => {
@@ -995,6 +1075,65 @@ const AdaptiveAssessment = () => {
                       </div>
                     </div>
                   </div>
+
+                  {/* Precision Quality on Results Page */}
+                  {results.precision_quality && (
+                    <div className={`${theme('bg-gradient-to-br from-blue-900/40 via-cyan-900/30 to-teal-900/40 border-blue-700/50', 'bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 border-blue-200')} rounded-xl p-6 border mb-6`}>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className={`text-sm font-medium ${theme('text-blue-300', 'text-blue-700')} mb-2`}>
+                            Measurement Quality
+                          </div>
+                          <div
+                            className="text-2xl font-bold mb-1"
+                            style={{ color: results.precision_quality.color }}
+                          >
+                            {results.precision_quality.label}
+                          </div>
+                          <div className={`text-xs ${theme('text-gray-400', 'text-gray-600')}`}>
+                            Final SEM: {results.final_sem?.toFixed(3)} • Target: {targetSem?.toFixed(1) || '0.3'}
+                          </div>
+                        </div>
+
+                        {/* Star Rating */}
+                        <div className="flex gap-1">
+                          {[1, 2, 3, 4, 5].map(star => (
+                            <svg
+                              key={star}
+                              className="w-6 h-6"
+                              fill={star <= results.precision_quality.stars ? results.precision_quality.color : '#4B5563'}
+                              viewBox="0 0 20 20"
+                            >
+                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                            </svg>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Progress Bar */}
+                      {results.progress_to_target !== null && results.progress_to_target !== undefined && (
+                        <div className="mt-4">
+                          <div className="flex justify-between text-xs mb-2">
+                            <span className={theme('text-blue-300', 'text-blue-700')}>
+                              Progress to Target
+                            </span>
+                            <span className={theme('text-blue-200', 'text-blue-800')} className="font-semibold">
+                              {Math.round(results.progress_to_target * 100)}%
+                            </span>
+                          </div>
+                          <div className={`w-full h-2 ${theme('bg-gray-700', 'bg-gray-200')} rounded-full overflow-hidden`}>
+                            <div
+                              className="h-full transition-all duration-500 rounded-full"
+                              style={{
+                                width: `${Math.min(results.progress_to_target * 100, 100)}%`,
+                                backgroundColor: results.precision_quality.color
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </>
               )}
 
@@ -1313,12 +1452,59 @@ const AdaptiveAssessment = () => {
                     <div className={`text-2xl font-bold ${theme('text-white', 'text-gray-900')}`}>{displayTheta.toFixed(2)}</div>
                   </div>
                   <div className="text-right">
-                    <div className={`text-xs ${theme('text-gray-400', 'text-gray-500')} mb-1`}>Current Level</div>
+                    <div className={`text-xs ${theme('text-gray-400', 'text-gray-500')} mb-1 flex items-center gap-1 justify-end`}>
+                      Question Level
+                      {/* Info icon - shows when tiers don't align */}
+                      {!currentTierInfo.tier_aligned && currentTierInfo.tier_note && (
+                        <div className="relative group">
+                          <svg
+                            className={`w-3.5 h-3.5 ${theme('text-blue-400', 'text-blue-500')} cursor-help`}
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                          {/* Tooltip */}
+                          <div className={`absolute right-0 bottom-full mb-2 w-56 p-2 rounded-lg text-xs ${theme('bg-gray-700 text-gray-200 border border-gray-600', 'bg-white text-gray-700 border border-gray-200 shadow-lg')} hidden group-hover:block z-50`}>
+                            <div className="font-semibold mb-1">Why different levels?</div>
+                            <div className={theme('text-gray-300', 'text-gray-600')}>
+                              {currentTierInfo.tier_note || 'Questions adjust based on your recent performance patterns to ensure fair assessment.'}
+                            </div>
+                            {currentTierInfo.estimated_tier && (
+                              <div className={`mt-2 pt-2 border-t ${theme('border-gray-600', 'border-gray-200')}`}>
+                                <span className={theme('text-gray-400', 'text-gray-500')}>Your ability level: </span>
+                                <span className="font-semibold" style={{ color: getTierColor(currentTierInfo.estimated_tier) }}>
+                                  {getTierLabel(currentTierInfo.estimated_tier)}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                     <div
-                      className="text-xl font-bold"
-                      style={{ color: getCurrentThetaColor(displayTheta) }}
+                      className="text-xl font-bold flex items-center gap-1 justify-end"
+                      style={{
+                        color: currentTierInfo.active_tier
+                          ? getTierColor(currentTierInfo.active_tier)
+                          : getCurrentThetaColor(displayTheta)
+                      }}
                     >
-                      {getThetaTierLabel(displayTheta)}
+                      {/* Display active_tier if available, otherwise fallback to theta-based tier */}
+                      {currentTierInfo.active_tier
+                        ? getTierLabel(currentTierInfo.active_tier)
+                        : getThetaTierLabel(displayTheta)
+                      }
+                      {/* Show subtle indicator when tiers don't match */}
+                      {!currentTierInfo.tier_aligned && currentTierInfo.estimated_tier && (
+                        <span className={`text-xs ${theme('text-gray-400', 'text-gray-500')} font-normal`}>
+                          ({getTierLabel(currentTierInfo.estimated_tier)})
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1346,6 +1532,62 @@ const AdaptiveAssessment = () => {
                   ))}
                 </div>
               </div>
+
+                {/* ✅ NEW: Precision Quality Card */}
+                  {precisionQuality && (
+                    <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} rounded-xl shadow-sm border p-4`}>
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <div className={`text-xs ${theme('text-gray-400', 'text-gray-500')} mb-1`}>
+                            Measurement Quality
+                          </div>
+                          <div
+                            className="font-semibold text-sm"
+                            style={{ color: precisionQuality.color }}
+                          >
+                            {precisionQuality.label}
+                          </div>
+                        </div>
+
+                        {/* Star Rating */}
+                        <div className="flex gap-0.5">
+                          {[1, 2, 3, 4, 5].map(star => (
+                            <svg
+                              key={star}
+                              className="w-4 h-4"
+                              fill={star <= precisionQuality.stars ? precisionQuality.color : '#4B5563'}
+                              viewBox="0 0 20 20"
+                            >
+                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                            </svg>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Progress Bar */}
+                      {progressToTarget !== null && (
+                        <div>
+                          <div className="flex justify-between text-xs mb-1">
+                            <span className={theme('text-gray-400', 'text-gray-500')}>
+                              Progress to target
+                            </span>
+                            <span className={theme('text-gray-300', 'text-gray-600')}>
+                              {Math.round(progressToTarget * 100)}%
+                            </span>
+                          </div>
+                          <div className={`w-full h-1.5 ${theme('bg-gray-700', 'bg-gray-200')} rounded-full overflow-hidden`}>
+                            <div
+                              className="h-full transition-all duration-500 rounded-full"
+                              style={{
+                                width: `${Math.min(progressToTarget * 100, 100)}%`,
+                                backgroundColor: precisionQuality.color
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
               <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} rounded-xl shadow-sm border p-4`}>
                 <h3 className={`font-semibold ${theme('text-white', 'text-gray-900')} mb-2 text-sm`}>Proficiency(θ) Progression</h3>

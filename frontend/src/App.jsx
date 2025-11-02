@@ -6,7 +6,7 @@ import Dashboard from './admin/pages/Dashboard';
 import ItemBanksPage from './admin/pages/ItemBanksPage';
 import Calibration from './admin/pages/Calibration';
 import UploadData from './admin/pages/UploadData';
-import StudentPage from './student/StudentPage';
+// import StudentPage from './student/StudentPage';
 import { initializeTheme } from './config/theme';
 
 function App() {

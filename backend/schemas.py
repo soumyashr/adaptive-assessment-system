@@ -1,5 +1,5 @@
 # backend/schemas.py
-# ADDITIVE CHANGES: Added optional topic_performance and learning_roadmap fields
+# UPDATED: Added tier tracking and precision quality fields
 
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
@@ -45,7 +45,7 @@ class AnswerSubmission(BaseModel):
     response_time_ms: Optional[int] = None
 
 
-# MODIFIED: Added optional topic_performance field
+# UPDATED: Added tier tracking and precision fields
 class AssessmentSession(BaseModel):
     session_id: int
     current_question: Optional[QuestionResponse] = None
@@ -54,7 +54,15 @@ class AssessmentSession(BaseModel):
     questions_asked: int
     completed: bool = False
     last_response_correct: Optional[bool] = None
-    topic_performance: Optional[Dict[str, Any]] = None  # NEW: Optional field
+    topic_performance: Optional[Dict[str, Any]] = None
+    # ✅ NEW: Tier tracking fields
+    estimated_tier: Optional[str] = None
+    active_tier: Optional[str] = None
+    tier_alignment: Optional[bool] = None
+    tier_note: Optional[str] = None
+    # ✅ NEW: Precision tracking fields
+    precision_quality: Optional[Dict[str, Any]] = None
+    progress_to_target: Optional[float] = None
 
 
 class ResponseDetails(BaseModel):
@@ -68,7 +76,7 @@ class ResponseDetails(BaseModel):
     difficulty: float
 
 
-# MODIFIED: Added optional topic_performance and learning_roadmap fields
+# UPDATED: Added tier tracking and precision fields
 class AssessmentResults(BaseModel):
     session_id: int
     user_id: int
@@ -81,8 +89,16 @@ class AssessmentResults(BaseModel):
     accuracy: float
     responses: List[ResponseDetails]
     completed_at: Optional[datetime]
-    topic_performance: Optional[Dict[str, Any]] = None  # NEW: Optional field
-    learning_roadmap: Optional[Dict[str, Any]] = None   # NEW: Optional field
+    topic_performance: Optional[Dict[str, Any]] = None
+    learning_roadmap: Optional[Dict[str, Any]] = None
+    # ✅ NEW: Tier tracking fields
+    estimated_tier: Optional[str] = None
+    active_tier: Optional[str] = None
+    tier_alignment: Optional[bool] = None
+    tier_note: Optional[str] = None
+    # ✅ NEW: Precision tracking fields
+    precision_quality: Optional[Dict[str, Any]] = None
+    progress_to_target: Optional[float] = None
 
 
 # EXISTING - NO CHANGES

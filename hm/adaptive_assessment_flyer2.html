@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adaptive Assessment Solution</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            line-height: 1.4;
+            color: #333;
+            background: white;
+        }
+
+        .page {
+            width: 210mm;
+            height: 297mm;
+            margin: 0 auto;
+            background: white;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: white;
+            padding: 20px 40px 15px 40px;
+            position: relative;
+            border-bottom: 3px solid #1a5490;
+        }
+
+        .logo-area {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+
+        .left-decoration {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 60px;
+            height: 80px;
+        }
+
+        .title-area {
+            flex-grow: 1;
+            padding-left: 75px;
+        }
+
+        .logo-placeholder {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .main-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            font-size: 36px;
+            font-weight: 800;
+            color: #000;
+            letter-spacing: 1px;
+            line-height: 1.1;
+        }
+
+        .overview {
+            padding: 12px 40px;
+            background: #f8f9fa;
+        }
+
+        .overview h2 {
+            font-size: 13px;
+            font-weight: 700;
+            color: #1a5490;
+            margin-bottom: 6px;
+        }
+
+        .overview p {
+            font-size: 9.5px;
+            line-height: 1.5;
+            color: #444;
+        }
+
+        .solution-box {
+            background: linear-gradient(135deg, #f7b733 0%, #ffc107 100%);
+            padding: 12px 40px;
+            margin: 0;
+        }
+
+        .solution-box h3 {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1a1a1a;
+            line-height: 1.3;
+        }
+
+        .evidence-section {
+            padding: 12px 40px 12px 40px;
+            background: #f8f9fa;
+        }
+
+        .evidence-intro {
+            font-size: 9.5px;
+            font-weight: 500;
+            color: #2c3e50;
+            margin-bottom: 0;
+            margin-left: -40px;
+            margin-right: -40px;
+            padding: 10px 40px;
+            background: #ffffff;
+            border-radius: 0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            text-align: center;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+            padding: 12px;
+            text-align: center;
+            border: none;
+            border-radius: 0;
+            box-shadow:
+                0 2px 4px rgba(0, 0, 0, 0.08),
+                0 4px 12px rgba(0, 0, 0, 0.06);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card:nth-child(1) {
+            background: linear-gradient(135deg, #8FFFD4 0%, #7FFFD0 100%);
+        }
+
+        .metric-card:nth-child(2) {
+            background: linear-gradient(135deg, #C8E6F5 0%, #B3DCF0 100%);
+        }
+
+        .metric-card:nth-child(3) {
+            background: linear-gradient(135deg, #FFE4C4 0%, #FFDAB9 100%);
+        }
+
+        .metric-number {
+            font-size: 26px;
+            font-weight: 700;
+            color: #1a5490;
+            margin-bottom: 3px;
+            margin-top: 6px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            letter-spacing: -0.5px;
+        }
+
+        .metric-card:nth-child(1) .metric-number {
+            color: #1a7a4a;
+        }
+
+        .metric-card:nth-child(2) .metric-number {
+            color: #0d5a9e;
+        }
+
+        .metric-card:nth-child(3) .metric-number {
+            color: #c47b2c;
+        }
+
+        .metric-label {
+            font-size: 9.5px;
+            color: #1a1a1a;
+            font-weight: 600;
+            margin-bottom: 4px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .metric-source {
+            font-size: 7px;
+            color: #555;
+            font-style: italic;
+            line-height: 1.3;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .references-box {
+            background: #f0f4f8;
+            padding: 10px 40px;
+            margin: 0;
+        }
+
+        .references-box h4 {
+            font-size: 10px;
+            font-weight: 700;
+            color: #1a5490;
+            margin-bottom: 5px;
+        }
+
+        .references-box ul {
+            margin-left: 15px;
+        }
+
+        .references-box li {
+            font-size: 7.5px;
+            line-height: 1.3;
+            color: #555;
+            margin-bottom: 2px;
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            margin: 0;
+        }
+
+        .solution-section {
+            background: #1a5490;
+            color: white;
+            padding: 22px 30px;
+        }
+
+        .solution-section h3 {
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 14px;
+            color: white;
+        }
+
+        .solution-section p {
+            font-size: 11.5px;
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+
+        .solution-item {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            align-items: flex-start;
+        }
+
+        .solution-number {
+            width: 42px;
+            height: 42px;
+            background: white;
+            color: #1a5490;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 19px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .solution-content h4 {
+            font-size: 13.5px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .solution-content p {
+            font-size: 11px;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .roi-section {
+            background: #61dafb;
+            padding: 22px 30px;
+        }
+
+        .roi-section h3 {
+            font-size: 17px;
+            font-weight: 700;
+            color: #1a5490;
+            margin-bottom: 14px;
+        }
+
+        .roi-item {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            align-items: flex-start;
+        }
+
+        .roi-number {
+            width: 42px;
+            height: 42px;
+            background: #f7b733;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 19px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .roi-content h4 {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: #1a5490;
+            margin-bottom: 5px;
+        }
+
+        .roi-content p {
+            font-size: 11px;
+            line-height: 1.5;
+            color: #555;
+            margin: 0;
+        }
+
+        .roi-highlight {
+            background: #fff9e6;
+            padding: 10px;
+            margin-top: 16px;
+        }
+
+        .roi-highlight strong {
+            color: #1a5490;
+            font-size: 11.5px;
+        }
+
+        .roi-highlight p {
+            font-size: 10.5px;
+            margin-top: 4px;
+            line-height: 1.4;
+        }
+
+        .tech-note {
+            background: #f0f4f8;
+            padding: 8px 40px;
+            font-size: 8px;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .tech-note strong {
+            color: #1a5490;
+            font-size: 9px;
+        }
+
+        .footer {
+            background: #f7b733;
+            padding: 8px 40px 10px 10px;
+            text-align: center;
+        }
+
+        .footer p {
+            font-size: 12px;
+            color: #1a1a1a;
+            font-weight: 600;
+        }
+
+        .footer a {
+            color: #1a5490;
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        @media print {
+            body {
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+            }
+
+            .page {
+                margin: 0;
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo-area">
+                <svg class="left-decoration" viewBox="0 0 60 80" xmlns="http://www.w3.org/2000/svg">
+                    <polygon points="0,0 60,0 0,60" fill="#0099cc" opacity="0.8"/>
+                    <polygon points="15,30 60,30 15,75" fill="#0099cc" opacity="0.6"/>
+                    <rect x="22" y="45" width="22" height="22" fill="none" stroke="#0099cc" stroke-width="2" opacity="0.4"/>
+                </svg>
+
+                <div class="title-area">
+                    <div class="main-title">HAPPIEST MINDS' SOLUTION FOR</div>
+                    <div class="subtitle">ADAPTIVE ASSESSMENT</div>
+                </div>
+
+                <div class="logo-placeholder">
+                    <img src="logo.png" width="190" height="70" alt="Happiest Minds"/>
+                </div>
+            </div>
+        </div>
+
+        <!-- Overview -->
+        <div class="overview">
+            <h2>PROVEN EFFICIENCY GAINS</h2>
+            <p>Our intelligent assessment platform automatically adjusts question difficulty to match each student's ability level in real-time. This personalized approach reduces assessment time by 30-40% while delivering more accurate measurements than traditional one-size-fits-all assessments.</p>
+        </div>
+
+        <!-- Solution Box -->
+        <div class="solution-box">
+            <h3>Transform your existing questions into a smart assessment platform that saves time, reduces costs, and improves decision accuracy.</h3>
+        </div>
+
+        <!-- Evidence Section -->
+        <div class="evidence-section">
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-number">30-40%</div>
+                    <div class="metric-label">Shorter Assessments</div>
+                    <div class="metric-source">Same accuracy with fewer questions (Research: PMC 2018, Springer 2025)</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-number">50%</div>
+                    <div class="metric-label">Lower Error Rate</div>
+                    <div class="metric-source">More precise student measurements (Typical improvement range)</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-number">Proven</div>
+                    <div class="metric-label">Superior Results</div>
+                    <div class="metric-source">Outperforms traditional assessments in education & certification</div>
+                </div>
+            </div>
+            <div class="evidence-intro">
+                All performance claims are supported by peer-reviewed research from IEEE, Springer, Elsevier, and leading universities (2018-2025).
+            </div>
+        </div>
+
+        <!-- References Box -->
+        <div class="references-box">
+            <h4>Academic Research Foundation:</h4>
+            <ul>
+                <li>Schwarz, K.A., et al. (2025). Computerized adaptive competency-based placement test. Springer CCIS, Vol. 2519. DOI: 10.1007/978-3-031-93409-4_15</li>
+                <li>Huda, A., et al. (2024). Optimizing educational assessment with CAT and IRT. JOIV, 8(1), 473-480. DOI: 10.62527/joiv.8.1.2217</li>
+                <li>Wang, J., et al. (2023). Developing CAT for health professionals exam. Frontiers in Psychology. PMC10624130</li>
+                <li>Multidimensional CAT efficiency study (2018). Test length reduction 11-38%. PMC6295884</li>
+                <li>IEEE Xplore (2024). Advanced assessment system optimization with improved speed and accuracy</li>
+            </ul>
+        </div>
+
+        <!-- Two Column Section -->
+        <div class="two-column">
+            <div class="solution-section">
+                <h3>What You Get</h3>
+                <p>Complete solution from initial setup through live deployment with quality monitoring at every stage.</p>
+
+                <div class="solution-item">
+                    <div class="solution-number">1</div>
+                    <div class="solution-content">
+                        <h4>Question Bank Setup</h4>
+                        <p>Send us your questions and answer keys. We analyze them with data from 500+ assessment-takers and return a validated question bank with quality scores.</p>
+                    </div>
+                </div>
+
+                <div class="solution-item">
+                    <div class="solution-number">2</div>
+                    <div class="solution-content">
+                        <h4>Smart Assessment Platform</h4>
+                        <p>Each student receives personalized questions that adapt in real-time. The system automatically selects the right difficulty level.</p>
+                    </div>
+                </div>
+
+                <div class="solution-item">
+                    <div class="solution-number">3</div>
+                    <div class="solution-content">
+                        <h4>Performance Dashboard</h4>
+                        <p>View easy-to-read reports showing student results by topic, confidence levels, and automatic quality alerts.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="roi-section">
+                <h3>Business Benefits</h3>
+
+                <div class="roi-item">
+                    <div class="roi-number">1</div>
+                    <div class="roi-content">
+                        <h4>Reduced Assessment Time</h4>
+                        <p>Students complete assessments in 30-40% less time while maintaining the same measurement quality. Shorter assessments mean less disruption.</p>
+                    </div>
+                </div>
+
+                <div class="roi-item">
+                    <div class="roi-number">2</div>
+                    <div class="roi-content">
+                        <h4>More Accurate Results</h4>
+                        <p>Get 50% lower error rates compared to traditional assessments. Make better placement and certification decisions with greater confidence.</p>
+                    </div>
+                </div>
+
+                <div class="roi-item">
+                    <div class="roi-number">3</div>
+                    <div class="roi-content">
+                        <h4>Built-In Quality Control</h4>
+                        <p>The system automatically identifies which questions work well and which don't, with specific improvement recommendations.</p>
+                    </div>
+                </div>
+
+                <div class="roi-item">
+                    <div class="roi-number">4</div>
+                    <div class="roi-content">
+                        <h4>Cloud-Based Platform</h4>
+                        <p>Handles thousands of students simultaneously.</p>
+                    </div>
+                </div>
+
+                <div class="roi-highlight">
+                    <strong>Time Savings Example:</strong>
+                    <p>1,000 students/year × 20 minutes saved per assessment = 333 hours of assessment time saved annually.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Technical Note -->
+        <div class="tech-note">
+            <strong>For Technical Reviewers:</strong> System uses 3-Parameter Logistic IRT Model | Fisher Information Maximization | Newton-Raphson MLE | Conservative Theta Updates (±0.2-0.3) | SEM-Based Stopping Rules | Tier-Based Difficulty Progression (C1-C4) | Question Uniqueness Enforcement | Item Exposure Control (≤30%) | Optional Response Time Analysis | Exponential Smoothing (α=0.3-0.7) | Multiple Estimation Methods | 95% Confidence Interval Reporting
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>Please write to us at <a href="mailto:business@happiestminds.com">business@happiestminds.com</a> for more details.</p>
+        </div>
+    </div>
+</body>
+</html>
