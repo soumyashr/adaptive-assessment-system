@@ -100,7 +100,7 @@ class AdaptiveConfig:
             TestPurpose.FORMATIVE: cls(
                 min_questions=20,
                 max_questions=35,
-                target_sem=0.20,#0.3
+                target_sem=0.3,
                 tier_change_aggressive=False,
                 enable_content_balancing=True,
                 enable_response_time=False,

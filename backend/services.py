@@ -3,7 +3,6 @@
 with safety mechanisms
 """
 
-
 import matplotlib
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
@@ -32,8 +31,6 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.lib.enums import TA_CENTER
 from reportlab.platypus.flowables import HRFlowable
-
-
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'scripts'))
 from scripts.db_manager import item_bank_db
@@ -528,14 +525,19 @@ class PDFExportService:
         from reportlab.platypus import KeepTogether
 
         buffer = BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=A4,
-                                rightMargin=0.75 * inch, leftMargin=0.75 * inch,
-                                topMargin=0.6 * inch, bottomMargin=0.6 * inch)
-        elements = []
 
         # ========== TITLE - UPDATED WITH DISPLAY NAME AND USERNAME ==========
         display_name = session_data.get('item_bank_display_name', 'Assessment')
         username = user_data.get('username', 'Student')
+
+        # Set PDF metadata to fix "(anonymous)" title issue
+        doc = SimpleDocTemplate(buffer, pagesize=A4,
+                                rightMargin=0.75 * inch, leftMargin=0.75 * inch,
+                                topMargin=0.6 * inch, bottomMargin=0.6 * inch,
+                                title=f"Assessment Report - {username} - {display_name}",
+                                author="MyTheta Assessment System",
+                                subject=f"{display_name} Assessment Results")
+        elements = []
 
         title_style = self.styles['CustomTitle']
         elements.append(Paragraph(f"Assessment Report for {username}", title_style))
@@ -753,6 +755,82 @@ class PDFExportService:
             performance_table
         ]
         elements.append(KeepTogether(perf_content))
+        elements.append(Spacer(1, 0.2 * inch))
+
+        # ========== MEASUREMENT QUALITY ==========
+        precision_quality = session_data.get('precision_quality')
+        progress_to_target = session_data.get('progress_to_target')
+        target_sem = session_data.get('target_sem', 0.3)
+        final_sem = session_data.get('sem') or session_data.get('final_sem', 0)
+
+        if precision_quality:
+            # Get quality metrics
+            quality_label = precision_quality.get('label', 'Unknown')
+            quality_color_hex = precision_quality.get('color', '#10B981')
+            quality_stars = precision_quality.get('stars', 3)
+
+            # Convert hex color to ReportLab color
+            quality_color = colors.HexColor(quality_color_hex)
+            quality_bg = colors.Color(
+                quality_color.red,
+                quality_color.green,
+                quality_color.blue,
+                alpha=0.15
+            )
+
+            # Create rating display with visual stars AND count
+            # Using asterisks (100% font compatible) + count for maximum clarity
+            filled = '*' * quality_stars
+            empty = '-' * (5 - quality_stars)
+            stars_display = f"{filled}{empty} ({quality_stars}/5)"
+
+            # Measurement Quality data - simplified (no progress)
+            measurement_data = [
+                ['Measurement Quality', quality_label],
+                ['Rating', stars_display],
+                ['SEM (Error)', f"{final_sem:.3f}"],
+                ['Target Error', f"≤ {target_sem:.1f}"],
+            ]
+
+            measurement_table = Table(measurement_data, colWidths=[2.5 * inch, 3.5 * inch])
+
+            measurement_style = [
+                ('FONT', (0, 0), (0, -1), 'Helvetica-Bold', 9),
+                ('FONT', (1, 0), (1, -1), 'Helvetica', 10),
+                ('BACKGROUND', (1, 0), (1, 0), quality_bg),
+                ('TEXTCOLOR', (1, 0), (1, 0), quality_color),
+                ('FONT', (1, 0), (1, 0), 'Helvetica-Bold', 11),
+                ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#34495E')),
+                ('TEXTCOLOR', (1, 1), (1, -1), colors.black),
+                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('GRID', (0, 0), (-1, -1), 1, colors.grey),
+                ('TOPPADDING', (0, 0), (-1, -1), 6),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+                ('LEFTPADDING', (0, 0), (-1, -1), 10),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#F8F9FA')]),
+            ]
+
+            # Color the stars row (keep same size as other data cells)
+            measurement_style.append(('TEXTCOLOR', (1, 1), (1, 1), quality_color))
+            measurement_style.append(('FONT', (1, 1), (1, 1), 'Helvetica', 10))
+
+            measurement_table.setStyle(TableStyle(measurement_style))
+
+            measurement_content = [
+                Paragraph("Measurement Quality", self.styles['SectionHeader']),
+                Spacer(1, 0.08 * inch),
+                measurement_table,
+                Spacer(1, 0.05 * inch),
+                Paragraph(
+                    f"<i>The system achieved {quality_label.lower()}. The measurement error (SEM) of {final_sem:.3f} is "
+                    f"{'below' if final_sem <= target_sem else 'above'} the target error value of {target_sem:.1f}. "
+                    f"Lower SEM values indicate more precise ability estimates.</i>",
+                    self.styles['Normal']
+                )
+            ]
+            elements.append(KeepTogether(measurement_content))
+            elements.append(Spacer(1, 0.2 * inch))
 
         # ========== THETA PROGRESSION CHART ==========
         elements.append(PageBreak())
@@ -1051,7 +1129,43 @@ class PDFExportService:
                     'topic': question.topic if hasattr(question, 'topic') else None
                 })
 
-        # 9. Generate PDF
+        # 9. Calculate precision quality (CRITICAL for PDF Measurement Quality section)
+        irt_engine = IRTEngine(test_purpose=TestPurpose.FORMATIVE)
+
+        # Calculate precision quality based on final SEM
+        final_sem = session.sem
+        if final_sem <= 0.25:
+            precision_quality = {"label": "Excellent Precision", "color": "#10B981", "stars": 5}
+        elif final_sem <= 0.35:
+            precision_quality = {"label": "High Precision", "color": "#3B82F6", "stars": 4}
+        elif final_sem <= 0.45:
+            precision_quality = {"label": "Moderate Precision", "color": "#F59E0B", "stars": 3}
+        elif final_sem <= 0.60:
+            precision_quality = {"label": "Low Precision", "color": "#F97316", "stars": 2}
+        else:
+            precision_quality = {"label": "Very Low Precision", "color": "#DC2626", "stars": 1}
+
+        # Calculate progress to target
+        target_sem = irt_engine.target_sem
+        excellent_sem = 0.15  # Excellent precision threshold
+
+        if final_sem > target_sem:
+            # Haven't reached target yet
+            progress_to_target = 0.0
+        elif final_sem <= excellent_sem:
+            # Exceeded excellent threshold
+            progress_to_target = 1.0
+        else:
+            # Between target and excellent - calculate gradual progress
+            progress_to_target = (target_sem - final_sem) / (target_sem - excellent_sem)
+
+        # Add precision data to session_data
+        session_data['precision_quality'] = precision_quality
+        session_data['progress_to_target'] = progress_to_target
+        session_data['target_sem'] = target_sem
+        session_data['final_sem'] = final_sem
+
+        # 10. Generate PDF
         return self.generate_session_pdf(
             session_data, user_data, response_details, comparative_data=None
         )
@@ -1089,6 +1203,7 @@ class PDFExportService:
         except Exception as e:
             logger.error(f"Error calculating topic performance: {e}", exc_info=True)
             return None
+
 
 # ========== NEW CLASS - Session Management Service ==========
 
@@ -1290,6 +1405,7 @@ class SessionManagementService:
             logger.debug(f"Could not calculate topic performance: {e}")
             return None
 
+
 # ========== UNCHANGED CLASSES - All original methods preserved ==========
 
 class UserService:
@@ -1438,6 +1554,8 @@ class UserService:
 
         registry_db.commit()
         logger.info(f"Updated proficiency for user {user_id}")
+
+
 class QuestionService:
     """UNCHANGED - All original methods preserved"""
 
@@ -1674,7 +1792,6 @@ class AssessmentService:
             guessing_c=next_question_data['guessing_c']
         )
 
-
     # This shows the key modifications to the record_response method
 
     # MODIFIED: record_response method in AssessmentService class
@@ -1758,7 +1875,8 @@ class AssessmentService:
             logger.warning(f"Could not calculate topic performance: {e}")
 
         # EXISTING: Check completion - FIXED to use TestPurpose enum
-        should_stop, stop_reason = irt_engine.should_stop_assessment(new_sem, session.questions_asked, test_purpose=TestPurpose.FORMATIVE)
+        should_stop, stop_reason = irt_engine.should_stop_assessment(new_sem, session.questions_asked,
+                                                                     test_purpose=TestPurpose.FORMATIVE)
         if should_stop:
             session.completed = True
             session.completed_at = datetime.utcnow()
@@ -1901,11 +2019,17 @@ class AssessmentService:
 
         # Calculate progress to target
         target_sem = irt_engine.target_sem
+        excellent_sem = 0.15  # Excellent precision threshold
+
         if session.sem > target_sem:
+            # Haven't reached target yet
             progress_to_target = 0.0
+        elif session.sem <= excellent_sem:
+            # Exceeded excellent threshold
+            progress_to_target = 1.0
         else:
-            initial_sem = 1.0
-            progress_to_target = min(1.0, (initial_sem - session.sem) / (initial_sem - target_sem))
+            # Between target and excellent - calculate gradual progress
+            progress_to_target = (target_sem - session.sem) / (target_sem - excellent_sem)
 
         # Base result (always available)
         result_dict = {
@@ -1939,7 +2063,6 @@ class AssessmentService:
                         result_dict['learning_roadmap'] = roadmap
         except Exception as e:
             logger.debug(f"Enhanced results not available: {e}")
-
 
         return schemas.AssessmentResults(**result_dict)
 
@@ -2040,10 +2163,8 @@ class ItemBankService:
         finally:
             item_db.close()
 
-
     def get_item_bank_stats(self, item_bank_name: str) -> Dict:
         """UNCHANGED"""
-
 
         db_path = item_bank_db.get_db_path(item_bank_name)
 
@@ -2090,7 +2211,6 @@ class ItemBankService:
             conn.close()
 
     # delete item bank
-
 
     def delete_item_bank(self, registry_db: Session, item_bank_name: str) -> Dict:
         """

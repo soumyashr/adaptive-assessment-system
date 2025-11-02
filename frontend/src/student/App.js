@@ -1091,7 +1091,7 @@ const AdaptiveAssessment = () => {
                             {results.precision_quality.label}
                           </div>
                           <div className={`text-xs ${theme('text-gray-400', 'text-gray-600')}`}>
-                            Final SEM: {results.final_sem?.toFixed(3)} • Target: {targetSem?.toFixed(1) || '0.3'}
+                            SEM: {results.final_sem?.toFixed(3)} (Error must be below target of {targetSem?.toFixed(1) || '0.3'} {results.final_sem <= (targetSem || 0.3) ? '✓' : ''})
                           </div>
                         </div>
 
@@ -1109,29 +1109,6 @@ const AdaptiveAssessment = () => {
                           ))}
                         </div>
                       </div>
-
-                      {/* Progress Bar */}
-                      {results.progress_to_target !== null && results.progress_to_target !== undefined && (
-                        <div className="mt-4">
-                          <div className="flex justify-between text-xs mb-2">
-                            <span className={theme('text-blue-300', 'text-blue-700')}>
-                              Progress to Target
-                            </span>
-                            <span className={theme('text-blue-200', 'text-blue-800')} className="font-semibold">
-                              {Math.round(results.progress_to_target * 100)}%
-                            </span>
-                          </div>
-                          <div className={`w-full h-2 ${theme('bg-gray-700', 'bg-gray-200')} rounded-full overflow-hidden`}>
-                            <div
-                              className="h-full transition-all duration-500 rounded-full"
-                              style={{
-                                width: `${Math.min(results.progress_to_target * 100, 100)}%`,
-                                backgroundColor: results.precision_quality.color
-                              }}
-                            />
-                          </div>
-                        </div>
-                      )}
                     </div>
                   )}
                 </>
@@ -1564,25 +1541,23 @@ const AdaptiveAssessment = () => {
                         </div>
                       </div>
 
-                      {/* Progress Bar */}
-                      {progressToTarget !== null && (
-                        <div>
-                          <div className="flex justify-between text-xs mb-1">
-                            <span className={theme('text-gray-400', 'text-gray-500')}>
-                              Progress to target
-                            </span>
-                            <span className={theme('text-gray-300', 'text-gray-600')}>
-                              {Math.round(progressToTarget * 100)}%
+                      {/* SEM Information - use currentSession during assessment, results after completion */}
+                      {(currentSession?.sem !== undefined || results?.sem !== undefined) && (
+                        <div className={`space-y-1.5 pt-2 border-t ${theme('border-gray-700', 'border-gray-200')}`}>
+                          <div className="flex justify-between text-xs">
+                            <span className={theme('text-gray-400', 'text-gray-600')}>SEM (Error):</span>
+                            <span className={theme('text-gray-200', 'text-gray-900')} style={{ fontWeight: 500 }}>
+                              {(results?.sem || currentSession?.sem)?.toFixed(3)}
                             </span>
                           </div>
-                          <div className={`w-full h-1.5 ${theme('bg-gray-700', 'bg-gray-200')} rounded-full overflow-hidden`}>
-                            <div
-                              className="h-full transition-all duration-500 rounded-full"
-                              style={{
-                                width: `${Math.min(progressToTarget * 100, 100)}%`,
-                                backgroundColor: precisionQuality.color
-                              }}
-                            />
+                          <div className="flex justify-between text-xs">
+                            <span className={theme('text-gray-400', 'text-gray-600')}>Target Error:</span>
+                            <span className={theme('text-gray-200', 'text-gray-900')} style={{ fontWeight: 500 }}>
+                              ≤ {targetSem.toFixed(1)}
+                            </span>
+                          </div>
+                          <div className={`text-xs mt-2 pt-2 border-t ${theme('border-gray-700 text-gray-400', 'border-gray-200 text-gray-600')}`}>
+                            Error must be below Target SEM value of {targetSem.toFixed(1)}
                           </div>
                         </div>
                       )}

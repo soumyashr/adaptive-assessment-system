@@ -182,7 +182,7 @@ async def upload_questions(file: UploadFile = File(...), db: Session = Depends(g
 
     # Validate columns
     required_columns = ['subject', 'question_id', 'question', 'option_a', 'option_b',
-                        'option_c', 'option_d', 'answer',  'tier','topic',
+                        'option_c', 'option_d', 'answer', 'tier', 'topic',
                         'discrimination_a', 'difficulty_b', 'guessing_c']
 
     # Normalize column names
@@ -192,7 +192,7 @@ async def upload_questions(file: UploadFile = File(...), db: Session = Depends(g
     if missing:
         # Check if it's a simplified format (missing IRT parameters)
         basic_required = ['question', 'option_a', 'option_b', 'option_c', 'option_d',
-                          'answer',  'tier', 'topic',]
+                          'answer', 'tier', 'topic', ]
         basic_missing = [col for col in basic_required if col not in df.columns]
 
         if basic_missing:
@@ -402,6 +402,8 @@ async def delete_item_bank(
         raise HTTPException(status_code=400, detail=result['error'])
 
     return result
+
+
 # ========== TEMPLATE DOWNLOADS ==========
 
 @app.get("/api/templates/download")
@@ -557,12 +559,18 @@ def submit_answer(
             precision_quality = {"label": "Very Low Precision", "color": "#DC2626", "stars": 1}
 
         # Calculate progress to target
-        target_sem = irt_engine.target_sem  # Use actual target from config (0.5 for formative)
+        target_sem = irt_engine.target_sem  # Use actual target from config
+        excellent_sem = 0.15  # Excellent precision threshold
+
         if session.sem > target_sem:
+            # Haven't reached target yet
             progress_to_target = 0.0
+        elif session.sem <= excellent_sem:
+            # Exceeded excellent threshold
+            progress_to_target = 1.0
         else:
-            initial_sem = 1.0
-            progress_to_target = min(1.0, (initial_sem - session.sem) / (initial_sem - target_sem))
+            # Between target and excellent - calculate gradual progress
+            progress_to_target = (target_sem - session.sem) / (target_sem - excellent_sem)
 
         # Handle completed assessment
         if session.completed:
@@ -613,7 +621,6 @@ def submit_answer(
         item_db.close()
 
 
-
 @app.get("/api/assessments/{session_id}/results", response_model=schemas.AssessmentResults)
 def get_assessment_results(
         session_id: int,
@@ -646,7 +653,7 @@ def get_all_sessions(db: Session = Depends(get_db)):
             for session in sessions:
                 # Check if session already added (in case of duplicate data)
                 if not any(s['session_id'] == session.session_id and s['item_bank'] == item_bank.name
-                          for s in sessions_list):
+                           for s in sessions_list):
                     user = db.query(models.User).filter(
                         models.User.id == session.user_id
                     ).first()
@@ -950,10 +957,8 @@ async def export_session_pdf(
         item_db.close()
 
 
-
-
-#====== Below is to test the uniqueness of session IDs across item banks.
-#======= Each item bank has its own database, so session ID may exist in multiple item banks.
+# ====== Below is to test the uniqueness of session IDs across item banks.
+# ======= Each item bank has its own database, so session ID may exist in multiple item banks.
 
 @app.get("/api/debug/sessions")
 def debug_sessions(db: Session = Depends(get_db)):
@@ -978,7 +983,6 @@ def debug_sessions(db: Session = Depends(get_db)):
             item_db.close()
 
     return debug_info
-
 
 
 if __name__ == "__main__":

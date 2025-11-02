@@ -577,7 +577,7 @@ const SessionDetail = () => {
       </div>
 
       {/* Performance Summary */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-5 gap-4 mb-6">
         <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} border rounded-xl p-4`}>
           <div className={`text-sm ${theme('text-gray-400', 'text-gray-600')} mb-1`}>Final θ</div>
           <div className={`text-2xl font-bold ${theme('text-white', 'text-gray-900')} mb-1`}>
@@ -623,6 +623,35 @@ const SessionDetail = () => {
             <div className={`text-xs ${theme('text-gray-400', 'text-gray-600')}`}>
               vs {comparativeData.totalUsers} users
             </div>
+          )}
+        </div>
+
+        {/* Measurement Quality Card */}
+        <div className={`${theme('bg-gray-800 border-gray-700', 'bg-white border-gray-200')} border rounded-xl p-4`}>
+          <div className={`text-sm ${theme('text-gray-400', 'text-gray-600')} mb-1`}>Measurement Quality</div>
+          {sessionData.precision_quality ? (
+            <>
+              <div
+                className="text-sm font-semibold mb-1 px-2 py-1 rounded inline-block"
+                style={{
+                  backgroundColor: `${sessionData.precision_quality.color}15`,
+                  color: sessionData.precision_quality.color
+                }}
+              >
+                {sessionData.precision_quality.label}
+              </div>
+              <div className="text-xl mt-1" style={{ color: sessionData.precision_quality.color }}>
+                {'★'.repeat(sessionData.precision_quality.stars)}{'☆'.repeat(5 - sessionData.precision_quality.stars)}
+              </div>
+              <div className={`text-xs ${theme('text-gray-400', 'text-gray-600')} mt-1`}>
+                SEM: {sessionData.final_sem?.toFixed(3) || 'N/A'}
+                {sessionData.target_sem != null && (
+                  <> (Error must be below target of {sessionData.target_sem.toFixed(1)} {sessionData.final_sem <= sessionData.target_sem ? '✓' : ''})</>
+                )}
+              </div>
+            </>
+          ) : (
+            <div className={`text-2xl font-bold ${theme('text-white', 'text-gray-900')}`}>N/A</div>
           )}
         </div>
       </div>

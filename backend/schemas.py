@@ -63,6 +63,7 @@ class AssessmentSession(BaseModel):
     # ✅ NEW: Precision tracking fields
     precision_quality: Optional[Dict[str, Any]] = None
     progress_to_target: Optional[float] = None
+    target_sem: Optional[float] = None
 
 
 class ResponseDetails(BaseModel):
@@ -99,6 +100,7 @@ class AssessmentResults(BaseModel):
     # ✅ NEW: Precision tracking fields
     precision_quality: Optional[Dict[str, Any]] = None
     progress_to_target: Optional[float] = None
+    target_sem: Optional[float] = None
 
 
 # EXISTING - NO CHANGES
