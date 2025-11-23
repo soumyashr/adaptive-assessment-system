@@ -945,45 +945,83 @@ class PDFExportService:
                 elements.extend(rec_content)
 
         # ========== QUESTION DETAILS ==========
+        # ============================================================================
+
         if response_details:
             elements.append(PageBreak())
             elements.append(Paragraph("Question Response Details", self.styles['SectionHeader']))
             elements.append(Spacer(1, 0.1 * inch))
 
+            # Create a custom style for table cells with wrapping
+
+
+            # Style for question text in table - allows wrapping
+            question_style = ParagraphStyle(
+                'QuestionCell',
+                parent=self.styles['Normal'],
+                fontSize=8,
+                leading=10,  # Line spacing
+                fontName=self.unicode_font if hasattr(self, 'unicode_font') else 'Helvetica',
+                wordWrap='CJK',  # Enable word wrapping
+                splitLongWords=True,  # Split long words if needed
+            )
+
             resp_headers = ['#', 'Question', 'Your Answer', 'Correct', 'Result']
             resp_data = [resp_headers]
 
             for i, resp in enumerate(response_details, 1):
-                question = self._sanitize_text(resp['question'])
-                question = question[:60] + '...' if len(question) > 60 else question
+                # Get full question text (no truncation!)
+                question_text = self._sanitize_text(resp['question'])
+
+                # Wrap question text in Paragraph for proper wrapping
+                question_para = Paragraph(question_text, question_style)
 
                 resp_data.append([
                     str(i),
-                    question,
+                    question_para,  # Use Paragraph instead of plain text
                     resp['selected_option'],
                     resp['correct_answer'],
                     '✓' if resp['is_correct'] else '✗'
                 ])
 
-            resp_table = Table(resp_data, colWidths=[0.4 * inch, 3.2 * inch, 0.9 * inch, 0.9 * inch, 0.6 * inch])
+            # Increased Question column width from 3.2 to 4.0 inches
+            # Total width stays within page margins
+            resp_table = Table(resp_data, colWidths=[
+                0.3 * inch,  # # column (reduced slightly)
+                4.0 * inch,  # Question column (INCREASED from 3.2)
+                0.7 * inch,  # Your Answer
+                0.7 * inch,  # Correct
+                0.6 * inch  # Result
+            ])
 
             table_font = self.unicode_font if hasattr(self, 'unicode_font') else 'Helvetica'
             table_font_bold = self.unicode_font_bold if hasattr(self, 'unicode_font_bold') else 'Helvetica-Bold'
 
             resp_table.setStyle(TableStyle([
+                # Header row styling
                 ('FONT', (0, 0), (-1, 0), table_font_bold, 10),
-                ('FONT', (0, 1), (-1, -1), table_font, 8),
                 ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#34495E')),
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-                ('ALIGN', (0, 0), (0, -1), 'CENTER'),
-                ('ALIGN', (2, 0), (-1, -1), 'CENTER'),
-                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+
+                # Data rows styling
+                ('FONT', (0, 1), (-1, -1), table_font, 8),
+                ('ALIGN', (0, 0), (0, -1), 'CENTER'),  # Center # column
+                ('ALIGN', (2, 0), (-1, -1), 'CENTER'),  # Center answer columns
+                ('ALIGN', (1, 1), (1, -1), 'LEFT'),  # Left-align question text
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),  # Top-align all cells (important for wrapped text)
+
+                # Borders and background
                 ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
                 ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#F8F9FA')]),
-                ('TOPPADDING', (0, 0), (-1, -1), 5),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+
+                # Padding - increased for better readability with wrapped text
+                ('TOPPADDING', (0, 0), (-1, -1), 6),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+                ('LEFTPADDING', (0, 0), (-1, -1), 5),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 5),
             ]))
 
+            # Color-code the Result column based on correctness
             for i, resp in enumerate(response_details, 1):
                 if resp['is_correct']:
                     resp_table.setStyle(TableStyle([
@@ -997,6 +1035,9 @@ class PDFExportService:
                     ]))
 
             elements.append(resp_table)
+
+
+# ============================================================================
 
         # ========== FOOTER ==========
         elements.append(Spacer(1, 0.3 * inch))
@@ -1046,7 +1087,21 @@ class PDFExportService:
         ).first()
 
         if not user:
-            raise ValueError(f"User with ID {session.user_id} not found")
+            # --------------------------------------------
+            # Handle missing users
+            # Handle old sessions that reference deleted users
+            logger.warning(
+                f"User ID {session.user_id} not found in registry for session {session_id}. Creating placeholder.")
+
+            # Create a simple placeholder object for the user
+            class PlaceholderUser:
+                def __init__(self, user_id):
+                    self.id = user_id
+                    self.username = f"User{user_id}"
+                    self.created_at = None
+
+            user = PlaceholderUser(session.user_id)
+
 
         # Use provided username or fall back to user object
         final_username = username or user.username
