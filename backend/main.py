@@ -597,7 +597,17 @@ def submit_answer(
             item_db, session_id, irt_engine
         )
 
-        return {
+        # Check if questions exhausted but not yet marked completed
+        if next_question is None and not session.completed:
+            # Force-complete the session
+            session.completed = True
+            session.completed_at = datetime.utcnow()
+            item_db.commit()
+
+        # Refresh session to get updated completed status
+        item_db.refresh(session)
+
+        response_data = {
             "session_id": session.session_id,
             "current_question": next_question,
             "theta": session.theta,
@@ -614,6 +624,22 @@ def submit_answer(
             "progress_to_target": progress_to_target,
             "target_sem": target_sem
         }
+        # Add optional early termination info
+        if session.completed and next_question is None and session.questions_asked < irt_engine.min_questions:
+            response_data["early_termination"] = True
+            response_data["termination_reason"] = "insufficient_calibrated_questions"
+            response_data["reliability_note"] = "Results based on available questions"
+
+            # Log early termination for analytics
+            logger.error(
+                f"ERROR CONDITION EARLY_TERMINATION: session_id={session_id}, "
+                f"item_bank={item_bank_name}, "
+                f"questions_completed={session.questions_asked}/{irt_engine.min_questions}, "
+                f"reason=insufficient_calibrated_questions"
+            )
+
+        return response_data
+
     except Exception as e:
         logger.error(f"Error in submit_answer: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Internal error: {str(e)}")

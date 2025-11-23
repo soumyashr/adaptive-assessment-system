@@ -64,6 +64,9 @@ class AssessmentSession(BaseModel):
     precision_quality: Optional[Dict[str, Any]] = None
     progress_to_target: Optional[float] = None
     target_sem: Optional[float] = None
+    early_termination: Optional[bool] = False
+    termination_reason: Optional[str] = None
+    reliability_note: Optional[str] = None
 
 
 class ResponseDetails(BaseModel):

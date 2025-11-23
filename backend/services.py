@@ -1586,27 +1586,49 @@ class QuestionService:
             df['question_id'] = [f"{subject}_{i + 1}" for i in range(len(df))]
 
         # Set default IRT parameters if not provided
-        if 'discrimination_a' not in df.columns:
-            df['discrimination_a'] = 1.5
+            # Normalize tier column to uppercase for consistency (handles c1, C1, etc.)
+            if 'tier' in df.columns:
+                df['tier'] = df['tier'].astype(str).str.upper()
 
-        if 'difficulty_b' not in df.columns:
-            # Map tier to difficulty
-            tier_difficulty_map = {
-                'C1': -1.5,
-                'C2': -0.5,
-                'C3': 0.5,
-                'C4': 1.5
-            }
-            df['difficulty_b'] = df['tier'].map(tier_difficulty_map).fillna(0.0)
+                # Log any invalid tiers
+                valid_tiers = ['C1', 'C2', 'C3', 'C4']
+                invalid_tiers = df[~df['tier'].isin(valid_tiers)]['tier'].unique()
+                if len(invalid_tiers) > 0:
+                    logger.warning(f"Found invalid tier values: {invalid_tiers}. These will use default parameters.")
 
-        if 'guessing_c' not in df.columns:
-            df['guessing_c'] = 0.25
+            # Import tier-based defaults from config
+            from config import Config
+            tier_discrimination_defaults = Config.TIER_DISCRIMINATION_DEFAULTS
+            tier_difficulty_defaults = Config.TIER_DIFFICULTY_DEFAULTS
 
-        if 'content_area' not in df.columns:
-            df['content_area'] = df['topic']
+            # Set default IRT parameters if not provided
+            if 'discrimination_a' not in df.columns:
+                # Tier-based discrimination
+                df['discrimination_a'] = df['tier'].map(tier_discrimination_defaults)
+                # Fallback for missing/invalid tiers
+                df['discrimination_a'] = df['discrimination_a'].fillna(1.5)
+                logger.info(f"Assigned tier-based discrimination_a values")
 
-        logger.info(f"Auto-generated missing columns for {len(df)} questions")
-        return df
+            if 'difficulty_b' not in df.columns:
+                # Tier-based difficulty
+                df['difficulty_b'] = df['tier'].map(tier_difficulty_defaults)
+                # Fallback for missing/invalid tiers
+                df['difficulty_b'] = df['difficulty_b'].fillna(0.0)
+                logger.info(f"Assigned tier-based difficulty_b values")
+
+                # Log questions that used fallback
+                fallback_count = df['difficulty_b'].isna().sum() if 'tier' in df.columns else len(df)
+                if fallback_count > 0:
+                    logger.warning(f"{fallback_count} questions used default parameters (missing/invalid tier)")
+
+            if 'guessing_c' not in df.columns:
+                df['guessing_c'] = 0.25
+
+            if 'content_area' not in df.columns:
+                df['content_area'] = df['topic']
+
+            logger.info(f"Auto-generated missing columns for {len(df)} questions")
+            return df
 
     def import_questions_from_df(self, db: Session, df: pd.DataFrame) -> int:
         """UNCHANGED"""
@@ -1772,7 +1794,13 @@ class AssessmentService:
         )
 
         if not next_question_data:
-            return None
+            # Mark session as completed with special status
+            session.completed = True
+            session.completed_at = datetime.utcnow()
+            db.commit()
+
+            logger.warning(f"Session {session_id}: Questions exhausted, marking as completed")
+            return None  # Still return None for backward compatibility
 
         logger.info(f"Selected question: {next_question_data['question_id']}")
 

@@ -64,6 +64,7 @@ const AdaptiveAssessment = () => {
     const newMode = toggleDarkMode(); // Use the function from theme.js
     setIsDarkMode(newMode); // Update local state to trigger re-render
   };
+  const [earlyTermination, setEarlyTermination] = useState(null);
 
   // Listen for theme changes from other sources
   useEffect(() => {
@@ -643,6 +644,7 @@ const AdaptiveAssessment = () => {
       tier_note: ''
     });
 
+    setEarlyTermination(null); // Reset early termination state for new assessment
     try {
       const response = await fetch(`${API_BASE}/assessments/start`, {
         method: 'POST',
@@ -717,7 +719,14 @@ const AdaptiveAssessment = () => {
           setTopicPerformance(updatedSession.topic_performance);
         }
 
-        if (updatedSession.completed) {
+        if (updatedSession.completed || updatedSession.current_question === null) {
+           // Store early termination info if present
+           if (updatedSession.early_termination) {
+                setEarlyTermination({
+                    reason: updatedSession.termination_reason,
+                    note: updatedSession.reliability_note
+                });
+            }
           setCurrentSession({ ...updatedSession, item_bank_name: currentSession.item_bank_name });
           setAssessmentComplete(true);
           setCurrentQuestionDifficulty(null);
@@ -1022,6 +1031,35 @@ const AdaptiveAssessment = () => {
                 </button>
               </div>
 
+              {/* Early Termination Warning Banner */}
+              {earlyTermination && (
+                <div className={`${theme('bg-amber-900/40 border-amber-700/50', 'bg-amber-50 border-amber-300')} rounded-xl p-4 border mb-6`}>
+                  <div className="flex items-start gap-3">
+                    {/* Warning Icon */}
+                    <div className={`flex-shrink-0 w-6 h-6 rounded-full ${theme('bg-amber-700', 'bg-amber-500')} flex items-center justify-center mt-0.5`}>
+                      <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+
+                    {/* Message Content */}
+                    <div className="flex-1">
+                      <div className={`font-semibold ${theme('text-amber-200', 'text-amber-900')} mb-1`}>
+                        Assessment Completed Early
+                      </div>
+                      <div className={`text-sm ${theme('text-amber-300', 'text-amber-800')}`}>
+                        {earlyTermination.note || 'Results based on available questions'}
+                        {currentSession && currentSession.questions_asked && (
+                          <span className={`block mt-1 ${theme('text-amber-400', 'text-amber-700')}`}>
+                            Based on {currentSession.questions_asked} question{currentSession.questions_asked !== 1 ? 's' : ''} • Your results provide a good estimate of your ability
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {results && (
                 <>
                   <div className="grid grid-cols-2 gap-4 mb-6">
@@ -1125,6 +1163,7 @@ const AdaptiveAssessment = () => {
                   setCurrentQuestionDifficulty(null);
                   setSelectedOption('');
                   setTopicPerformance({});
+                  setEarlyTermination(null); // Reset early termination state
                   setLoading(false);
                 }}
                 className={`w-full ${theme('bg-gradient-to-r from-yellow-400 via-green-500 to-teal-500 hover:from-yellow-500 hover:via-green-600 hover:to-teal-600', 'bg-gradient-to-r from-yellow-400 via-green-500 to-teal-500 hover:from-yellow-500 hover:via-green-600 hover:to-teal-600')} text-white rounded-xl py-3 font-semibold transition`}

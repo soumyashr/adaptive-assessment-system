@@ -62,6 +62,20 @@ class Config:
         "C4": (1.2, 2.5)  # Near theoretical maximum
     }
 
+    TIER_DISCRIMINATION_DEFAULTS = {
+        'C1': 1.2,  # Beginner - moderate discrimination
+        'C2': 1.5,  # Intermediate - standard discrimination
+        'C3': 1.5,  # Advanced - standard discrimination
+        'C4': 1.8   # Expert - higher discrimination
+    }
+
+    TIER_DIFFICULTY_DEFAULTS = {
+        'C1': -1.5,  # Beginner - easier questions
+        'C2': -0.5,  # Intermediate - below average difficulty
+        'C3': 0.5,   # Advanced - above average difficulty
+        'C4': 1.5    # Expert - harder questions
+    }
+
 
     TIER_DIFFICULTY_RANGES: Dict[str, Tuple[float, float]] = {
         "C1": (-1.5, -0.5),
